@@ -1,0 +1,70 @@
+services:
+    # PHP-FPM container
+    app:
+        build:
+            context: ../backend
+            dockerfile: docker/Dockerfile
+        container_name: laravel_app
+        volumes:
+            - ./:/var/www/html
+        # If you want to override php.ini settings directly, you can do it here:
+        # environment:
+        #   PHP_INI_DISPLAY_ERRORS: "On"
+        # ...
+        networks:
+            - laravel_net
+
+    # Nginx container
+    web:
+        image: nginx:latest
+        container_name: laravel_web
+        ports:
+            - "8080:80"
+        volumes:
+            - ./:/var/www/html
+            - ./docker/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+        depends_on:
+            - app
+        networks:
+            - laravel_net
+
+    # MySQL container
+    db:
+        image: mysql:8
+        container_name: laravel_db
+        environment:
+            MYSQL_ROOT_PASSWORD: secret
+            MYSQL_DATABASE: laravel
+            MYSQL_USER: laravel
+            MYSQL_PASSWORD: secret
+        ports:
+            - "3307:3306"
+        volumes:
+            - db_data:/var/lib/mysql
+        networks:
+            - laravel_net
+
+    # Memcached container
+    memcached:
+        image: memcached:latest
+        container_name: laravel_memcached
+        ports:
+            - "11211:11211"
+        networks:
+            - laravel_net
+
+    mailhog:
+        image: mailhog/mailhog:latest
+        container_name: mailhog
+        ports:
+            - "1025:1025"  # SMTP server
+            - "8025:8025"  # Web UI
+        networks:
+            - laravel_net
+
+networks:
+    laravel_net:
+        driver: bridge
+
+volumes:
+    db_data:
