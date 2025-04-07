@@ -3,10 +3,10 @@ export interface Customer {
     firstName: string;
     lastName: string;
     email: string;
-    phone?: string; // Optional phone number
+    phone?: string;
     address: string;
-    registeredDate: string; // Format: YYYY-MM-DD
-    status: 'Active' | 'Inactive' | 'Prospect'; // Example statuses
-    totalSpent: number; // Example metric
-    avatarUrl?: string; // Optional avatar image URL
+    createdAt: string;
+    status: 'Active' | 'Inactive' | 'Prospect';
+    totalSpent: number;
+    avatarUrl?: string;
 }

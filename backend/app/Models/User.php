@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Notifications\CustomResetPassword;
 use App\Notifications\CustomVerifyEmail;
+use App\Traits\HasUuid;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -14,7 +15,7 @@ use Laravel\Sanctum\HasApiTokens;
 class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable, HasApiTokens;
+    use HasFactory, HasUuid, Notifiable, HasApiTokens;
 
     /**
      * The attributes that are mass assignable.
@@ -22,6 +23,7 @@ class User extends Authenticatable implements MustVerifyEmail
      * @var list<string>
      */
     protected $fillable = [
+        'uuid',
         'name',
         'email',
         'password',
@@ -35,6 +37,7 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $hidden = [
         'password',
         'remember_token',
+        'id',
     ];
 
     /**

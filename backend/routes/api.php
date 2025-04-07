@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\CustomerController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -16,5 +17,12 @@ Route::middleware('auth:sanctum')->group(function () {
         return $request->user();
     });
 
-
+    // Customer routes
+    Route::controller(CustomerController::class)->group(function () {
+        Route::get('/customers', 'index');
+        Route::post('/customers', 'store');
+        Route::get('/customers/{customer:uuid}', 'show');
+        Route::put('/customers/{customer:uuid}', 'update');
+        Route::delete('/customers/{customer:uuid}', 'destroy');
+    });
 });

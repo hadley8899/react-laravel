@@ -151,7 +151,7 @@ const Customers: React.FC = () => {
                                                 </Box>
                                             )}
                                             <Typography variant="body2" color="text.secondary" sx={{mt: 1}}>
-                                                Registered: {new Date(customer.registeredDate).toLocaleDateString()}
+                                                Registered: {new Date(customer.createdAt).toLocaleDateString()}
                                             </Typography>
                                             <Typography variant="body2" color="text.secondary">
                                                 Total Spent: ${customer.totalSpent.toFixed(2)}

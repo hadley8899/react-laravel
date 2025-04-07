@@ -8,7 +8,7 @@ const customers: Customer[] = [
         email: "alice.smith@example.com",
         phone: "555-0101",
         address: "123 Maple Street, Anytown, AT 12345",
-        registeredDate: "2023-01-15",
+        createdAt: "2023-01-15",
         status: "Active",
         totalSpent: 1250.75,
         avatarUrl: `https://i.pravatar.cc/150?img=${Math.floor(Math.random() * 70) + 1}` // Random placeholder avatar
@@ -19,7 +19,7 @@ const customers: Customer[] = [
         lastName: "Johnson",
         email: "bob.j@example.net",
         address: "456 Oak Avenue, Sometown, ST 67890",
-        registeredDate: "2022-11-30",
+        createdAt: "2022-11-30",
         status: "Active",
         totalSpent: 875.00,
         avatarUrl: `https://i.pravatar.cc/150?img=${Math.floor(Math.random() * 70) + 1}`
@@ -31,7 +31,7 @@ const customers: Customer[] = [
         email: "charlie.b@example.com",
         phone: "555-0103",
         address: "789 Pine Road, Villagetown, VT 10112",
-        registeredDate: "2023-03-10",
+        createdAt: "2023-03-10",
         status: "Inactive",
         totalSpent: 250.50,
         avatarUrl: `https://i.pravatar.cc/150?img=${Math.floor(Math.random() * 70) + 1}`
@@ -42,7 +42,7 @@ const customers: Customer[] = [
         lastName: "Williams",
         email: "diana.w@example.org",
         address: "101 Birch Lane, Cityville, CV 13141",
-        registeredDate: "2024-05-20",
+        createdAt: "2024-05-20",
         status: "Prospect",
         totalSpent: 0.00,
         avatarUrl: `https://i.pravatar.cc/150?img=${Math.floor(Math.random() * 70) + 1}`
@@ -54,7 +54,7 @@ const customers: Customer[] = [
         email: "ethan.davis@sample.com",
         phone: "555-0105",
         address: "222 Cedar Blvd, Metrotown, MT 15161",
-        registeredDate: "2023-08-01",
+        createdAt: "2023-08-01",
         status: "Active",
         totalSpent: 2100.00,
         avatarUrl: `https://i.pravatar.cc/150?img=${Math.floor(Math.random() * 70) + 1}`
@@ -65,7 +65,7 @@ const customers: Customer[] = [
         lastName: "Miller",
         email: "f.miller@sample.net",
         address: "333 Willow Way, Suburbia, SB 17181",
-        registeredDate: "2024-01-05",
+        createdAt: "2024-01-05",
         status: "Active",
         totalSpent: 550.25,
         avatarUrl: `https://i.pravatar.cc/150?img=${Math.floor(Math.random() * 70) + 1}`
@@ -77,7 +77,7 @@ const customers: Customer[] = [
         email: "george.wilson@example.com",
         phone: "555-0107",
         address: "444 Elm Street, Hightown, HT 19202",
-        registeredDate: "2023-10-12",
+        createdAt: "2023-10-12",
         status: "Inactive",
         totalSpent: 150.00,
         avatarUrl: `https://i.pravatar.cc/150?img=${Math.floor(Math.random() * 70) + 1}`
@@ -88,7 +88,7 @@ const customers: Customer[] = [
         lastName: "Moore",
         email: "hannah.m@sample.org",
         address: "555 Spruce Drive, Lowtown, LT 21222",
-        registeredDate: "2024-06-01",
+        createdAt: "2024-06-01",
         status: "Prospect",
         totalSpent: 0.00,
         avatarUrl: `https://i.pravatar.cc/150?img=${Math.floor(Math.random() * 70) + 1}`
