@@ -1,5 +1,6 @@
 import React, {useContext} from 'react';
 import {
+    Container,
     Typography,
 } from '@mui/material';
 import {
@@ -30,21 +31,22 @@ import {AuthContext} from '../context/AuthContext';
 import MainLayout from '../components/layout/MainLayout';
 import StatsOverview from "../components/dashbaord/StatsOverview.tsx";
 import DashboardCharts from "../components/dashbaord/DashboardCharts.tsx";
+import DashboardRecords from "../components/dashbaord/DashboardRecords.tsx";
 
 const Dashboard: React.FC = () => {
     const {user} = useContext(AuthContext);
 
     return (
         <MainLayout>
+            <Container maxWidth="lg">
+                <Typography variant="h4" sx={{mb: 4}}>
+                    Welcome back, {user?.name || 'User'}!
+                </Typography>
+                <StatsOverview/>
 
-            <Typography variant="h4" sx={{mb: 4}}>
-                Welcome back, {user?.name || 'User'}!
-            </Typography>
-
-            <StatsOverview/>
-
-            <DashboardCharts/>
-
+                <DashboardCharts/>
+                <DashboardRecords/>
+            </Container>
         </MainLayout>
     );
 };

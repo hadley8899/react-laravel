@@ -1,20 +1,37 @@
-import {Box, Grid, Paper, Typography, useTheme} from "@mui/material";
-import {Doughnut, Line} from "react-chartjs-2";
 import React from "react";
+import {
+    Box,
+    Card,
+    CardContent,
+    CardHeader,
+    Divider,
+    Grid,
+    useTheme
+} from "@mui/material";
+import { Line, Pie } from "react-chartjs-2";
 
 const DashboardCharts: React.FC = () => {
     const theme = useTheme();
-    // Charts data and options
+
+    // Sample data for line chart - Monthly user activity
     const lineChartData = {
-        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
         datasets: [
             {
-                label: 'Monthly Revenue',
-                data: [3500, 4200, 5100, 4800, 6200, 7500, 6800],
+                label: 'Active Users',
+                data: [650, 590, 800, 810, 960, 1050, 1250, 1320, 1200, 1100, 1150, 1350],
                 borderColor: theme.palette.primary.main,
-                backgroundColor: theme.palette.primary.main,
-                tension: 0.2,
-                fill: false
+                backgroundColor: theme.palette.primary.light + '50', // Adding 50% transparency
+                tension: 0.3,
+                fill: true,
+            },
+            {
+                label: 'New Signups',
+                data: [320, 280, 350, 390, 420, 480, 530, 590, 540, 480, 510, 590],
+                borderColor: theme.palette.success.main,
+                backgroundColor: theme.palette.success.light + '50',
+                tension: 0.3,
+                fill: true,
             }
         ]
     };
@@ -23,53 +40,95 @@ const DashboardCharts: React.FC = () => {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-            legend: {display: true},
-            title: {display: false}
+            legend: {
+                position: 'top' as const,
+            },
+            title: {
+                display: true,
+                text: 'Monthly User Activity',
+                font: {
+                    size: 16
+                }
+            },
         },
         scales: {
-            x: {grid: {display: false}},
-            y: {grid: {color: theme.palette.divider}}
+            y: {
+                beginAtZero: true,
+                grid: {
+                    color: theme.palette.divider
+                }
+            },
+            x: {
+                grid: {
+                    color: theme.palette.divider
+                }
+            }
         }
     };
 
-    const doughnutData = {
-        labels: ['Sedans', 'SUVs', 'Trucks'],
+    // Sample data for pie chart - Revenue by source
+    const pieChartData = {
+        labels: ['Subscriptions', 'One-time Sales', 'Referrals', 'Advertising'],
         datasets: [
             {
-                data: [60, 25, 15],
+                data: [45, 30, 15, 10],
                 backgroundColor: [
                     theme.palette.primary.main,
-                    theme.palette.secondary.main,
-                    theme.palette.info.main
+                    theme.palette.success.main,
+                    theme.palette.warning.main,
+                    theme.palette.info.main,
                 ],
-                hoverOffset: 8
-            }
-        ]
+                borderColor: theme.palette.background.paper,
+                borderWidth: 2,
+            },
+        ],
     };
 
+    const pieChartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'right' as const,
+            },
+            title: {
+                display: true,
+                text: 'Revenue Distribution',
+                font: {
+                    size: 16
+                }
+            }
+        }
+    };
 
     return (
-        <Grid container spacing={3}>
-            <Grid>
-                <Paper sx={{p: 3, height: '100%'}} elevation={3}>
-                    <Typography variant="h6">Monthly Revenue</Typography>
-                    <Box sx={{height: 300, mt: 2}}>
-                        <Line data={lineChartData} options={lineChartOptions}/>
-                    </Box>
-                </Paper>
+        <Box sx={{ mb: 4 }}>
+            <Grid container spacing={3}>
+                <Grid>
+                    <Card>
+                        <CardHeader title="User Growth Trends" />
+                        <Divider />
+                        <CardContent>
+                            <Box sx={{ height: 300 }}>
+                                <Line data={lineChartData} options={lineChartOptions} />
+                            </Box>
+                        </CardContent>
+                    </Card>
+                </Grid>
+                <Grid>
+                    <Card>
+                        <CardHeader title="Revenue Sources" />
+                        <Divider />
+                        <CardContent>
+                            <Box sx={{ height: 300, display: 'flex', alignItems: 'center' }}>
+                                <Pie data={pieChartData} options={pieChartOptions} />
+                            </Box>
+                        </CardContent>
+                    </Card>
+                </Grid>
             </Grid>
-            <Grid>
-                <Paper sx={{p: 3, height: '100%'}} elevation={3}>
-                    <Typography variant="h6">Vehicle Types</Typography>
-                    <Box sx={{height: 250, mt: 2, display: 'flex', justifyContent: 'center'}}>
-                        <Box sx={{width: 200}}>
-                            <Doughnut data={doughnutData}/>
-                        </Box>
-                    </Box>
-                </Paper>
-            </Grid>
-        </Grid>
-    )
-}
+        </Box>
+    );
+};
 
-export default DashboardCharts
+export default DashboardCharts;

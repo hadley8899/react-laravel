@@ -1,4 +1,4 @@
-import { Box, Divider, Drawer, List, ListItemButton, ListItemIcon, ListItemText, Typography } from "@mui/material";
+import {Box, Divider, Drawer, List, ListItemButton, ListItemIcon, ListItemText, Typography} from "@mui/material";
 import {
     CalendarMonth,
     Dashboard as DashboardIcon,
@@ -8,7 +8,8 @@ import {
     Settings
 } from "@mui/icons-material";
 import React from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import {useLocation, useNavigate} from "react-router-dom";
+import PersonIcon from "@mui/icons-material/Person";
 
 interface SidebarProps {
     mobileOpen: boolean;
@@ -21,22 +22,23 @@ interface SidebarItem {
     icon: React.ReactNode;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, handleDrawerToggle }) => {
+const Sidebar: React.FC<SidebarProps> = ({mobileOpen, handleDrawerToggle}) => {
     const drawerWidth = 240;
     const location = useLocation();
     const navigate = useNavigate();
 
     // Define navigation items
     const mainNavItems: SidebarItem[] = [
-        { title: "Dashboard", path: "/dashboard", icon: <DashboardIcon /> },
-        { title: "Vehicles", path: "/vehicles", icon: <DirectionsCar /> },
-        { title: "Invoices", path: "/invoices", icon: <ReceiptLong /> },
-        { title: "Appointments", path: "/appointments", icon: <CalendarMonth /> }
+        {title: "Dashboard", path: "/dashboard", icon: <DashboardIcon/>},
+        {title: "Vehicles", path: "/vehicles", icon: <DirectionsCar/>},
+        {title: "Customers", path: "/customers", icon: <PersonIcon/>},
+        {title: "Invoices", path: "/invoices", icon: <ReceiptLong/>},
+        {title: "Appointments", path: "/appointments", icon: <CalendarMonth/>}
     ];
 
     const secondaryNavItems: SidebarItem[] = [
-        { title: "Profile", path: "/profile", icon: <Person /> },
-        { title: "Settings", path: "/settings", icon: <Settings /> }
+        {title: "Profile", path: "/profile", icon: <Person/>},
+        {title: "Settings", path: "/settings", icon: <Settings/>}
     ];
 
     const handleNavigation = (path: string) => {
@@ -48,8 +50,8 @@ const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, handleDrawerToggle }) => 
 
     // Sidebar items
     const drawer = (
-        <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-            <Typography variant="h6" sx={{ p: 2 }}>
+        <Box sx={{height: '100%', display: 'flex', flexDirection: 'column'}}>
+            <Typography variant="h6" sx={{p: 2}}>
                 React Laravel Starter
             </Typography>
             <List>
@@ -62,11 +64,11 @@ const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, handleDrawerToggle }) => 
                         <ListItemIcon>
                             {item.icon}
                         </ListItemIcon>
-                        <ListItemText primary={item.title} />
+                        <ListItemText primary={item.title}/>
                     </ListItemButton>
                 ))}
             </List>
-            <Divider sx={{ mt: 'auto' }} />
+            <Divider sx={{mt: 'auto'}}/>
             <List>
                 {secondaryNavItems.map((item) => (
                     <ListItemButton
@@ -77,7 +79,7 @@ const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, handleDrawerToggle }) => 
                         <ListItemIcon>
                             {item.icon}
                         </ListItemIcon>
-                        <ListItemText primary={item.title} />
+                        <ListItemText primary={item.title}/>
                     </ListItemButton>
                 ))}
             </List>
@@ -87,7 +89,7 @@ const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, handleDrawerToggle }) => 
     return (
         <Box
             component="nav"
-            sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
+            sx={{width: {sm: drawerWidth}, flexShrink: {sm: 0}}}
             aria-label="mailbox folders"
         >
             {/* Mobile drawer */}
@@ -99,8 +101,8 @@ const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, handleDrawerToggle }) => 
                     keepMounted: true
                 }}
                 sx={{
-                    display: { xs: 'block', sm: 'none' },
-                    '& .MuiDrawer-paper': { width: drawerWidth }
+                    display: {xs: 'block', sm: 'none'},
+                    '& .MuiDrawer-paper': {width: drawerWidth}
                 }}
             >
                 {drawer}
@@ -110,7 +112,7 @@ const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, handleDrawerToggle }) => 
             <Drawer
                 variant="permanent"
                 sx={{
-                    display: { xs: 'none', sm: 'block' },
+                    display: {xs: 'none', sm: 'block'},
                     '& .MuiDrawer-paper': {
                         width: drawerWidth,
                         boxSizing: 'border-box'

@@ -12,6 +12,7 @@ import ResetPassword from "../pages/ResetPassword";
 //Protected pages
 import Dashboard from "../pages/Dashboard";
 import Vehicles from "../pages/Vehicles";
+import Customers from "../pages/Customers";
 import Invoices from "../pages/Invoices";
 import Appointments from "../pages/Appointments";
 import Profile from "../pages/Profile";
@@ -30,6 +31,7 @@ const AppRoutes: React.FC = () => {
             <Route element={<ProtectedRoute/>}>
                 <Route path="/dashboard" element={<Dashboard/>}/>
                 <Route path="/vehicles" element={<Vehicles/>}/>
+                <Route path="/customers" element={<Customers/>}/>
                 <Route path="/invoices" element={<Invoices/>}/>
                 <Route path="/appointments" element={<Appointments/>}/>
                 <Route path="/profile" element={<Profile/>}/>
