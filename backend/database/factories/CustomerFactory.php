@@ -26,8 +26,11 @@ class CustomerFactory extends Factory
      */
     public function definition(): array
     {
+        // Get a random image ID for pravatar (they have about 70 unique images)
+        $pravatarId = $this->faker->numberBetween(1, 70);
+
         return [
-            'uuid' => (string)Str::uuid(),
+            'uuid' => (string) Str::uuid(),
             'first_name' => $this->faker->firstName,
             'last_name' => $this->faker->lastName,
             'email' => $this->faker->unique()->safeEmail,
@@ -35,7 +38,8 @@ class CustomerFactory extends Factory
             'address' => $this->faker->address,
             'status' => $this->faker->randomElement(['Active', 'Inactive']),
             'total_spent' => $this->faker->randomFloat(2, 0, 10000),
-            'avatar_url' => $this->faker->imageUrl(),
+            // Construct the Pravatar URL manually
+            'avatar_url' => "https://i.pravatar.cc/150?img={$pravatarId}", // Using 150x150 size
             'company_id' => Company::factory(),
         ];
     }

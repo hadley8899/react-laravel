@@ -52,7 +52,7 @@ const Settings: React.FC = () => {
 
     // Invoicing
     const [invoicePrefix, setInvoicePrefix] = useState<string>("INV-");
-    const [nextInvoiceNum, setNextInvoiceNum] = useState<number>(1056); // Display only example
+    const [nextInvoiceNum] = useState<number>(1056); // Display only example
     const [paymentTerms, setPaymentTerms] = useState<PaymentTerms>('Net15');
     const [invoiceNotes, setInvoiceNotes] = useState<string>("Thank you for your business. Payment is due within 15 days.");
 
@@ -223,7 +223,7 @@ const Settings: React.FC = () => {
                                 </Select>
                             </FormControl>
                         </Grid>
-                        <Grid item xs={12}>
+                        <Grid>
                             <TextField label="Default Invoice Footer Notes" value={invoiceNotes}
                                        onChange={(e) => setInvoiceNotes(e.target.value)} fullWidth multiline rows={3}/>
                         </Grid>
@@ -232,14 +232,14 @@ const Settings: React.FC = () => {
 
                 {renderSection("Notification Preferences", <NotificationsIcon/>, (
                     <Grid container spacing={2}>
-                        <Grid item xs={12} sm={6}>
+                        <Grid>
                             <FormControlLabel
                                 control={<Switch checked={notifyNewBooking}
                                                  onChange={(e) => setNotifyNewBooking(e.target.checked)}/>}
                                 label="Email me for new online bookings"
                             />
                         </Grid>
-                        <Grid item xs={12} sm={6}>
+                        <Grid>
                             <FormControlLabel
                                 control={<Switch checked={notifyJobComplete}
                                                  onChange={(e) => setNotifyJobComplete(e.target.checked)}/>}

@@ -14,7 +14,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // Seed companies and their associated customers
-        $this->call(CompanySeeder::class);
+        // $this->call(CompanySeeder::class);
         $this->call(CustomerSeeder::class);
 
         // Seed users and associate them with companies

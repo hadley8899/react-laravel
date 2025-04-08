@@ -1,4 +1,5 @@
-import React, {useState} from 'react';
+// src/pages/Customers.tsx
+import React, { useState, useEffect, useCallback } from 'react';
 import MainLayout from "../components/layout/MainLayout";
 import {
     Typography,
@@ -7,193 +8,186 @@ import {
     Box,
     TextField,
     InputAdornment,
-    Grid,
-    Card,
-    CardContent,
-    CardActions,
     Button,
-    Avatar,
-    Chip,
-    TablePagination, // Re-using pagination component
-    IconButton,
-    Tooltip,
+    CircularProgress,
+    Alert,
 } from "@mui/material";
 import SearchIcon from '@mui/icons-material/Search';
 import PeopleIcon from '@mui/icons-material/People';
-import EditIcon from '@mui/icons-material/Edit';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import PhoneIcon from '@mui/icons-material/Phone';
-import EmailIcon from '@mui/icons-material/Email';
 import AddIcon from "@mui/icons-material/Add";
 
-// Import data and interface
-import {Customer} from "../interfaces/Customer";
-import customersData from "../example-data/customers"; // Default import
+// Import interface and service
+import { Customer } from "../interfaces/Customer"; // Adjust path if needed
+import { getCustomers } from "../services/CustomerService"; // Adjust path if needed
+
+// Import components
+import CustomerTable from "../components/customer/CustomerTable"; // Adjust path if needed
+import CustomerFormDialog from '../components/customer/CustomerFormDialog'; // Updated import
+
+// Debounce hook... (keep as is)
+function useDebounce(value: string, delay: number): string {
+    const [debouncedValue, setDebouncedValue] = useState(value);
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedValue(value);
+        }, delay);
+        return () => {
+            clearTimeout(handler);
+        };
+    }, [value, delay]);
+    return debouncedValue;
+}
+
 
 const Customers: React.FC = () => {
+    // ... other state remains the same ...
+    const [customers, setCustomers] = useState<Customer[]>([]);
+    const [totalCustomers, setTotalCustomers] = useState(0);
     const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(6); // Adjust rows per page for card layout
-    const [searchTerm, setSearchTerm] = useState("");
+    const [rowsPerPage, setRowsPerPage] = useState(12);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [searchTermInput, setSearchTermInput] = useState("");
+    const debouncedSearchTerm = useDebounce(searchTermInput, 500);
 
-    // Filter customers based on search term (checking name and email)
-    const filteredCustomers = customersData.filter(customer =>
-        `${customer.firstName} ${customer.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        customer.email.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    // --- State for Modal ---
+    const [isFormModalOpen, setIsFormModalOpen] = useState(false); // Renamed state variable
+    const [customerToEdit, setCustomerToEdit] = useState<Customer | null>(null); // State to hold customer data for editing
 
-    const handleChangePage = (_event: unknown, newPage: number) => {
-        setPage(newPage);
-    };
+    // Fetching function - unchanged
+    const fetchCustomers = useCallback(async (showLoading = true) => {
+        if (showLoading) setLoading(true);
+        setError(null);
+        try {
+            const response = await getCustomers(page + 1, rowsPerPage, debouncedSearchTerm);
+            setCustomers(response.data);
+            setTotalCustomers(response.meta.total);
+        } catch (err: any) {
+            console.error("Failed to fetch customers:", err);
+            setError(err.message || "Failed to load customers. Please try again.");
+        } finally {
+            if (showLoading) setLoading(false);
+        }
+    }, [page, rowsPerPage, debouncedSearchTerm]);
 
+    useEffect(() => {
+        fetchCustomers();
+    }, [fetchCustomers]);
+
+    // --- Event Handlers ---
+    // ... (handleChangePage, handleChangeRowsPerPage, handleSearchChange remain the same) ...
+    const handleChangePage = (_event: unknown, newPage: number) => { setPage(newPage); };
     const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
         setRowsPerPage(parseInt(event.target.value, 10));
         setPage(0);
     };
-
-    // Get status color for Chips
-    const getStatusChip = (status: Customer['status']) => {
-        switch (status) {
-            case 'Active':
-                return <Chip label={status} color="success" size="small" variant="outlined"/>;
-            case 'Inactive':
-                return <Chip label={status} color="error" size="small" variant="outlined"/>;
-            case 'Prospect':
-                return <Chip label={status} color="info" size="small" variant="outlined"/>;
-            default:
-                return <Chip label={status} size="small" variant="outlined"/>;
-        }
+    const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchTermInput(event.target.value);
+        setPage(0);
     };
 
-    // Calculate customers for the current page
-    const paginatedCustomers = filteredCustomers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+    // --- Modal Handlers ---
+    const handleOpenAddModal = () => {
+        setCustomerToEdit(null); // Ensure we are in "add" mode
+        setIsFormModalOpen(true);
+    };
+
+    const handleOpenEditModal = (customer: Customer) => {
+        setCustomerToEdit(customer); // Set the customer to edit
+        setIsFormModalOpen(true);
+    };
+
+    const handleCloseModal = () => {
+        setIsFormModalOpen(false);
+        setCustomerToEdit(null); // Clear customer data on close
+    };
+
+    const handleSaveSuccess = () => {
+        // Renamed callback function
+        fetchCustomers(false); // Re-fetch without main loading indicator
+        // Optionally show a success Snackbar here
+    };
 
     return (
         <MainLayout>
-            <Container maxWidth="lg" sx={{py: 4}}>
-                <Paper sx={{p: 3, borderRadius: 2, overflow: 'hidden'}} elevation={3}>
+            <Container maxWidth="lg" sx={{ py: 4 }}>
+                <Paper sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3, overflow: 'hidden' }} elevation={2}>
                     {/* Header */}
                     <Box
                         sx={{
                             display: 'flex',
                             justifyContent: 'space-between',
                             alignItems: 'center',
-                            flexWrap: 'wrap', // Allow wrapping on small screens
-                            gap: 2, // Add space between items if they wrap
+                            flexWrap: 'wrap',
+                            gap: 2,
                             mb: 3
                         }}
                     >
-                        <Typography variant="h5" component="h1" fontWeight="bold">
-                            <PeopleIcon sx={{mr: 1, verticalAlign: 'middle'}}/>
-                            Customer Management
+                        <Typography variant="h5" component="h1" fontWeight="600"
+                                    sx={{display: 'flex', alignItems: 'center'}}>
+                            <PeopleIcon sx={{mr: 1.5, color: 'primary.main'}}/>
+                            Customers
                         </Typography>
-
-                        <Box sx={{display: 'flex', gap: 1, flexWrap: 'nowrap'}}>
-                            <TextField
+                        <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'nowrap' }}>
+                            {/* Search Field */}
+                            <TextField /* ... props ... */
                                 variant="outlined"
-                                placeholder="Search customers..."
+                                placeholder="Search name or email..."
                                 size="small"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                InputProps={{
-                                    startAdornment: (
-                                        <InputAdornment position="start">
-                                            <SearchIcon/>
-                                        </InputAdornment>
-                                    ),
-                                }}
-                                sx={{minWidth: '250px'}} // Give search some minimum space
+                                value={searchTermInput}
+                                onChange={handleSearchChange}
+                                InputProps={{ startAdornment: (<InputAdornment position="start"><SearchIcon /></InputAdornment>), }}
+                                sx={{ minWidth: '250px', '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
                             />
+                            {/* Add Customer Button */}
                             <Button
                                 variant="contained"
-                                startIcon={<AddIcon/>}
-                                size="medium" // Match text field size better
+                                startIcon={<AddIcon />}
+                                size="medium"
+                                onClick={handleOpenAddModal} // Opens modal in "add" mode
+                                sx={{ whiteSpace: 'nowrap', borderRadius: 2 }}
                             >
                                 Add Customer
                             </Button>
                         </Box>
                     </Box>
 
-                    {/* Customer Grid */}
-                    <Grid container spacing={3}>
-                        {paginatedCustomers.length > 0 ? (
-                            paginatedCustomers.map(customer => (
-                                <Grid key={customer.id}>
-                                    <Card sx={{display: 'flex', flexDirection: 'column', height: '100%'}}>
-                                        <CardContent sx={{flexGrow: 1}}>
-                                            <Box sx={{display: 'flex', alignItems: 'center', mb: 2}}>
-                                                <Avatar
-                                                    src={customer.avatarUrl}
-                                                    alt={`${customer.firstName} ${customer.lastName}`}
-                                                    sx={{width: 56, height: 56, mr: 2}}
-                                                >
-                                                    {/* Fallback initials */}
-                                                    {customer.firstName?.charAt(0)}{customer.lastName?.charAt(0)}
-                                                </Avatar>
-                                                <Box>
-                                                    <Typography variant="h6" component="div" noWrap>
-                                                        {customer.firstName} {customer.lastName}
-                                                    </Typography>
-                                                    {getStatusChip(customer.status)}
-                                                </Box>
-                                            </Box>
-                                            <Box sx={{display: 'flex', alignItems: 'center', mb: 1}}>
-                                                <EmailIcon color="action" sx={{mr: 1, fontSize: '1rem'}}/>
-                                                <Typography variant="body2" color="text.secondary" noWrap>
-                                                    {customer.email}
-                                                </Typography>
-                                            </Box>
-                                            {customer.phone && (
-                                                <Box sx={{display: 'flex', alignItems: 'center', mb: 1}}>
-                                                    <PhoneIcon color="action" sx={{mr: 1, fontSize: '1rem'}}/>
-                                                    <Typography variant="body2" color="text.secondary">
-                                                        {customer.phone}
-                                                    </Typography>
-                                                </Box>
-                                            )}
-                                            <Typography variant="body2" color="text.secondary" sx={{mt: 1}}>
-                                                Registered: {new Date(customer.createdAt).toLocaleDateString()}
-                                            </Typography>
-                                            <Typography variant="body2" color="text.secondary">
-                                                Total Spent: ${customer.totalSpent.toFixed(2)}
-                                            </Typography>
-                                        </CardContent>
-                                        <CardActions sx={{justifyContent: 'flex-end', pt: 0}}>
-                                            <Tooltip title="View Details">
-                                                <IconButton size="small">
-                                                    <VisibilityIcon/>
-                                                </IconButton>
-                                            </Tooltip>
-                                            <Tooltip title="Edit Customer">
-                                                <IconButton size="small">
-                                                    <EditIcon/>
-                                                </IconButton>
-                                            </Tooltip>
-                                        </CardActions>
-                                    </Card>
-                                </Grid>
-                            ))
-                        ) : (
-                            <Grid>
-                                <Typography align="center" color="text.secondary" sx={{mt: 4}}>
-                                    No customers found matching your search criteria.
-                                </Typography>
-                            </Grid>
-                        )}
-                    </Grid>
+                    {/* Loading / Error Display */}
+                    {/* ... (loading and error display logic remains the same) ... */}
+                    {loading && (
+                        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '300px' }}>
+                            <CircularProgress />
+                        </Box>
+                    )}
+                    {error && !loading && (
+                        <Alert severity="error" sx={{ my: 2, mx: 'auto', maxWidth: '600px' }}>{error}</Alert>
+                    )}
 
-                    {/* Pagination */}
-                    <TablePagination
-                        rowsPerPageOptions={[6, 12, 24]} // Adjusted options for grid
-                        component="div"
-                        count={filteredCustomers.length}
-                        rowsPerPage={rowsPerPage}
-                        page={page}
-                        onPageChange={handleChangePage}
-                        onRowsPerPageChange={handleChangeRowsPerPage}
-                        sx={{mt: 3, borderTop: 1, borderColor: 'divider'}} // Add separator
-                    />
+                    {/* Customer Table */}
+                    {!loading && !error && customers && (
+                        <>
+                            <CustomerTable
+                                customers={customers}
+                                totalCustomers={totalCustomers}
+                                rowsPerPage={rowsPerPage}
+                                page={page}
+                                handleChangePage={handleChangePage}
+                                handleChangeRowsPerPage={handleChangeRowsPerPage}
+                                onEditCustomer={handleOpenEditModal}
+                                debouncedSearchTerm={debouncedSearchTerm}
+                            />
+                        </>
+                    )}
                 </Paper>
             </Container>
+
+            {/* Render the Universal Customer Form Dialog */}
+            <CustomerFormDialog
+                open={isFormModalOpen}
+                onClose={handleCloseModal}
+                onSaveSuccess={handleSaveSuccess} // Pass the success handler
+                customerToEdit={customerToEdit} // Pass customer data for editing (or null for adding)
+            />
         </MainLayout>
     );
 }

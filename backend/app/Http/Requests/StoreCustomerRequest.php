@@ -28,7 +28,7 @@ class StoreCustomerRequest extends FormRequest
             'email' => 'email|unique:customers,email',
             'phone' => 'nullable|string|max:20',
             'address' => 'nullable|string|max:255',
-            'status' => 'in:Active,Inactive,Prospect',
+            'status' => 'in:Active,Inactive',
             'total_spent' => 'nullable|numeric|min:0',
             'avatar_url' => 'nullable|url',
         ];

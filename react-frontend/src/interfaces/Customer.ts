@@ -1,12 +1,12 @@
 export interface Customer {
-    id: number;
+    uuid: string;
     firstName: string;
     lastName: string;
     email: string;
     phone?: string;
     address: string;
     createdAt: string;
-    status: 'Active' | 'Inactive' | 'Prospect';
+    status: 'Active' | 'Inactive';
     totalSpent: number;
     avatarUrl?: string;
 }

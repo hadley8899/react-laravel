@@ -9,13 +9,35 @@ use App\Models\Customer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\Auth;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 
 class CustomerController extends Controller
 {
+    /**
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
     public function index(): AnonymousResourceCollection
     {
-        $customers = Customer::query()->where('company_id', Auth::user()->company_id)->get();
-        return CustomerResource::collection($customers);
+        $perPage = (int)request()->get('per_page', 10);
+
+        $search = request()->get('search');
+
+        $customers = Customer::query()
+            ->where('company_id', Auth::user()->company_id)
+            ->orderBy('last_name');
+
+        if ($search) {
+            $customers->where(function ($query) use ($search) {
+                $query->where('first_name', 'like', "%{$search}%")
+                    ->orWhere('last_name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%");
+            });
+        }
+
+        return CustomerResource::collection($customers->paginate($perPage));
     }
 
     /**
