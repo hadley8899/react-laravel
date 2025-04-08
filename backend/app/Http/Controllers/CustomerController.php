@@ -21,19 +21,27 @@ class CustomerController extends Controller
     public function index(): AnonymousResourceCollection
     {
         $perPage = (int)request()->get('per_page', 10);
-
         $search = request()->get('search');
+
+        $showInactive = true;
+        if (request()->get('show_inactive', null)) {
+            $showInactive = request()->get('show_inactive') === 'true';
+        }
 
         $customers = Customer::query()
             ->where('company_id', Auth::user()->company_id)
             ->orderBy('last_name');
 
+        if (!$showInactive) {
+            $customers->where('status', '!=', 'Inactive');
+        }
+
         if ($search) {
             $customers->where(function ($query) use ($search) {
-                $query->where('first_name', 'like', "%{$search}%")
-                    ->orWhere('last_name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%")
-                    ->orWhere('phone', 'like', "%{$search}%");
+                $query->where('first_name', 'like', "%$search%")
+                    ->orWhere('last_name', 'like', "%$search%")
+                    ->orWhere('email', 'like', "%$search%")
+                    ->orWhere('phone', 'like', "%$search%");
             });
         }
 
@@ -56,16 +64,25 @@ class CustomerController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Customer $customer): CustomerResource
+    public function show(Customer $customer): CustomerResource|JsonResponse
     {
+        // Make sure the users company_id matches the customer's company_id
+        if ($customer->company_id !== Auth::user()->company_id) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
         return new CustomerResource($customer);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateCustomerRequest $request, Customer $customer): CustomerResource
+    public function update(UpdateCustomerRequest $request, Customer $customer): CustomerResource|JsonResponse
     {
+        // Make sure the users company_id matches the customer's company_id
+        if ($customer->company_id !== Auth::user()->company_id) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
         $customer->update($request->validated());
         return new CustomerResource($customer);
     }
@@ -75,6 +92,9 @@ class CustomerController extends Controller
      */
     public function destroy(Customer $customer): JsonResponse
     {
+        if ($customer->company_id !== Auth::user()->company_id) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
         $customer->delete();
         return response()->json(null, 204);
     }

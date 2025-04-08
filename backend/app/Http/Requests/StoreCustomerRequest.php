@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreCustomerRequest extends FormRequest
@@ -23,14 +22,14 @@ class StoreCustomerRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'email' => 'email|unique:customers,email',
-            'phone' => 'nullable|string|max:20',
-            'address' => 'nullable|string|max:255',
-            'status' => 'in:Active,Inactive',
-            'total_spent' => 'nullable|numeric|min:0',
-            'avatar_url' => 'nullable|url',
+            'first_name' => ['sometimes', 'required', 'string', 'max:255'],
+            'last_name' => ['sometimes', 'required', 'string', 'max:255'],
+            'email' => ['email','unique:customers'],
+            'phone' => ['nullable', 'string', 'max:20'],
+            'address' => ['sometimes', 'required', 'string', 'max:255'],
+            'status' => ['sometimes', 'required', 'in:Active,Inactive'],
+            'total_spent' => ['sometimes', 'required', 'numeric', 'min:0'],
+            'avatar_url' => ['nullable', 'url'],
         ];
     }
 }

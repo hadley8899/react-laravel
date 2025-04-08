@@ -1,30 +1,27 @@
-// src/pages/Customers.tsx
-import React, { useState, useEffect, useCallback } from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import MainLayout from "../components/layout/MainLayout";
 import {
-    Typography,
     Container,
     Paper,
     Box,
-    TextField,
-    InputAdornment,
     Button,
     CircularProgress,
     Alert,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogContentText,
+    DialogTitle,
 } from "@mui/material";
-import SearchIcon from '@mui/icons-material/Search';
-import PeopleIcon from '@mui/icons-material/People';
-import AddIcon from "@mui/icons-material/Add";
-
 // Import interface and service
-import { Customer } from "../interfaces/Customer"; // Adjust path if needed
-import { getCustomers } from "../services/CustomerService"; // Adjust path if needed
+import {Customer} from "../interfaces/Customer";
+import {deleteCustomer, getCustomers} from "../services/CustomerService";
 
 // Import components
-import CustomerTable from "../components/customer/CustomerTable"; // Adjust path if needed
-import CustomerFormDialog from '../components/customer/CustomerFormDialog'; // Updated import
+import CustomerTable from "../components/customer/CustomerTable";
+import CustomerFormDialog from '../components/customer/CustomerFormDialog';
+import CustomerPageFilterBar from "../components/customer/CustomerPageFilterBar.tsx";
 
-// Debounce hook... (keep as is)
 function useDebounce(value: string, delay: number): string {
     const [debouncedValue, setDebouncedValue] = useState(value);
     useEffect(() => {
@@ -38,28 +35,33 @@ function useDebounce(value: string, delay: number): string {
     return debouncedValue;
 }
 
-
 const Customers: React.FC = () => {
-    // ... other state remains the same ...
     const [customers, setCustomers] = useState<Customer[]>([]);
+    const [showInactive, setShowInactive] = useState(false);
     const [totalCustomers, setTotalCustomers] = useState(0);
     const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(12);
+    const [rowsPerPage, setRowsPerPage] = useState(20);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [searchTermInput, setSearchTermInput] = useState("");
     const debouncedSearchTerm = useDebounce(searchTermInput, 500);
 
     // --- State for Modal ---
-    const [isFormModalOpen, setIsFormModalOpen] = useState(false); // Renamed state variable
-    const [customerToEdit, setCustomerToEdit] = useState<Customer | null>(null); // State to hold customer data for editing
+    const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+    const [customerToEdit, setCustomerToEdit] = useState<Customer | null>(null);
 
-    // Fetching function - unchanged
+    // --- State for Delete Confirmation Dialog ---
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [customerToDelete, setCustomerToDelete] = useState<Customer | null>(null);
+
     const fetchCustomers = useCallback(async (showLoading = true) => {
-        if (showLoading) setLoading(true);
+        if (showLoading) {
+            setLoading(true)
+        }
+
         setError(null);
         try {
-            const response = await getCustomers(page + 1, rowsPerPage, debouncedSearchTerm);
+            const response = await getCustomers(page + 1, rowsPerPage, debouncedSearchTerm, showInactive);
             setCustomers(response.data);
             setTotalCustomers(response.meta.total);
         } catch (err: any) {
@@ -68,102 +70,94 @@ const Customers: React.FC = () => {
         } finally {
             if (showLoading) setLoading(false);
         }
-    }, [page, rowsPerPage, debouncedSearchTerm]);
+    }, [page, rowsPerPage, debouncedSearchTerm, showInactive]);
 
     useEffect(() => {
         fetchCustomers();
     }, [fetchCustomers]);
 
-    // --- Event Handlers ---
-    // ... (handleChangePage, handleChangeRowsPerPage, handleSearchChange remain the same) ...
-    const handleChangePage = (_event: unknown, newPage: number) => { setPage(newPage); };
+    const handleChangePage = (_event: unknown, newPage: number) => {
+        setPage(newPage);
+    };
+
     const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
         setRowsPerPage(parseInt(event.target.value, 10));
         setPage(0);
     };
+
     const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSearchTermInput(event.target.value);
         setPage(0);
     };
 
-    // --- Modal Handlers ---
+    const handleOpenDeleteDialog = (customer: Customer) => {
+        setCustomerToDelete(customer);
+        setDeleteDialogOpen(true);
+    };
+
+    const handleCloseDeleteDialog = () => {
+        setDeleteDialogOpen(false);
+        setCustomerToDelete(null);
+    };
+
+    const handleDeleteCustomer = async () => {
+        if (!customerToDelete) return;
+
+        try {
+            await deleteCustomer(customerToDelete.uuid);
+            fetchCustomers(false);
+            handleCloseDeleteDialog();
+        } catch (error) {
+            console.error("Error deleting customer:", error);
+            setError("Failed to delete customer. Please try again.");
+        }
+    };
+
     const handleOpenAddModal = () => {
-        setCustomerToEdit(null); // Ensure we are in "add" mode
+        setCustomerToEdit(null);
         setIsFormModalOpen(true);
     };
 
     const handleOpenEditModal = (customer: Customer) => {
-        setCustomerToEdit(customer); // Set the customer to edit
+        setCustomerToEdit(customer);
         setIsFormModalOpen(true);
     };
 
     const handleCloseModal = () => {
         setIsFormModalOpen(false);
-        setCustomerToEdit(null); // Clear customer data on close
+        setCustomerToEdit(null);
     };
 
     const handleSaveSuccess = () => {
-        // Renamed callback function
-        fetchCustomers(false); // Re-fetch without main loading indicator
-        // Optionally show a success Snackbar here
+        fetchCustomers(false);
+    };
+
+    const handleShowInactiveChange = (checked: boolean) => {
+        setShowInactive(checked);
+        setPage(0);
     };
 
     return (
         <MainLayout>
-            <Container maxWidth="lg" sx={{ py: 4 }}>
-                <Paper sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3, overflow: 'hidden' }} elevation={2}>
-                    {/* Header */}
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            flexWrap: 'wrap',
-                            gap: 2,
-                            mb: 3
-                        }}
-                    >
-                        <Typography variant="h5" component="h1" fontWeight="600"
-                                    sx={{display: 'flex', alignItems: 'center'}}>
-                            <PeopleIcon sx={{mr: 1.5, color: 'primary.main'}}/>
-                            Customers
-                        </Typography>
-                        <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'nowrap' }}>
-                            {/* Search Field */}
-                            <TextField /* ... props ... */
-                                variant="outlined"
-                                placeholder="Search name or email..."
-                                size="small"
-                                value={searchTermInput}
-                                onChange={handleSearchChange}
-                                InputProps={{ startAdornment: (<InputAdornment position="start"><SearchIcon /></InputAdornment>), }}
-                                sx={{ minWidth: '250px', '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-                            />
-                            {/* Add Customer Button */}
-                            <Button
-                                variant="contained"
-                                startIcon={<AddIcon />}
-                                size="medium"
-                                onClick={handleOpenAddModal} // Opens modal in "add" mode
-                                sx={{ whiteSpace: 'nowrap', borderRadius: 2 }}
-                            >
-                                Add Customer
-                            </Button>
-                        </Box>
-                    </Box>
+            <Container maxWidth="lg" sx={{py: 4}}>
+                <Paper sx={{p: {xs: 2, sm: 3}, borderRadius: 3, overflow: 'hidden'}} elevation={2}>
+                    <CustomerPageFilterBar
+                        showInactive={showInactive}
+                        searchTermInput={searchTermInput}
+                        handleShowInactiveChange={handleShowInactiveChange}
+                        handleSearchChange={handleSearchChange}
+                        handleOpenAddModal={handleOpenAddModal}
+                    />
 
-                    {/* Loading / Error Display */}
-                    {/* ... (loading and error display logic remains the same) ... */}
                     {loading && (
-                        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '300px' }}>
-                            <CircularProgress />
+                        <Box sx={{display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '300px'}}>
+                            <CircularProgress/>
                         </Box>
                     )}
                     {error && !loading && (
-                        <Alert severity="error" sx={{ my: 2, mx: 'auto', maxWidth: '600px' }}>{error}</Alert>
+                        <Alert severity="error" sx={{my: 2, mx: 'auto', maxWidth: '600px'}}>{error}</Alert>
                     )}
 
-                    {/* Customer Table */}
                     {!loading && !error && customers && (
                         <>
                             <CustomerTable
@@ -175,19 +169,44 @@ const Customers: React.FC = () => {
                                 handleChangeRowsPerPage={handleChangeRowsPerPage}
                                 onEditCustomer={handleOpenEditModal}
                                 debouncedSearchTerm={debouncedSearchTerm}
+                                onDeleteCustomer={handleOpenDeleteDialog}
                             />
                         </>
                     )}
                 </Paper>
             </Container>
 
-            {/* Render the Universal Customer Form Dialog */}
             <CustomerFormDialog
                 open={isFormModalOpen}
                 onClose={handleCloseModal}
-                onSaveSuccess={handleSaveSuccess} // Pass the success handler
-                customerToEdit={customerToEdit} // Pass customer data for editing (or null for adding)
+                onSaveSuccess={handleSaveSuccess}
+                customerToEdit={customerToEdit}
             />
+
+            <Dialog
+                open={deleteDialogOpen}
+                onClose={handleCloseDeleteDialog}
+                aria-labelledby="delete-dialog-title"
+                aria-describedby="delete-dialog-description"
+            >
+                <DialogTitle id="delete-dialog-title">
+                    Confirm Deletion
+                </DialogTitle>
+                <DialogContent>
+                    <DialogContentText id="delete-dialog-description">
+                        Are you sure you want to delete {customerToDelete?.first_name || "this customer"}?
+                        This action cannot be undone.
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCloseDeleteDialog} color="primary">
+                        Cancel
+                    </Button>
+                    <Button onClick={handleDeleteCustomer} color="error" autoFocus>
+                        Delete
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </MainLayout>
     );
 }

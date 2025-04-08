@@ -22,14 +22,14 @@ class UpdateCustomerRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'first_name' => 'sometimes|required|string|max:255',
-            'last_name' => 'sometimes|required|string|max:255',
-            'email' => 'sometimes|required|email|unique:customers,email,' . $this->route('customer')->id,
-            'phone' => 'nullable|string|max:20',
-            'address' => 'sometimes|required|string|max:255',
-            'status' => 'sometimes|required|in:Active,Inactive',
-            'total_spent' => 'sometimes|required|numeric|min:0',
-            'avatar_url' => 'nullable|url',
+            'first_name' => ['sometimes', 'required', 'string', 'max:255'],
+            'last_name' => ['sometimes', 'required', 'string', 'max:255'],
+            'email' => ['sometimes', 'required', 'email', 'unique:customers,email,' . $this->route('customer')->id],
+            'phone' => ['nullable', 'string', 'max:20'],
+            'address' => ['sometimes', 'required', 'string', 'max:255'],
+            'status' => ['sometimes', 'required', 'in:Active,Inactive'],
+            'total_spent' => ['sometimes', 'required', 'numeric', 'min:0'],
+            'avatar_url' => ['nullable', 'url'],
         ];
     }
 }

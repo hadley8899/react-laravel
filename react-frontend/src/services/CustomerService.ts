@@ -1,30 +1,32 @@
-import {api} from './api'; // Your configured Axios instance
-import {Customer} from '../interfaces/Customer'; // Adjust path if needed
+import {api} from './api';
+import {Customer} from '../interfaces/Customer';
 import {PaginatedResponse} from "../interfaces/PaginatedResponse.ts";
 
-export type CreateCustomerPayload = Omit<Customer, 'uuid' | 'createdAt' | 'totalSpent' | 'avatarUrl'> & {
-};
+export type CreateCustomerPayload = Omit<Customer, 'uuid' | 'created_at' | 'total_spent' | 'avatar_url'> & {};
 
-// Type for the payload when updating (allow partial updates)
-export type UpdateCustomerPayload = Partial<Omit<Customer, 'uuid' | 'createdAt'>>;
+export type UpdateCustomerPayload = Partial<Omit<Customer, 'uuid' | 'created_at'>>;
 
 /**
  * Fetches a paginated list of customers with optional search.
  * @param page - The page number (1-based for API usually)
  * @param perPage - Number of items per page
  * @param searchTerm - Optional search string
+ * @param showInactive - Load inactive customers
  * @returns Promise<PaginatedResponse<Customer>>
  */
 export async function getCustomers(
     page: number = 1,
     perPage: number = 10,
-    searchTerm: string = ''
+    searchTerm: string = '',
+    showInactive: boolean = false
 ): Promise<PaginatedResponse<Customer>> {
+    console.log(showInactive);
     const response = await api.get<PaginatedResponse<Customer>>('/customers', {
         params: {
             page: page,
-            per_page: perPage, // Ensure backend expects 'per_page' or adjust param name
-            search: searchTerm || undefined, // Send search only if it has a value
+            per_page: perPage,
+            search: searchTerm || undefined,
+            show_inactive: showInactive,
         }
     });
     return response.data;
@@ -37,7 +39,7 @@ export async function getCustomers(
  */
 export async function getCustomer(uuid: string): Promise<Customer> {
     const response = await api.get<{ data: Customer }>(`/customers/${uuid}`);
-    return response.data.data; // Adjust if API doesn't wrap in 'data'
+    return response.data.data;
 }
 
 /**
@@ -47,7 +49,7 @@ export async function getCustomer(uuid: string): Promise<Customer> {
  */
 export async function createCustomer(payload: CreateCustomerPayload): Promise<Customer> {
     const response = await api.post<{ data: Customer }>('/customers', payload);
-    return response.data.data; // Adjust if API doesn't wrap in 'data'
+    return response.data.data;
 }
 
 /**
@@ -58,7 +60,7 @@ export async function createCustomer(payload: CreateCustomerPayload): Promise<Cu
  */
 export async function updateCustomer(uuid: string, payload: UpdateCustomerPayload): Promise<Customer> {
     const response = await api.put<{ data: Customer }>(`/customers/${uuid}`, payload);
-    return response.data.data; // Adjust if API doesn't wrap in 'data'
+    return response.data.data;
 }
 
 /**

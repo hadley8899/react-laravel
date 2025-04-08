@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import {
     Dialog,
     DialogTitle,
@@ -6,7 +6,7 @@ import {
     DialogActions,
     TextField,
     Button,
-    Grid, // MUI v7 Grid
+    Grid,
     FormControl,
     InputLabel,
     Select,
@@ -15,17 +15,21 @@ import {
     Alert,
     IconButton,
     Box,
-    SelectChangeEvent, FormHelperText
+    FormHelperText,
+    SelectChangeEvent
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import AddIcon from '@mui/icons-material/Add';
 import SaveIcon from '@mui/icons-material/Save';
 
-// Import service functions and types
-import { Customer } from '../../interfaces/Customer';
-import { createCustomer, updateCustomer, CreateCustomerPayload, UpdateCustomerPayload } from '../../services/CustomerService';
+import {Customer} from '../../interfaces/Customer';
+import {
+    createCustomer,
+    updateCustomer,
+    CreateCustomerPayload,
+    UpdateCustomerPayload
+} from '../../services/CustomerService';
 
-// Define possible statuses directly
 type CustomerStatus = 'Active' | 'Inactive';
 const customerStatuses: CustomerStatus[] = ['Active', 'Inactive'];
 
@@ -60,19 +64,16 @@ const CustomerFormDialog: React.FC<CustomerFormDialogProps> = ({
     useEffect(() => {
         if (open) {
             if (isEditMode && customerToEdit) {
-                // Populate form for editing
-                setFirstName(customerToEdit.firstName || '');
-                setLastName(customerToEdit.lastName || '');
+                setFirstName(customerToEdit.first_name || '');
+                setLastName(customerToEdit.last_name || '');
                 setEmail(customerToEdit.email || '');
                 setPhone(customerToEdit.phone || '');
                 setAddress(customerToEdit.address || '');
-                // Ensure status from customerToEdit is one of the allowed types
-                const validStatus = customerStatuses.includes(customerToEdit.status as CustomerStatus)
-                    ? customerToEdit.status as CustomerStatus
+                const validStatus = customerStatuses.includes(customerToEdit.status)
+                    ? customerToEdit.status
                     : 'Active';
                 setStatus(validStatus);
             } else {
-                // Reset form for adding
                 setFirstName('');
                 setLastName('');
                 setEmail('');
@@ -87,17 +88,15 @@ const CustomerFormDialog: React.FC<CustomerFormDialogProps> = ({
         }
     }, [open, customerToEdit, isEditMode]);
 
-
     const validateForm = (): boolean => {
         const errors: Record<string, string> = {};
         if (!firstName.trim()) errors.firstName = 'First name is required.';
         if (!lastName.trim()) errors.lastName = 'Last name is required.';
         if (!email.trim()) {
             errors.email = 'Email is required.';
-        } else if (!/\S+@\S+\.\S+/.test(email)) { // Basic email format check
+        } else if (!/\S+@\S+\.\S+/.test(email)) {
             errors.email = 'Email address is invalid.';
         }
-
         setFieldErrors(errors);
         return Object.keys(errors).length === 0;
     };
@@ -105,9 +104,8 @@ const CustomerFormDialog: React.FC<CustomerFormDialogProps> = ({
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setError(null);
-        if (!validateForm()) {
-            return;
-        }
+
+        if (!validateForm()) return;
         setIsSubmitting(true);
 
         const apiPayload = {
@@ -121,8 +119,12 @@ const CustomerFormDialog: React.FC<CustomerFormDialogProps> = ({
 
         try {
             if (isEditMode && customerToEdit) {
-                await updateCustomer(customerToEdit.uuid, apiPayload as UpdateCustomerPayload);
+                await updateCustomer(
+                    customerToEdit.uuid,
+                    apiPayload as UpdateCustomerPayload
+                );
             } else {
+                // Create new customer
                 await createCustomer(apiPayload as CreateCustomerPayload);
             }
             onSaveSuccess();
@@ -132,18 +134,19 @@ const CustomerFormDialog: React.FC<CustomerFormDialogProps> = ({
             if (err.response && err.response.data && err.response.data.errors) {
                 const apiErrors = err.response.data.errors;
                 const formattedErrors: Record<string, string> = {};
-                // Map snake_case backend keys to camelCase frontend keys for error display
                 for (const key in apiErrors) {
                     let frontendKey = key;
                     if (key === 'first_name') frontendKey = 'firstName';
                     if (key === 'last_name') frontendKey = 'lastName';
-                    // Add other mappings if needed
                     formattedErrors[frontendKey] = apiErrors[key][0];
                 }
                 setFieldErrors(formattedErrors);
                 setError("Please correct the errors below.");
             } else {
-                setError(err.message || `An unexpected error occurred. Could not ${isEditMode ? 'update' : 'add'} customer.`);
+                setError(
+                    err.message ||
+                    `An unexpected error occurred. Could not ${isEditMode ? 'update' : 'add'} customer.`
+                );
             }
         } finally {
             setIsSubmitting(false);
@@ -155,23 +158,35 @@ const CustomerFormDialog: React.FC<CustomerFormDialogProps> = ({
     };
 
     return (
-        // Using Dialog onClose directly attached to the component allows closing by clicking outside
         <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-            {/* Dialog Title with Close Button */}
-            <DialogTitle sx={{ m: 0, p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <DialogTitle
+                sx={{
+                    m: 0,
+                    p: 2,
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                }}
+            >
                 {isEditMode ? 'Edit Customer' : 'Add New Customer'}
-                <IconButton aria-label="close" onClick={onClose} sx={{ color: (theme) => theme.palette.grey[500] }}>
-                    <CloseIcon />
+                <IconButton
+                    aria-label="close"
+                    onClick={onClose}
+                    sx={{color: (theme) => theme.palette.grey[500]}}
+                >
+                    <CloseIcon/>
                 </IconButton>
             </DialogTitle>
 
-            {/* Form Element */}
             <Box component="form" onSubmit={handleSubmit} noValidate>
-                <DialogContent dividers sx={{ p: { xs: 2, sm: 3 } }}>
-                    {error && !Object.keys(fieldErrors).length && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+                <DialogContent dividers sx={{p: {xs: 2, sm: 3}}}>
+                    {error && !Object.keys(fieldErrors).length && (
+                        <Alert severity="error" sx={{mb: 2}}>
+                            {error}
+                        </Alert>
+                    )}
                     <Grid container spacing={2}>
-                        {/* First Name */}
-                        <Grid size={{ xs: 12, sm: 6 }}>
+                        <Grid size={{xs: 12, sm: 6}}>
                             <TextField
                                 required
                                 autoFocus={!isEditMode}
@@ -189,8 +204,7 @@ const CustomerFormDialog: React.FC<CustomerFormDialogProps> = ({
                                 disabled={isSubmitting}
                             />
                         </Grid>
-
-                        <Grid size={{ xs: 12, sm: 6 }}>
+                        <Grid size={{xs: 12, sm: 6}}>
                             <TextField
                                 required
                                 margin="dense"
@@ -207,7 +221,6 @@ const CustomerFormDialog: React.FC<CustomerFormDialogProps> = ({
                                 disabled={isSubmitting}
                             />
                         </Grid>
-
                         <Grid size={12}>
                             <TextField
                                 required
@@ -225,9 +238,7 @@ const CustomerFormDialog: React.FC<CustomerFormDialogProps> = ({
                                 disabled={isSubmitting}
                             />
                         </Grid>
-
-                        {/* Phone Number */}
-                        <Grid size={{ xs: 12, sm: 6 }}>
+                        <Grid size={{xs: 12, sm: 6}}>
                             <TextField
                                 margin="dense"
                                 id="phone"
@@ -243,9 +254,15 @@ const CustomerFormDialog: React.FC<CustomerFormDialogProps> = ({
                                 disabled={isSubmitting}
                             />
                         </Grid>
-
-                        <Grid size={{ xs: 12, sm: 6 }}>
-                            <FormControl fullWidth margin="dense" required variant="outlined" disabled={isSubmitting} error={!!fieldErrors.status}>
+                        <Grid size={{xs: 12, sm: 6}}>
+                            <FormControl
+                                fullWidth
+                                margin="dense"
+                                required
+                                variant="outlined"
+                                disabled={isSubmitting}
+                                error={!!fieldErrors.status}
+                            >
                                 <InputLabel id="status-select-label">Status</InputLabel>
                                 <Select
                                     labelId="status-select-label"
@@ -255,15 +272,17 @@ const CustomerFormDialog: React.FC<CustomerFormDialogProps> = ({
                                     label="Status"
                                     onChange={handleStatusChange}
                                 >
-                                    {customerStatuses.map((stat) => (
-                                        <MenuItem key={stat} value={stat}>{stat}</MenuItem>
+                                    {customerStatuses.map(stat => (
+                                        <MenuItem key={stat} value={stat}>
+                                            {stat}
+                                        </MenuItem>
                                     ))}
                                 </Select>
-                                {fieldErrors.status && <FormHelperText error>{fieldErrors.status}</FormHelperText>}
+                                {fieldErrors.status && (
+                                    <FormHelperText error>{fieldErrors.status}</FormHelperText>
+                                )}
                             </FormControl>
                         </Grid>
-
-                        {/* Address */}
                         <Grid size={12}>
                             <TextField
                                 margin="dense"
@@ -284,19 +303,31 @@ const CustomerFormDialog: React.FC<CustomerFormDialogProps> = ({
                         </Grid>
                     </Grid>
                 </DialogContent>
-
-                <DialogActions sx={{ p: { xs: 2, sm: 3 } }}>
-                    <Button onClick={onClose} disabled={isSubmitting} color="inherit">Cancel</Button>
+                <DialogActions sx={{p: {xs: 2, sm: 3}}}>
+                    <Button onClick={onClose} disabled={isSubmitting} color="inherit">
+                        Cancel
+                    </Button>
                     <Button
                         type="submit"
                         variant="contained"
                         disabled={isSubmitting}
-                        startIcon={isSubmitting
-                            ? <CircularProgress size={20} color="inherit" />
-                            : (isEditMode ? <SaveIcon /> : <AddIcon />)
+                        startIcon={
+                            isSubmitting ? (
+                                <CircularProgress size={20} color="inherit"/>
+                            ) : isEditMode ? (
+                                <SaveIcon/>
+                            ) : (
+                                <AddIcon/>
+                            )
                         }
                     >
-                        {isSubmitting ? (isEditMode ? 'Saving...' : 'Adding...') : (isEditMode ? 'Save Changes' : 'Add Customer')}
+                        {isSubmitting
+                            ? isEditMode
+                                ? 'Saving...'
+                                : 'Adding...'
+                            : isEditMode
+                                ? 'Save Changes'
+                                : 'Add Customer'}
                     </Button>
                 </DialogActions>
             </Box>

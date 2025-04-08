@@ -16,15 +16,15 @@ class CustomerResource extends JsonResource
     {
         return [
             'uuid' => $this->uuid,
-            'firstName' => $this->first_name,
-            'lastName' => $this->last_name,
+            'first_name' => $this->first_name,
+            'last_name' => $this->last_name,
             'email' => $this->email,
             'phone' => $this->phone,
             'address' => $this->address,
-            'createdAt' => $this->created_at->toDateTimeString(),
+            'created_at' => $this->created_at->toDateTimeString(),
             'status' => $this->status,
-            'totalSpent' => $this->total_spent,
-            'avatarUrl' => $this->avatar_url,
+            'total_spent' => $this->total_spent,
+            'avatar_url' => $this->avatar_url,
         ];
     }
 }

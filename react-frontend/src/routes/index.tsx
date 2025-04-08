@@ -17,6 +17,7 @@ import Invoices from "../pages/Invoices";
 import Appointments from "../pages/Appointments";
 import Profile from "../pages/Profile";
 import Settings from "../pages/Settings";
+import CustomerDetails from '../pages/CustomerDetails.tsx';
 
 const AppRoutes: React.FC = () => {
     return (
@@ -32,6 +33,7 @@ const AppRoutes: React.FC = () => {
                 <Route path="/dashboard" element={<Dashboard/>}/>
                 <Route path="/vehicles" element={<Vehicles/>}/>
                 <Route path="/customers" element={<Customers/>}/>
+                <Route path="/customers/:uuid" element={<CustomerDetails/>}/>
                 <Route path="/invoices" element={<Invoices/>}/>
                 <Route path="/appointments" element={<Appointments/>}/>
                 <Route path="/profile" element={<Profile/>}/>
