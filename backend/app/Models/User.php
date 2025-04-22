@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use SensitiveParameter;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements MustVerifyEmail
@@ -54,7 +55,7 @@ class User extends Authenticatable implements MustVerifyEmail
         ];
     }
 
-    public function sendPasswordResetNotification(#[\SensitiveParameter] $token): void
+    public function sendPasswordResetNotification(#[SensitiveParameter] $token): void
     {
         $this->notify(new CustomResetPassword($token));
     }
