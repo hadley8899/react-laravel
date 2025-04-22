@@ -11,7 +11,6 @@ interface VehiclesTopBarProps {
 
 const VehiclesTopBar: React.FC<VehiclesTopBarProps> = ({selectedVehicles}) => {
     return (
-        // Removed the unnecessary React Fragment <></>
         <Toolbar
             sx={{
                 pl: {sm: 2},
@@ -19,7 +18,7 @@ const VehiclesTopBar: React.FC<VehiclesTopBarProps> = ({selectedVehicles}) => {
                 mb: 2,
                 borderRadius: 1,
                 display: 'flex',
-                justifyContent: 'space-between', // Keep title left, actions right
+                justifyContent: 'space-between',
                 alignItems: 'center',
                 flexWrap: 'wrap',
                 gap: 2,

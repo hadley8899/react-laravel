@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\VehicleController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -24,5 +25,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/customers/{customer:uuid}', 'show');
         Route::put('/customers/{customer:uuid}', 'update');
         Route::delete('/customers/{customer:uuid}', 'destroy');
+    });
+
+    Route::controller(VehicleController::class)->group(function () {
+        Route::get('/vehicles', 'index');
+        Route::post('/vehicles', 'store');
+        Route::get('/vehicles/{vehicle:uuid}', 'show');
+        Route::put('/vehicles/{vehicle:uuid}', 'update');
+        Route::delete('/vehicles/{vehicle:uuid}', 'destroy');
     });
 });

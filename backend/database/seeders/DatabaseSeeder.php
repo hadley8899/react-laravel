@@ -3,31 +3,41 @@
 namespace Database\Seeders;
 
 use App\Models\Company;
+use App\Models\Customer;
 use App\Models\User;
+use App\Models\Vehicle;
 use Illuminate\Database\Seeder;
+use Random\RandomException;
 
 class DatabaseSeeder extends Seeder
 {
     /**
      * Seed the application's database.
+     * @throws RandomException
      */
     public function run(): void
     {
-        // Seed companies and their associated customers
-        // $this->call(CompanySeeder::class);
+        // 1) companies + customers
         $this->call(CustomerSeeder::class);
 
-        // Seed users and associate them with companies
+        // 2) each customer gets 0‑3 vehicles
+        Customer::all()->each(function ($customer) {
+            Vehicle::factory(random_int(0, 3))->create([
+                'company_id' => $customer->company_id,
+                'customer_id' => $customer->id,
+            ]);
+        });
+
+        // 3) users
         User::factory(12)->create()->each(function ($user) {
-            $user->company_id = Company::query()->inRandomOrder()->first()->id;
+            $user->company_id = Company::query()->inRandomOrder()->value('id');
             $user->save();
         });
 
-        // Create a specific test user
         User::factory()->create([
             'name' => 'Test User',
             'email' => 'test@example.com',
-            'company_id' => Company::query()->inRandomOrder()->first()->id,
+            'company_id' => Company::query()->inRandomOrder()->value('id'),
         ]);
     }
 }

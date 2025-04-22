@@ -1,10 +1,18 @@
+export type VehicleStatus =
+    | 'In Service'
+    | 'Ready for Pickup'
+    | 'Awaiting Parts'
+    | 'Scheduled'
+    | 'Diagnostic'
+    | 'Complete';
+
 export interface Vehicle {
-    id: number;
+    uuid: string;
     make: string;
     model: string;
     year: number;
-    licensePlate: string;
-    status: string;
+    registration: string;
+    status: VehicleStatus;
     owner: string;
     lastService: string;
     nextServiceDue: string;

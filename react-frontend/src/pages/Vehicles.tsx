@@ -1,5 +1,5 @@
-import React, {useState} from "react";
-import MainLayout from "../components/layout/MainLayout";
+import React, { useCallback, useEffect, useState } from 'react';
+import MainLayout from '../components/layout/MainLayout';
 import {
     Typography,
     Container,
@@ -16,197 +16,190 @@ import {
     TextField,
     InputAdornment,
     Chip,
-} from "@mui/material";
+    CircularProgress,
+    Alert
+} from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
-import VehiclesTopBar from "../components/vehicles/VehiclesTopBar.tsx";
-import {Vehicle} from "../interfaces/Vehicle.ts";
-import vehicles from "../example-data/vehicles.tsx"
+import VehiclesTopBar from '../components/vehicles/VehiclesTopBar';
+import { Vehicle } from '../interfaces/Vehicle';
+import { getVehicles } from '../services/VehicleService';
 
-// Sample vehicle data
-const sampleVehicles: Vehicle[] = vehicles;
+function useDebounce(value: string, delay = 500) {
+    const [debounced, setDebounced] = useState(value);
+    useEffect(() => {
+        const t = setTimeout(() => setDebounced(value), delay);
+        return () => clearTimeout(t);
+    }, [value, delay]);
+    return debounced;
+}
 
 const Vehicles: React.FC = () => {
+    const [vehicles, setVehicles] = useState<Vehicle[]>([]);
     const [selected, setSelected] = useState<number[]>([]);
     const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(5);
-    const [searchTerm, setSearchTerm] = useState("");
+    const [rowsPerPage, setRowsPerPage] = useState(10);
+    const [total, setTotal] = useState(0);
+    const [search, setSearch] = useState('');
+    const debounced = useDebounce(search);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-    // Filter vehicles based on search term
-    const filteredVehicles = sampleVehicles.filter(vehicle =>
-        vehicle.make.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        vehicle.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        vehicle.licensePlate.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        vehicle.owner.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
-    const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
-        if (event.target.checked) {
-            const newSelected = filteredVehicles.map(vehicle => vehicle.id);
-            setSelected(newSelected);
-            return;
+    /* ---------- Fetch list ---------- */
+    const fetchVehicles = useCallback(async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const res = await getVehicles(page + 1, rowsPerPage, debounced);
+            setVehicles(res.data);
+            setTotal(res.meta.total);
+        } catch (err: any) {
+            setError(err.message || 'Failed to load vehicles');
+        } finally {
+            setLoading(false);
         }
-        setSelected([]);
-    };
+    }, [page, rowsPerPage, debounced]);
 
-    const handleClick = (id: number) => {
-        const selectedIndex = selected.indexOf(id);
-        let newSelected: number[] = [];
+    useEffect(() => { fetchVehicles(); }, [fetchVehicles]);
 
-        if (selectedIndex === -1) {
-            newSelected = newSelected.concat(selected, id);
-        } else if (selectedIndex === 0) {
-            newSelected = newSelected.concat(selected.slice(1));
-        } else if (selectedIndex === selected.length - 1) {
-            newSelected = newSelected.concat(selected.slice(0, -1));
-        } else if (selectedIndex > 0) {
-            newSelected = newSelected.concat(
-                selected.slice(0, selectedIndex),
-                selected.slice(selectedIndex + 1),
-            );
-        }
+    /* ---------- table helpers ---------- */
+    const isSelected = (uuid: string) => selected.includes(uuid);
+    const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) =>
+        setSelected(e.target.checked ? vehicles.map(v => v.uuid) : []);
 
-        setSelected(newSelected);
-    };
+    const handleRowClick = (uuid: string) =>
+        setSelected(prev =>
+            prev.includes(uuid) ? prev.filter(x => x !== uuid) : [...prev, uuid]
+        );
 
-    const handleChangePage = (_event: unknown, newPage: number) => {
-        setPage(newPage);
-    };
-
-    const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setRowsPerPage(parseInt(event.target.value, 10));
-        setPage(0);
-    };
-
-    const isSelected = (id: number) => selected.indexOf(id) !== -1;
-
-    // Get status color
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case 'In Service':
-                return {bg: '#e3f2fd', color: '#1976d2'};
-            case 'Ready for Pickup':
-                return {bg: '#e8f5e9', color: '#2e7d32'};
-            case 'Awaiting Parts':
-                return {bg: '#fff3e0', color: '#e65100'};
-            case 'Scheduled':
-                return {bg: '#e8eaf6', color: '#3f51b5'};
-            case 'Diagnostic':
-                return {bg: '#f3e5f5', color: '#7b1fa2'};
-            case 'Complete':
-                return {bg: '#e0f2f1', color: '#00796b'};
-            default:
-                return {bg: '#eeeeee', color: '#616161'};
-        }
+    const getStatusStyle = (status: Vehicle['status']) => {
+        const map: Record<Vehicle['status'], { bg: string; color: string }> = {
+            'In Service': { bg: '#e3f2fd', color: '#1976d2' },
+            'Ready for Pickup': { bg: '#e8f5e9', color: '#2e7d32' },
+            'Awaiting Parts': { bg: '#fff3e0', color: '#e65100' },
+            Scheduled: { bg: '#e8eaf6', color: '#3f51b5' },
+            Diagnostic: { bg: '#f3e5f5', color: '#7b1fa2' },
+            Complete: { bg: '#e0f2f1', color: '#00796b' }
+        };
+        return map[status] ?? { bg: '#eeeeee', color: '#616161' };
     };
 
     return (
         <MainLayout>
-            <Container maxWidth="lg" sx={{py: 4}}>
-                <Paper sx={{p: 3, borderRadius: 2}} elevation={3}>
-                    {/* Header with title and search */}
-                    <Box sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3}}>
-                        <Typography variant="h5" component="h1" fontWeight="bold">
-                            <DirectionsCarIcon sx={{mr: 1, verticalAlign: 'middle'}}/>
+            <Container maxWidth="lg" sx={{ py: 4 }}>
+                <Paper sx={{ p: 3, borderRadius: 2 }} elevation={3}>
+                    {/* header */}
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
+                        <Typography variant="h5" fontWeight="bold">
+                            <DirectionsCarIcon sx={{ mr: 1 }} />
                             Vehicle Management
                         </Typography>
 
                         <TextField
-                            variant="outlined"
-                            placeholder="Search vehicles..."
                             size="small"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
+                            placeholder="Search vehicles..."
+                            value={search}
+                            onChange={e => setSearch(e.target.value)}
                             InputProps={{
                                 startAdornment: (
                                     <InputAdornment position="start">
-                                        <SearchIcon/>
+                                        <SearchIcon />
                                     </InputAdornment>
-                                ),
+                                )
                             }}
                         />
                     </Box>
 
-                    <VehiclesTopBar selectedVehicles={selected} />
+                    <VehiclesTopBar selectedVehicles={selected} onRefresh={fetchVehicles} />
 
-                    {/* Vehicles table */}
-                    <TableContainer>
-                        <Table sx={{minWidth: 750}}>
-                            <TableHead sx={{backgroundColor: (theme) => theme.palette.action.hover}}>
-                                <TableRow>
-                                    <TableCell padding="checkbox">
-                                        <Checkbox
-                                            indeterminate={selected.length > 0 && selected.length < filteredVehicles.length}
-                                            checked={filteredVehicles.length > 0 && selected.length === filteredVehicles.length}
-                                            onChange={handleSelectAllClick}
-                                        />
-                                    </TableCell>
-                                    <TableCell><strong>Make/Model</strong></TableCell>
-                                    <TableCell><strong>Year</strong></TableCell>
-                                    <TableCell><strong>License Plate</strong></TableCell>
-                                    <TableCell><strong>Status</strong></TableCell>
-                                    <TableCell><strong>Owner</strong></TableCell>
-                                    <TableCell><strong>Last Service</strong></TableCell>
-                                    <TableCell><strong>Next Due</strong></TableCell>
-                                    <TableCell><strong>Type</strong></TableCell>
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {filteredVehicles
-                                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                                    .map(vehicle => {
-                                        const isItemSelected = isSelected(vehicle.id);
-                                        const statusStyle = getStatusColor(vehicle.status);
+                    {loading ? (
+                        <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
+                            <CircularProgress />
+                        </Box>
+                    ) : error ? (
+                        <Alert severity="error">{error}</Alert>
+                    ) : (
+                        <>
+                            <TableContainer>
+                                <Table>
+                                    <TableHead sx={{ backgroundColor: t => t.palette.action.hover }}>
+                                        <TableRow>
+                                            <TableCell padding="checkbox">
+                                                <Checkbox
+                                                    indeterminate={
+                                                        selected.length > 0 && selected.length < vehicles.length
+                                                    }
+                                                    checked={
+                                                        vehicles.length > 0 && selected.length === vehicles.length
+                                                    }
+                                                    onChange={handleSelectAll}
+                                                />
+                                            </TableCell>
+                                            <TableCell><strong>Make / Model</strong></TableCell>
+                                            <TableCell><strong>Year</strong></TableCell>
+                                            <TableCell><strong>Registration</strong></TableCell>
+                                            <TableCell><strong>Status</strong></TableCell>
+                                            <TableCell><strong>Owner</strong></TableCell>
+                                            <TableCell><strong>Last Service</strong></TableCell>
+                                            <TableCell><strong>Next Due</strong></TableCell>
+                                            <TableCell><strong>Type</strong></TableCell>
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                        {vehicles.map(v => {
+                                            const sel = isSelected(v.uuid);
+                                            const st = getStatusStyle(v.status);
+                                            return (
+                                                <TableRow
+                                                    hover
+                                                    key={v.uuid}
+                                                    selected={sel}
+                                                    onClick={() => handleRowClick(v.uuid)}
+                                                >
+                                                    <TableCell padding="checkbox">
+                                                        <Checkbox checked={sel} />
+                                                    </TableCell>
+                                                    <TableCell sx={{ fontWeight: 500 }}>
+                                                        {v.make} {v.model}
+                                                    </TableCell>
+                                                    <TableCell>{v.year}</TableCell>
+                                                    <TableCell>{v.registration}</TableCell>
+                                                    <TableCell>
+                                                        <Chip
+                                                            label={v.status}
+                                                            size="small"
+                                                            sx={{
+                                                                backgroundColor: st.bg,
+                                                                color: st.color,
+                                                                fontWeight: 500
+                                                            }}
+                                                        />
+                                                    </TableCell>
+                                                    <TableCell>{v.owner}</TableCell>
+                                                    <TableCell>{v.lastService}</TableCell>
+                                                    <TableCell>{v.nextServiceDue}</TableCell>
+                                                    <TableCell>{v.type}</TableCell>
+                                                </TableRow>
+                                            );
+                                        })}
+                                    </TableBody>
+                                </Table>
+                            </TableContainer>
 
-                                        return (
-                                            <TableRow
-                                                hover
-                                                onClick={() => handleClick(vehicle.id)}
-                                                role="checkbox"
-                                                aria-checked={isItemSelected}
-                                                tabIndex={-1}
-                                                key={vehicle.id}
-                                                selected={isItemSelected}
-                                            >
-                                                <TableCell padding="checkbox">
-                                                    <Checkbox checked={isItemSelected}/>
-                                                </TableCell>
-                                                <TableCell sx={{fontWeight: 500}}>
-                                                    {vehicle.make} {vehicle.model}
-                                                </TableCell>
-                                                <TableCell>{vehicle.year}</TableCell>
-                                                <TableCell>{vehicle.licensePlate}</TableCell>
-                                                <TableCell>
-                                                    <Chip
-                                                        label={vehicle.status}
-                                                        size="small"
-                                                        sx={{
-                                                            backgroundColor: statusStyle.bg,
-                                                            color: statusStyle.color,
-                                                            fontWeight: 'medium'
-                                                        }}
-                                                    />
-                                                </TableCell>
-                                                <TableCell>{vehicle.owner}</TableCell>
-                                                <TableCell>{vehicle.lastService}</TableCell>
-                                                <TableCell>{vehicle.nextServiceDue}</TableCell>
-                                                <TableCell>{vehicle.type}</TableCell>
-                                            </TableRow>
-                                        );
-                                    })}
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
-
-                    <TablePagination
-                        rowsPerPageOptions={[5, 10, 25]}
-                        component="div"
-                        count={filteredVehicles.length}
-                        rowsPerPage={rowsPerPage}
-                        page={page}
-                        onPageChange={handleChangePage}
-                        onRowsPerPageChange={handleChangeRowsPerPage}
-                    />
+                            <TablePagination
+                                rowsPerPageOptions={[10, 25, 50]}
+                                component="div"
+                                count={total}
+                                rowsPerPage={rowsPerPage}
+                                page={page}
+                                onPageChange={(_, p) => setPage(p)}
+                                onRowsPerPageChange={e => {
+                                    setRowsPerPage(parseInt(e.target.value, 10));
+                                    setPage(0);
+                                }}
+                            />
+                        </>
+                    )}
                 </Paper>
             </Container>
         </MainLayout>
