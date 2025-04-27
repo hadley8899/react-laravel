@@ -37,7 +37,12 @@ class DatabaseSeeder extends Seeder
         User::factory()->create([
             'name' => 'Test User',
             'email' => 'test@example.com',
-            'company_id' => Company::query()->inRandomOrder()->value('id'),
+            'company_id' => 1,
+        ]);
+
+        $this->call([
+            VehicleMakeModelSeeder::class,
         ]);
     }
 }
+

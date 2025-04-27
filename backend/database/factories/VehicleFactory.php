@@ -13,26 +13,16 @@ class VehicleFactory extends Factory
 
     public function definition(): array
     {
-        $statuses = [
-            'In Service',
-            'Ready for Pickup',
-            'Awaiting Parts',
-            'Scheduled',
-            'Diagnostic',
-            'Complete',
-        ];
-
         return [
-            'company_id'        => Company::factory(),   // overwritten in seeder
-            'customer_id'       => Customer::factory(),  // overwritten in seeder
-            'make'              => $this->faker->randomElement(['Ford','BMW','Toyota','Mercedes','Vauxhall']),
-            'model'             => $this->faker->word,
-            'year'              => $this->faker->numberBetween(2000, 2024),
-            'registration'      => strtoupper($this->faker->bothify('??## ???')),
-            'status'            => $this->faker->randomElement($statuses),
-            'last_service'      => $this->faker->dateTimeBetween('-1 year', '-1 month'),
-            'next_service_due'  => $this->faker->dateTimeBetween('now', '+1 year'),
-            'type'              => $this->faker->randomElement(['Car','Van','Truck']),
+            'company_id' => Company::factory(),   // overwritten in seeder
+            'customer_id' => Customer::factory(),  // overwritten in seeder
+            'make' => $this->faker->randomElement(['Ford', 'BMW', 'Toyota', 'Mercedes', 'Vauxhall']),
+            'model' => $this->faker->word,
+            'year' => $this->faker->numberBetween(2000, 2024),
+            'registration' => strtoupper($this->faker->bothify('??## ???')),
+            'last_service' => $this->faker->dateTimeBetween('-1 year', '-1 month'),
+            'next_service_due' => $this->faker->dateTimeBetween('now', '+1 year'),
+            'type' => $this->faker->randomElement(['Car', 'Van', 'Truck']),
         ];
     }
 }

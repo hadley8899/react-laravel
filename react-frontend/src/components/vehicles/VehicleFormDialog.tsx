@@ -1,298 +1,409 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
     Dialog, DialogTitle, DialogContent, DialogActions,
-    TextField, Button, Alert, IconButton, CircularProgress,
-    Box, MenuItem, Select, InputLabel, FormControl,
-    Autocomplete, Stack
+    TextField, Button, MenuItem, CircularProgress,
+    Alert, Autocomplete, Stack, Box
 } from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
-import AddIcon from '@mui/icons-material/Add';
-import SaveIcon from '@mui/icons-material/Save';
-import PersonAdd from '@mui/icons-material/PersonAdd';
-import axios from 'axios';
-import {Vehicle, VehicleType} from '../../interfaces/Vehicle';
-import {
-    createVehicle,
-    updateVehicle,
-    CreateVehiclePayload,
-    UpdateVehiclePayload
-} from '../../services/VehicleService';
-import {getCustomers} from '../../services/CustomerService';
-import CustomerFormDialog from '../customer/CustomerFormDialog';
+import {DatePicker} from '@mui/x-date-pickers/DatePicker';
+import {AdapterDateFns} from '@mui/x-date-pickers/AdapterDateFns';
+import {LocalizationProvider} from '@mui/x-date-pickers/LocalizationProvider';
+import {Vehicle} from '../../interfaces/Vehicle';
 import {Customer} from '../../interfaces/Customer';
+import {getCustomers} from '../../services/CustomerService';
+import {createVehicle, updateVehicle} from '../../services/VehicleService';
+import {VehicleMake, VehicleModel, getVehicleMakes, getVehicleModels} from '../../services/VehicleMakeModelService';
+import {format} from "date-fns";
 
-interface Props {
+interface VehicleFormDialogProps {
     open: boolean;
     onClose: () => void;
+    vehicleToEdit: Vehicle | null;
     onSaveSuccess: () => void;
-    vehicleToEdit?: Vehicle | null;
 }
 
-const vehicleTypes: VehicleType[] = [
-    'Car', 'Truck', 'Van', 'SUV', 'Motorcycle', 'Bus', 'Trailer', 'Other'
-];
+const VEHICLE_TYPES = ['Car', 'Truck', 'Motorcycle', 'Van', 'SUV', 'Commercial'];
 
-const VehicleFormDialog: React.FC<Props> = ({
-                                                open,
-                                                onClose,
-                                                onSaveSuccess,
-                                                vehicleToEdit = null
-                                            }) => {
-    const isEdit = Boolean(vehicleToEdit);
+const VehicleFormDialog: React.FC<VehicleFormDialogProps> = ({
+                                                                 open,
+                                                                 onClose,
+                                                                 vehicleToEdit,
+                                                                 onSaveSuccess
+                                                             }) => {
+    // Form state with defaults
+    const [formData, setFormData] = useState({
+        make: '',
+        model: '',
+        year: new Date().getFullYear().toString(),
+        registration: '',
+        customer_id: '',
+        last_service: format(new Date(), 'yyyy-MM-dd'),
+        next_service_due: format(new Date(new Date().setMonth(new Date().getMonth() + 12)), 'yyyy-MM-dd'),
+        type: 'Car',
+    });
 
-    /* ---------- form state ---------- */
-    const [customer, setCustomer] = useState<Customer | null>(null);
-    const [customerOptions, setCustomerOptions] = useState<Customer[]>([]);
-    const [searchingCustomers, setSearchingCustomers] = useState(false);
-
-    const [make, setMake] = useState('');
-    const [model, setModel] = useState('');
-    const [year, setYear] = useState<number | ''>('');
-    const [registration, setRegistration] = useState('');
-    const [lastService, setLastService] = useState<string | ''>('');
-    const [nextServiceDue, setNextServiceDue] = useState<string | ''>('');
-    const [type, setType] = useState<VehicleType | ''>('');
-
-    /* ---------- misc state ---------- */
-    const [submitting, setSubmitting] = useState(false);
+    // Form-related state
+    const [customers, setCustomers] = useState<Customer[]>([]);
+    const [makes, setMakes] = useState<VehicleMake[]>([]);
+    const [models, setModels] = useState<VehicleModel[]>([]);
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+    const [selectedMake, setSelectedMake] = useState<VehicleMake | null>(null);
+    const [isMakesLoading, setIsMakesLoading] = useState(false);
+    const [isModelsLoading, setIsModelsLoading] = useState(false);
+    const [makeSearch, setMakeSearch] = useState('');
+    const [modelSearch, setModelSearch] = useState('');
 
-    /* ---------- load existing data / reset ---------- */
+    // For tracking the vehicle being edited
+    const isEditMode = Boolean(vehicleToEdit);
+
+    // Load customers on mount
     useEffect(() => {
-        if (!open) return;
-
-        if (isEdit && vehicleToEdit) {
-            setCustomer(vehicleToEdit.customer ? vehicleToEdit.customer : null);
-            setMake(vehicleToEdit.make);
-            setModel(vehicleToEdit.model);
-            setYear(vehicleToEdit.year ?? '');
-            setRegistration(vehicleToEdit.registration);
-            setLastService(vehicleToEdit.last_service ?? '');
-            setNextServiceDue(vehicleToEdit.next_service_due ?? '');
-            setType(vehicleToEdit.type ?? '');
-        } else {
-            setCustomer(null);
-            setMake('');
-            setModel('');
-            setYear('');
-            setRegistration('');
-            setLastService('');
-            setNextServiceDue('');
-            setType('');
-        }
-        setError(null);
-        setFieldErrors({});
-    }, [open, isEdit, vehicleToEdit]);
-
-    /* ---------- customer search ---------- */
-    const handleCustomerSearch = async (q: string) => {
-        if (!q.trim()) return;
-        setSearchingCustomers(true);
-        try {
-            const res = await getCustomers(1, 10, q, false);
-            setCustomerOptions(res.data);
-        } finally {
-            setSearchingCustomers(false);
-        }
-    };
-
-    /* ---------- validation ---------- */
-    const validate = () => {
-        const errs: Record<string, string> = {};
-        if (!customer?.uuid) errs.customer = 'Customer is required';
-        if (!make.trim()) errs.make = 'Make is required';
-        if (!model.trim()) errs.model = 'Model is required';
-        if (!registration.trim()) errs.registration = 'Registration is required';
-        if (year !== '' && Number.isNaN(Number(year))) errs.year = 'Year must be a number';
-        setFieldErrors(errs);
-        return Object.keys(errs).length === 0;
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setError(null);
-        if (!validate()) return;
-
-        setSubmitting(true);
-
-        const payload: CreateVehiclePayload = {
-            customer_id: customer!.uuid,
-            make: make.trim(),
-            model: model.trim(),
-            year: year === '' ? null : Number(year),
-            registration: registration.trim(),
-            last_service: lastService || null,
-            next_service_due: nextServiceDue || null,
-            type: type.trim() || null
+        const loadCustomers = async () => {
+            try {
+                const data = await getCustomers();
+                setCustomers(data.data);
+            } catch (err) {
+                console.error('Failed to load customers:', err);
+            }
         };
 
-        try {
-            if (isEdit && vehicleToEdit) {
-                await updateVehicle(vehicleToEdit.uuid, payload as UpdateVehiclePayload);
-            } else {
-                await createVehicle(payload);
+        if (open) {
+            loadCustomers().then(() => {
+            });
+        }
+    }, [open]);
+
+    // Load makes with debounce
+    useEffect(() => {
+        if (!open) {
+            return;
+        }
+
+        const fetchMakes = async () => {
+            setIsMakesLoading(true);
+            try {
+                const data = await getVehicleMakes(makeSearch || undefined);
+                setMakes(data);
+            } catch (err) {
+                console.error('Failed to load makes:', err);
+            } finally {
+                setIsMakesLoading(false);
             }
+        };
+
+        const timer = setTimeout(() => {
+            fetchMakes().then(() => {
+            });
+        }, 500);
+
+        return () => clearTimeout(timer);
+    }, [makeSearch, open]);
+
+    // Load models when make changes or search changes
+    useEffect(() => {
+        if (!selectedMake || !open) {
+            setModels([]);
+            return;
+        }
+
+        const fetchModels = async () => {
+            setIsModelsLoading(true);
+            try {
+                const data = await getVehicleModels(selectedMake.uuid, modelSearch || undefined);
+                setModels(data);
+            } catch (err) {
+                console.error('Failed to load models:', err);
+            } finally {
+                setIsModelsLoading(false);
+            }
+        };
+
+        const timer = setTimeout(() => {
+            fetchModels().then(() => {});
+        }, 500);
+
+        return () => clearTimeout(timer);
+    }, [selectedMake, modelSearch, open]);
+
+    // Set form data when editing a vehicle
+    useEffect(() => {
+        if (vehicleToEdit && open) {
+            setFormData({
+                make: vehicleToEdit.make || '',
+                model: vehicleToEdit.model || '',
+                year: vehicleToEdit.year?.toString() || new Date().getFullYear().toString(),
+                registration: vehicleToEdit.registration || '',
+                customer_id: vehicleToEdit?.customer?.uuid ? vehicleToEdit?.customer?.uuid : '',
+                last_service: vehicleToEdit.last_service || format(new Date(), 'yyyy-MM-dd'),
+                next_service_due: vehicleToEdit.next_service_due || format(new Date(new Date().setMonth(new Date().getMonth() + 12)), 'yyyy-MM-dd'),
+                type: vehicleToEdit.type || 'Car',
+            });
+
+            // Try to find the make
+            const findMake = async () => {
+                if (!vehicleToEdit.make) return;
+
+                try {
+                    const allMakes = await getVehicleMakes();
+                    const found = allMakes.find(make =>
+                        make.name.toLowerCase() === vehicleToEdit.make.toLowerCase());
+
+                    if (found) {
+                        setSelectedMake(found);
+                    }
+                } catch (err) {
+                    console.error('Error finding make:', err);
+                }
+            };
+
+            findMake().then(() => {});
+        } else if (open) {
+            // Reset form when adding new
+            setFormData({
+                make: '',
+                model: '',
+                year: new Date().getFullYear().toString(),
+                registration: '',
+                customer_id: '',
+                last_service: format(new Date(), 'yyyy-MM-dd'),
+                next_service_due: format(new Date(new Date().setMonth(new Date().getMonth() + 12)), 'yyyy-MM-dd'),
+                type: 'Car',
+            });
+            setSelectedMake(null);
+        }
+    }, [vehicleToEdit, open]);
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const {name, value} = e.target;
+        setFormData(prev => ({...prev, [name]: value}));
+    };
+
+    const handleDateChange = (name: string, date: Date | null) => {
+        if (date) {
+            setFormData(prev => ({
+                ...prev,
+                [name]: format(date, 'yyyy-MM-dd')
+            }));
+        }
+    };
+
+    const handleSave = async () => {
+        setLoading(true);
+        setError(null);
+
+        try {
+            if (isEditMode && vehicleToEdit) {
+                await updateVehicle(vehicleToEdit.uuid, {
+                    ...formData,
+                    year: parseInt(formData.year)
+                });
+            } else {
+                await createVehicle({
+                    ...formData,
+                    year: parseInt(formData.year)
+                });
+            }
+
             onSaveSuccess();
             onClose();
         } catch (err: unknown) {
-            if (axios.isAxiosError(err)) {
-                if (err.response?.data?.errors) {
-                    setFieldErrors(err.response.data.errors);
-                    setError('Please fix the errors below');
-                } else {
-                    setError(err.message || 'Something went wrong');
-                }
-            } else if (err instanceof Error) {
-                setError(err.message || 'Something went wrong');
-            } else {
-                setError('An unexpected error occurred');
-            }
+            console.error('Save error:', err);
+            setError(err instanceof Error ? err.message : 'Failed to save vehicle');
         } finally {
-            setSubmitting(false);
+            setLoading(false);
         }
     };
 
-    /* ---------- quick-add customer modal ---------- */
-    const [quickAddOpen, setQuickAddOpen] = useState(false);
-    const handleQuickAddClose = () => setQuickAddOpen(false);
-    const handleQuickAddSuccess = () => {
-        if (customer) {
-            handleCustomerSearch(customer.first_name).then(() => {
-            });
-        }
-        setQuickAddOpen(false);
-    };
-
-    /* ---------- render ---------- */
     return (
-        <>
-            <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-                <DialogTitle sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2}}>
-                    {isEdit ? 'Edit Vehicle' : 'Add Vehicle'}
-                    <IconButton onClick={onClose}><CloseIcon/></IconButton>
-                </DialogTitle>
+        <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+            <DialogTitle>{isEditMode ? 'Edit Vehicle' : 'Add New Vehicle'}</DialogTitle>
+            <DialogContent>
+                {error && <Alert severity="error" sx={{mb: 2}}>{error}</Alert>}
 
-                <Box component="form" onSubmit={handleSubmit}>
-                    <DialogContent dividers>
-                        {error && <Alert severity="error" sx={{mb: 2}}>{error}</Alert>}
-
-                        {/* ----- CUSTOMER ----- */}
-                        <Stack direction="row" spacing={1} sx={{mb: 2}}>
+                <Box sx={{mt: 2}}>
+                    {/* Make and Model row */}
+                    <Stack direction="row" spacing={2} sx={{mb: 2}}>
+                        <Box sx={{flex: 1}}>
                             <Autocomplete
                                 fullWidth
-                                options={customerOptions}
-                                loading={searchingCustomers}
-                                getOptionLabel={(c) => `${c.first_name} ${c.last_name} – ${c.email}`}
-                                value={customer}
-                                onInputChange={(_, value) => handleCustomerSearch(value)}
-                                onChange={(_, value) => setCustomer(value)}
+                                loading={isMakesLoading}
+                                options={makes}
+                                getOptionLabel={(option) => option.name}
+                                value={selectedMake}
+                                onChange={(_, newValue) => {
+                                    setSelectedMake(newValue);
+                                    setFormData(prev => ({
+                                        ...prev,
+                                        make: newValue?.name || '',
+                                        model: ''
+                                    }));
+                                }}
+                                onInputChange={(_, newInputValue) => {
+                                    setMakeSearch(newInputValue);
+                                }}
                                 renderInput={(params) => (
                                     <TextField
                                         {...params}
-                                        label="Customer"
-                                        error={!!fieldErrors.customer}
-                                        helperText={fieldErrors.customer}
+                                        label="Make"
+                                        required
+                                        slotProps={{
+                                            input: {
+                                                ...params.InputProps,
+                                                endAdornment: (
+                                                    <>
+                                                        {isMakesLoading ?
+                                                            <CircularProgress color="inherit" size={20}/> : null}
+                                                        {params.InputProps.endAdornment}
+                                                    </>
+                                                ),
+                                            }
+                                        }}
                                     />
                                 )}
                             />
-                            <IconButton
-                                color="primary"
-                                onClick={() => setQuickAddOpen(true)}
-                                sx={{flexShrink: 0}}
-                                aria-label="quick add customer"
+                        </Box>
+                        <Box sx={{flex: 1}}>
+                            <Autocomplete
+                                fullWidth
+                                disabled={!selectedMake}
+                                loading={isModelsLoading}
+                                options={models}
+                                getOptionLabel={(option) => option.name}
+                                value={models.find(model => model.name === formData.model) || null}
+                                onChange={(_, newValue) => {
+                                    setFormData(prev => ({
+                                        ...prev,
+                                        model: newValue?.name || ''
+                                    }));
+                                }}
+                                onInputChange={(_, newInputValue) => {
+                                    setModelSearch(newInputValue);
+                                }}
+                                renderInput={(params) => (
+                                    <TextField
+                                        {...params}
+                                        label="Model"
+                                        required
+                                        slotProps={{
+                                            input: {
+                                                ...params.InputProps,
+                                                endAdornment: (
+                                                    <>
+                                                        {isModelsLoading ?
+                                                            <CircularProgress color="inherit" size={20}/> : null}
+                                                        {params.InputProps.endAdornment}
+                                                    </>
+                                                ),
+                                            }
+                                        }}
+                                    />
+                                )}
+                            />
+                        </Box>
+                    </Stack>
+
+                    {/* Year and Registration row */}
+                    <Stack direction="row" spacing={2} sx={{mb: 2}}>
+                        <Box sx={{flex: 1}}>
+                            <TextField
+                                name="year"
+                                label="Year"
+                                type="number"
+                                value={formData.year}
+                                onChange={handleInputChange}
+                                fullWidth
+                                required
+                                slotProps={{
+                                    htmlInput: {min: 1900, max: new Date().getFullYear() + 1}
+                                }}
+                            />
+                        </Box>
+                        <Box sx={{flex: 1}}>
+                            <TextField
+                                name="registration"
+                                label="Registration"
+                                value={formData.registration}
+                                onChange={handleInputChange}
+                                fullWidth
+                                required
+                            />
+                        </Box>
+                    </Stack>
+
+                    {/* Customer and Vehicle Type row */}
+                    <Stack direction="row" spacing={2} sx={{mb: 2}}>
+                        <Box sx={{flex: 1}}>
+                            <TextField
+                                name="customer_id"
+                                label="Customer"
+                                select
+                                value={formData.customer_id || ""}
+                                onChange={handleInputChange}
+                                fullWidth
+                                required
                             >
-                                <PersonAdd/>
-                            </IconButton>
-                        </Stack>
+                                <MenuItem value="" disabled>Select Customer</MenuItem>
+                                {customers.map(customer => (
+                                    <MenuItem key={customer.uuid} value={customer.uuid}>
+                                        {customer.first_name} {customer.last_name}
+                                    </MenuItem>
+                                ))}
+                            </TextField>
+                        </Box>
+                        <Box sx={{flex: 1}}>
+                            <TextField
+                                name="type"
+                                label="Vehicle Type"
+                                select
+                                value={formData.type}
+                                onChange={handleInputChange}
+                                fullWidth
+                                required
+                            >
+                                {VEHICLE_TYPES.map(type => (
+                                    <MenuItem key={type} value={type}>{type}</MenuItem>
+                                ))}
+                            </TextField>
+                        </Box>
+                    </Stack>
 
-                        {/* ----- BASIC FIELDS ----- */}
-                        <Stack direction={{xs: 'column', md: 'row'}} spacing={2} sx={{mb: 2}}>
-                            <TextField
-                                label="Make" fullWidth required disabled={submitting}
-                                value={make} onChange={e => setMake(e.target.value)}
-                                error={!!fieldErrors.make} helperText={fieldErrors.make}
-                            />
-                            <TextField
-                                label="Model" fullWidth required disabled={submitting}
-                                value={model} onChange={e => setModel(e.target.value)}
-                                error={!!fieldErrors.model} helperText={fieldErrors.model}
-                            />
-                        </Stack>
-
-                        <Stack direction={{xs: 'column', md: 'row'}} spacing={2} sx={{mb: 2}}>
-                            <TextField
-                                label="Year" type="number" fullWidth disabled={submitting}
-                                value={year}
-                                onChange={e => setYear(e.target.value === '' ? '' : Number(e.target.value))}
-                                error={!!fieldErrors.year} helperText={fieldErrors.year}
-                            />
-                            <TextField
-                                label="Registration" fullWidth required disabled={submitting}
-                                value={registration} onChange={e => setRegistration(e.target.value)}
-                                error={!!fieldErrors.registration} helperText={fieldErrors.registration}
-                            />
-                        </Stack>
-
-                        <Stack direction={{xs: 'column', md: 'row'}} spacing={2} sx={{mb: 2}}>
-                            <FormControl fullWidth>
-                                <InputLabel>Type</InputLabel>
-                                <Select
-                                    value={type}
-                                    label="Type"
-                                    disabled={submitting}
-                                    onChange={e => setType(e.target.value as VehicleType)}
-                                >
-                                    {vehicleTypes.map(t => <MenuItem key={t} value={t}>{t}</MenuItem>)}
-                                </Select>
-                            </FormControl>
-                        </Stack>
-
-                        <Stack direction={{xs: 'column', md: 'row'}} spacing={2}>
-                            <TextField
-                                label="Last Service" type="date" fullWidth
-                                disabled={submitting} value={lastService}
-                                onChange={e => setLastService(e.target.value)} slotProps={{
-                                inputLabel: {shrink: true}
-                            }}
-                            />
-                            <TextField
-                                label="Next Service Due" type="date" fullWidth
-                                disabled={submitting} value={nextServiceDue}
-                                onChange={e => setNextServiceDue(e.target.value)} slotProps={{
-                                inputLabel: {shrink: true}
-                            }}
-                            />
-                        </Stack>
-                    </DialogContent>
-
-                    <DialogActions sx={{p: 2}}>
-                        <Button onClick={onClose} disabled={submitting}>Cancel</Button>
-                        <Button
-                            type="submit"
-                            variant="contained"
-                            startIcon={
-                                submitting
-                                    ? <CircularProgress size={20} color="inherit"/>
-                                    : isEdit ? <SaveIcon/> : <AddIcon/>
-                            }
-                            disabled={submitting}
-                        >
-                            {submitting
-                                ? (isEdit ? 'Saving…' : 'Adding…')
-                                : (isEdit ? 'Save Changes' : 'Add Vehicle')}
-                        </Button>
-                    </DialogActions>
+                    {/* Service Dates row */}
+                    <Stack direction="row" spacing={2}>
+                        <Box sx={{flex: 1}}>
+                            <LocalizationProvider dateAdapter={AdapterDateFns}>
+                                <DatePicker
+                                    label="Last Service Date"
+                                    value={new Date(formData.last_service)}
+                                    onChange={(date) => handleDateChange('last_service', date)}
+                                    slotProps={{textField: {fullWidth: true}}}
+                                />
+                            </LocalizationProvider>
+                        </Box>
+                        <Box sx={{flex: 1}}>
+                            <LocalizationProvider dateAdapter={AdapterDateFns}>
+                                <DatePicker
+                                    label="Next Service Due"
+                                    value={new Date(formData.next_service_due)}
+                                    onChange={(date) => handleDateChange('next_service_due', date)}
+                                    slotProps={{textField: {fullWidth: true}}}
+                                />
+                            </LocalizationProvider>
+                        </Box>
+                    </Stack>
                 </Box>
-            </Dialog>
-            {/* quick-add customer */}
-            <CustomerFormDialog
-                open={quickAddOpen}
-                onClose={handleQuickAddClose}
-                onSaveSuccess={handleQuickAddSuccess}
-                customerToEdit={null}
-            />
-        </>
+            </DialogContent>
+            <DialogActions>
+                <Button onClick={onClose}>Cancel</Button>
+                <Button
+                    onClick={handleSave}
+                    variant="contained"
+                    color="primary"
+                    disabled={loading || !formData.make || !formData.model || !formData.customer_id}
+                >
+                    {loading ? <CircularProgress size={24}/> : 'Save'}
+                </Button>
+            </DialogActions>
+        </Dialog>
     );
 };
 

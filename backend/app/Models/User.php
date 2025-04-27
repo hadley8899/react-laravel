@@ -10,6 +10,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\HasApiTokens;
 use SensitiveParameter;
 use Spatie\Permission\Traits\HasRoles;
@@ -18,6 +19,8 @@ class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, HasUuid, Notifiable, HasApiTokens, HasRoles;
+
+    protected $appends = ['avatar_url'];
 
     /**
      * The attributes that are mass assignable.
@@ -29,6 +32,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'name',
         'email',
         'password',
+        'avatar_path',
     ];
 
     /**
@@ -53,6 +57,14 @@ class User extends Authenticatable implements MustVerifyEmail
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getAvatarUrlAttribute(): ?string
+    {
+        return $this->avatar_path ? Storage::disk('public')->url($this->avatar_path) : null;
     }
 
     public function sendPasswordResetNotification(#[SensitiveParameter] $token): void

@@ -1,10 +1,15 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import MainLayout from '../components/layout/MainLayout';
 import {
-    Container, Paper, Box, Table, TableBody, TableCell, TableContainer,
-    TableHead, TableRow, TablePagination, Checkbox, CircularProgress,
-    Alert, Dialog, DialogTitle, DialogContent, DialogContentText,
-    DialogActions, Button
+    Container,
+    Paper,
+    CircularProgress,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogContentText,
+    DialogActions,
+    Button
 } from '@mui/material';
 import {Vehicle} from '../interfaces/Vehicle';
 import {
@@ -13,6 +18,7 @@ import {
 } from '../services/VehicleService';
 import VehicleFormDialog from '../components/vehicles/VehicleFormDialog';
 import VehiclesTopBar from '../components/vehicles/VehiclesTopBar';
+import VehiclesTable from '../components/vehicles/VehiclesTable';
 
 function useDebounce(value: string, delay = 500) {
     const [debounced, setDebounced] = useState(value);
@@ -60,8 +66,6 @@ const Vehicles: React.FC = () => {
     }, [fetchVehicles]);
 
     /* ---------- helpers ---------- */
-    const isSelected = (uuid: string) => selected.includes(uuid);
-
     const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) =>
         setSelected(e.target.checked ? vehicles.map(v => v.uuid) : []);
 
@@ -70,7 +74,7 @@ const Vehicles: React.FC = () => {
             prev.includes(uuid) ? prev.filter(x => x !== uuid) : [...prev, uuid]
         );
 
-    const handleRowDoubleClick = (vehicle: Vehicle) => {
+    const handleEditVehicle = (vehicle: Vehicle) => {
         setVehicleToEdit(vehicle);
         setFormOpen(true);
     };
@@ -117,83 +121,23 @@ const Vehicles: React.FC = () => {
                         onRefresh={() => fetchVehicles()}
                     />
 
-                    {loading ? (
-                        <Box sx={{display: 'flex', justifyContent: 'center', py: 6}}>
-                            <CircularProgress/>
-                        </Box>
-                    ) : error ? (
-                        <Alert severity="error">{error}</Alert>
-                    ) : (
-                        <>
-                            <TableContainer>
-                                <Table>
-                                    <TableHead sx={{backgroundColor: t => t.palette.action.hover}}>
-                                        <TableRow>
-                                            <TableCell padding="checkbox">
-                                                <Checkbox
-                                                    indeterminate={
-                                                        selected.length > 0 && selected.length < vehicles.length
-                                                    }
-                                                    checked={
-                                                        vehicles.length > 0 && selected.length === vehicles.length
-                                                    }
-                                                    onChange={handleSelectAll}
-                                                />
-                                            </TableCell>
-                                            <TableCell><strong>Make / Model</strong></TableCell>
-                                            <TableCell><strong>Year</strong></TableCell>
-                                            <TableCell><strong>Registration</strong></TableCell>
-                                            <TableCell><strong>Owner</strong></TableCell>
-                                            <TableCell><strong>Last Service</strong></TableCell>
-                                            <TableCell><strong>Next Due</strong></TableCell>
-                                            <TableCell><strong>Type</strong></TableCell>
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableBody>
-                                        {vehicles.map(v => {
-                                            const sel = isSelected(v.uuid);
-                                            return (
-                                                <TableRow
-                                                    hover
-                                                    key={v.uuid}
-                                                    selected={sel}
-                                                    onClick={() => handleRowClick(v.uuid)}
-                                                    onDoubleClick={() => handleRowDoubleClick(v)}
-                                                    sx={{cursor: 'pointer'}}
-                                                >
-                                                    <TableCell padding="checkbox">
-                                                        <Checkbox checked={sel}/>
-                                                    </TableCell>
-                                                    <TableCell sx={{fontWeight: 500}}>
-                                                        {v.make} {v.model}
-                                                    </TableCell>
-                                                    <TableCell>{v.year}</TableCell>
-                                                    <TableCell>{v.registration}</TableCell>
-                                                    <TableCell>{v.customer?.first_name} {v.customer?.last_name}</TableCell>
-                                                    <TableCell>{v.last_service}</TableCell>
-                                                    <TableCell>{v.next_service_due}</TableCell>
-                                                    <TableCell>{v.type}</TableCell>
-                                                </TableRow>
-                                            );
-                                        })}
-                                    </TableBody>
-                                </Table>
-                            </TableContainer>
-
-                            <TablePagination
-                                rowsPerPageOptions={[10, 25, 50]}
-                                component="div"
-                                count={total}
-                                rowsPerPage={rowsPerPage}
-                                page={page}
-                                onPageChange={(_, p) => setPage(p)}
-                                onRowsPerPageChange={(e) => {
-                                    setRowsPerPage(parseInt(e.target.value, 10));
-                                    setPage(0);
-                                }}
-                            />
-                        </>
-                    )}
+                    <VehiclesTable
+                        vehicles={vehicles}
+                        selected={selected}
+                        loading={loading}
+                        error={error}
+                        page={page}
+                        rowsPerPage={rowsPerPage}
+                        total={total}
+                        onRowClick={handleRowClick}
+                        onEdit={handleEditVehicle}
+                        onSelectAll={handleSelectAll}
+                        onPageChange={(_, newPage) => setPage(newPage)}
+                        onRowsPerPageChange={(e) => {
+                            setRowsPerPage(parseInt(e.target.value, 10));
+                            setPage(0);
+                        }}
+                    />
                 </Paper>
             </Container>
 

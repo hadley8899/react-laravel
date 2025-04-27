@@ -20,16 +20,15 @@ class CustomerSeeder extends Seeder
             ->create();
 
         // Add a few thousand customers to company ID 66
-        $targetCompany = Company::find(44);
+        $targetCompany = Company::query()->find(1);
 
         if ($targetCompany) {
-            // Create 2000 customers for company ID 66
             Customer::factory()
-                ->count(2000)
+                ->count(500)
                 ->for($targetCompany)
                 ->create();
 
-            $this->command->info('Added 2000 customers to company ID 66');
+            $this->command->info('Added 500 customers to company ID 1');
         } else {
             $this->command->warn('Company ID 66 not found. No additional customers were created.');
         }
