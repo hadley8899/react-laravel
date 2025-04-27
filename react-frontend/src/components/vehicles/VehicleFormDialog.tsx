@@ -9,7 +9,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import AddIcon from '@mui/icons-material/Add';
 import SaveIcon from '@mui/icons-material/Save';
 import PersonAdd from '@mui/icons-material/PersonAdd';
-
+import axios from 'axios';
 import {Vehicle, VehicleType} from '../../interfaces/Vehicle';
 import {
     createVehicle,
@@ -135,12 +135,18 @@ const VehicleFormDialog: React.FC<Props> = ({
             }
             onSaveSuccess();
             onClose();
-        } catch (err: any) {
-            if (err.response?.data?.errors) {
-                setFieldErrors(err.response.data.errors);
-                setError('Please fix the errors below');
-            } else {
+        } catch (err: unknown) {
+            if (axios.isAxiosError(err)) {
+                if (err.response?.data?.errors) {
+                    setFieldErrors(err.response.data.errors);
+                    setError('Please fix the errors below');
+                } else {
+                    setError(err.message || 'Something went wrong');
+                }
+            } else if (err instanceof Error) {
                 setError(err.message || 'Something went wrong');
+            } else {
+                setError('An unexpected error occurred');
             }
         } finally {
             setSubmitting(false);
