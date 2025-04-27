@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ChangePasswordRequest;
 use App\Http\Requests\UpdateUserRequest;
+use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
@@ -12,6 +13,12 @@ use Illuminate\Validation\ValidationException;
 
 class UserController extends Controller
 {
+    public function user()
+    {
+        $user = auth()->user();
+        return new UserResource($user);
+    }
+
     public function update(UpdateUserRequest $request, User $user): JsonResponse
     {
         $validated = $request->validated();

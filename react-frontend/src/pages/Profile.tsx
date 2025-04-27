@@ -25,7 +25,7 @@ const Profile: React.FC = () => {
         (async () => {
             try {
                 const u = await getCurrentUser();
-                setUser(u);
+                setUser(u.data);
             } catch (e: any) {
                 setErr('Could not load profile – please log in again.');
                 console.error(e);

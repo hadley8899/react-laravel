@@ -22,13 +22,26 @@ class UpdateCompanyRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'sometimes|required|string|max:255',
-            'slug' => 'sometimes|required|string|max:255|unique:companies,slug,' . $this->route('company')->id,
-            'address' => 'nullable|string',
-            'phone' => 'nullable|string|max:20',
-            'email' => 'sometimes|required|email|unique:companies,email,' . $this->route('company')->id,
-            'website' => 'nullable|url',
-            'status' => 'sometimes|required|in:Active,Inactive,Pending',
+            'name' => ['sometimes', 'string', 'max:255'],
+            'address' => ['sometimes', 'nullable', 'string'],
+            'billing_address' => ['sometimes', 'nullable', 'string'],
+            'phone' => ['sometimes', 'nullable', 'string', 'max:64'],
+            'email' => ['sometimes', 'email', 'max:255', 'unique:companies,email,' . $this->route('company')->id],
+            'website' => ['sometimes', 'nullable', 'url', 'max:255'],
+            'logo' => ['sometimes', 'image', 'max:2048'],
+            'tax_id' => ['sometimes', 'nullable', 'string', 'max:64'],
+            'registration_number' => ['sometimes', 'nullable', 'string', 'max:64'],
+            'industry' => ['sometimes', 'nullable', 'string', 'max:128'],
+            'country' => ['sometimes', 'nullable', 'string', 'max:64'],
+            'status' => ['sometimes', 'nullable', 'string', 'in:Active,Inactive,Pending'],
+            'currency' => ['sometimes', 'nullable', 'string', 'max:3'],
+            'plan' => ['sometimes', 'nullable', 'string', 'in:Free,Pro,Enterprise'],
+            'trial_ends_at' => ['sometimes', 'nullable', 'date'],
+            'active_until' => ['sometimes', 'nullable', 'date'],
+            'timezone' => ['sometimes', 'nullable', 'string', 'max:64'],
+            'locale' => ['sometimes', 'nullable', 'string', 'max:8'],
+            'default_units' => ['sometimes', 'nullable', 'string', 'max:64'],
+            'notes' => ['sometimes', 'nullable', 'string'],
         ];
     }
 }

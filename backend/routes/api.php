@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VehicleController;
@@ -16,9 +17,7 @@ Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->name
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
-    Route::get('/user', static function (Request $request) {
-        return $request->user();
-    });
+    Route::get('/user', [UserController::class, 'user']);
 
     // User routes
     Route::controller(UserController::class)->group(function () {
@@ -56,4 +55,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/vehicle-makes', 'getMakes');
         Route::get('/vehicle-makes/{make:uuid}/models', 'getModels');
     });
+
+
+    Route::controller(CompanyController::class)->group(function () {
+        Route::get('/current-company', 'currentCompany');
+    });
+
+    Route::put('/companies/{company:uuid}', [CompanyController::class, 'update']);
 });

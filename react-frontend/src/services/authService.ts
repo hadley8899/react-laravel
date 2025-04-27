@@ -50,7 +50,7 @@ export async function getAuthUser() {
     }
 
     const response = await api.get('/user');
-    return response.data;
+    return response.data.data;
 }
 
 export async function logout() {

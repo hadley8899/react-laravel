@@ -4,9 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreCompanyRequest;
 use App\Http\Requests\UpdateCompanyRequest;
+use App\Http\Resources\CompanyResource;
 use App\Models\Company;
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class CompanyController extends Controller
 {
@@ -24,7 +29,7 @@ class CompanyController extends Controller
      */
     public function store(StoreCompanyRequest $request): JsonResource
     {
-        $company = Company::create($request->validated());
+        $company = Company::query()->create($request->validated());
         return new JsonResource($company);
     }
 
@@ -33,7 +38,12 @@ class CompanyController extends Controller
      */
     public function show(Company $company): JsonResource
     {
-        return new JsonResource($company);
+        return new CompanyResource($company);
+    }
+
+    public function currentCompany()
+    {
+        return new CompanyResource(Auth::user()->company);
     }
 
     /**
@@ -41,8 +51,41 @@ class CompanyController extends Controller
      */
     public function update(UpdateCompanyRequest $request, Company $company): JsonResource
     {
-        $company->update($request->validated());
-        return new JsonResource($company);
+        // Log the request for debugging
+        Log::info('Company update request data', [
+            'all' => $request->all(),
+            'validated' => $request->validated(),
+            'files' => $request->allFiles()
+        ]);
+
+        $validated = $request->validated();
+
+        if ($request->hasFile('logo')) {
+            try {
+                // If we already have a logo, Delete it
+                if ($company->logo_path) {
+                    Storage::disk('public')->delete($company->logo_path);
+                }
+
+                $validated['logo_path'] = $request->file('logo')->store('company-logos', 'public');
+
+                $validated['logo_url'] = asset('storage/' . $validated['logo_path']);
+
+                Log::info('Logo stored successfully', [
+                    'path' => $validated['logo_path'],
+                    'url' => $validated['logo_url']
+                ]);
+            } catch (Exception $e) {
+                Log::error('Error uploading logo', [
+                    'exception' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString()
+                ]);
+            }
+        }
+
+        $company->update($validated);
+
+        return new CompanyResource($company->fresh());
     }
 
     /**

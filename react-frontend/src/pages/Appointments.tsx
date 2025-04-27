@@ -14,15 +14,15 @@ import {
     Divider,
     Button,
     TextField,
-    MenuItem, // For Select dropdown
+    MenuItem,
     Card,
     CardContent
 } from "@mui/material";
-import EventIcon from '@mui/icons-material/Event'; // Calendar icon
-import ScheduleIcon from '@mui/icons-material/Schedule'; // Clock icon
-import PersonIcon from '@mui/icons-material/Person'; // Customer icon
-import DirectionsCarIcon from '@mui/icons-material/DirectionsCar'; // Vehicle icon
-import BuildIcon from '@mui/icons-material/Build'; // Service Type icon
+import EventIcon from '@mui/icons-material/Event';
+import ScheduleIcon from '@mui/icons-material/Schedule';
+import PersonIcon from '@mui/icons-material/Person';
+import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
+import BuildIcon from '@mui/icons-material/Build';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import TodayIcon from '@mui/icons-material/Today';
@@ -30,7 +30,7 @@ import AddIcon from "@mui/icons-material/Add";
 
 // Import data and interface
 import {Appointment, AppointmentStatus, AppointmentType} from "../interfaces/Appointment";
-import appointmentsData from "../example-data/appointments"; // Default import
+import appointmentsData from "../example-data/appointments";
 
 // Date Utilities (can be moved to a separate utils file)
 const getWeekStart = (date: Date): Date => {

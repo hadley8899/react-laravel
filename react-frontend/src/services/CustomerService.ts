@@ -20,7 +20,6 @@ export async function getCustomers(
     searchTerm: string = '',
     showInactive: boolean = false
 ): Promise<PaginatedResponse<Customer>> {
-    console.log(showInactive);
     const response = await api.get<PaginatedResponse<Customer>>('/customers', {
         params: {
             page: page,
