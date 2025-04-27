@@ -12,7 +12,6 @@ class Vehicle extends Model
 {
     use HasFactory, HasUuid, SoftDeletes;
 
-
     protected $fillable = [
         'company_id',
         'customer_id',

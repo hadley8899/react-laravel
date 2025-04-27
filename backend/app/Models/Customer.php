@@ -18,7 +18,7 @@ class Customer extends Model
     protected $hidden = ['id'];
 
     protected $fillable = [
-        'uuid', 'first_name', 'last_name', 'email', 'phone', 'address', 'status', 'total_spent', 'avatar_url', 'company_id',
+        'uuid', 'first_name', 'last_name', 'email', 'phone', 'address', 'status', 'total_spent', 'company_id',
     ];
 
     public function company(): BelongsTo

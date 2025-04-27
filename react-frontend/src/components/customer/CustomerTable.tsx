@@ -1,7 +1,5 @@
 import React from "react";
 import {
-    alpha,
-    Avatar,
     Box,
     Card,
     CardActions,
@@ -20,7 +18,7 @@ import EventIcon from "@mui/icons-material/Event";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import EditIcon from "@mui/icons-material/Edit";
 import PeopleIcon from "@mui/icons-material/People";
-import {useNavigate} from "react-router-dom";   // <-- Import useNavigate
+import {useNavigate} from "react-router-dom";
 import {Customer} from "../../interfaces/Customer";
 import DeleteIcon from "@mui/icons-material/Delete";
 
@@ -48,7 +46,7 @@ const CustomerTable: React.FC<CustomerTableProps> = ({
                                                          onDeleteCustomer,
                                                      }) => {
     const theme = useTheme();
-    const navigate = useNavigate();  // <-- Hook for navigation
+    const navigate = useNavigate();
 
     const getStatusChip = (status: Customer['status']) => {
         let color: "success" | "error" | "info" | "default" = "default";
@@ -98,19 +96,6 @@ const CustomerTable: React.FC<CustomerTableProps> = ({
                                         alignItems: 'flex-start',
                                         mb: 2.5
                                     }}>
-                                        <Avatar
-                                            src={customer.avatar_url}
-                                            alt={`${customer.first_name} ${customer.last_name}`}
-                                            sx={{
-                                                width: 52,
-                                                height: 52,
-                                                mr: 2,
-                                                bgcolor: alpha(theme.palette.primary.light, 0.2),
-                                                color: 'primary.main'
-                                            }}
-                                        >
-                                            {customer.first_name?.charAt(0)}{customer.last_name?.charAt(0)}
-                                        </Avatar>
                                         <Box sx={{flexGrow: 1}}>
                                             <Typography variant="h6" component="div" fontWeight="500" noWrap
                                                         gutterBottom>

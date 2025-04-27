@@ -1,20 +1,25 @@
-export type VehicleStatus =
-    | 'In Service'
-    | 'Ready for Pickup'
-    | 'Awaiting Parts'
-    | 'Scheduled'
-    | 'Diagnostic'
-    | 'Complete';
+import {Customer} from "./Customer.ts";
 
+export type VehicleType =
+    | 'Car'
+    | 'Truck'
+    | 'Van'
+    | 'SUV'
+    | 'Motorcycle'
+    | 'Bus'
+    | 'Trailer'
+    | 'Other';
+
+/* Shape coming back from the API */
 export interface Vehicle {
     uuid: string;
+    customer_id: string;
+    customer?: Customer;
     make: string;
     model: string;
-    year: number;
+    year: number | null;
     registration: string;
-    status: VehicleStatus;
-    owner: string;
-    lastService: string;
-    nextServiceDue: string;
-    type: string;
+    last_service: string | null;
+    next_service_due: string | null;
+    type: VehicleType | null;
 }

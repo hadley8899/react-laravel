@@ -16,14 +16,6 @@ return new class extends Migration {
             $table->string('model');
             $table->year('year')->nullable();
             $table->string('registration');
-            $table->enum('status', [
-                'In Service',
-                'Ready for Pickup',
-                'Awaiting Parts',
-                'Scheduled',
-                'Diagnostic',
-                'Complete',
-            ])->default('Scheduled');
             $table->date('last_service')->nullable();
             $table->date('next_service_due')->nullable();
             $table->string('type')->nullable();

@@ -24,7 +24,6 @@ class CustomerResource extends JsonResource
             'created_at' => $this->created_at->toDateTimeString(),
             'status' => $this->status,
             'total_spent' => $this->total_spent,
-            'avatar_url' => $this->avatar_url,
         ];
     }
 }

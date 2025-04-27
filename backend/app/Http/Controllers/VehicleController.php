@@ -6,6 +6,8 @@ use App\Http\Requests\StoreVehicleRequest;
 use App\Http\Requests\UpdateVehicleRequest;
 use App\Http\Resources\VehicleResource;
 use App\Models\Vehicle;
+use App\Services\VehicleService;
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\Auth;
@@ -20,37 +22,32 @@ class VehicleController extends Controller
      */
     public function index(): AnonymousResourceCollection
     {
-        $perPage = (int)request()->get('per_page', 10);
-        $search = request()->get('search');
-
-        $query = Vehicle::query()
-            ->where('company_id', Auth::user()->company_id)
-            ->orderBy('id', 'desc');
-
-        if ($search) {
-            $query->where(function ($q) use ($search) {
-                $q->where('make', 'like', "%$search%")
-                    ->orWhere('model', 'like', "%$search%")
-                    ->orWhere('registration', 'like', "%$search%")
-                    ->orWhere('owner', 'like', "%$search%");
-            });
-        }
-
-        return VehicleResource::collection($query->paginate($perPage));
+        return VehicleResource::collection(VehicleService::listVehicles(
+            request()->get('search'),
+            (int)request()->get('per_page', 10),
+            (int)Auth::user()->company_id,
+        ));
     }
 
-    /** Store  */
+    /**
+     * @param StoreVehicleRequest $request
+     * @return VehicleResource
+     * @throws Exception
+     */
     public function store(StoreVehicleRequest $request): VehicleResource
     {
-        $validated = $request->validated();
-        $validated['company_id'] = Auth::user()->company_id;
-
-        $vehicle = Vehicle::create($validated);
-
-        return new VehicleResource($vehicle);
+        return new VehicleResource(
+            VehicleService::store(
+                $request->validated(),
+                Auth::user()->company_id
+            )
+        );
     }
 
-    /** Show  */
+    /**
+     * @param Vehicle $vehicle
+     * @return VehicleResource|JsonResponse
+     */
     public function show(Vehicle $vehicle): VehicleResource|JsonResponse
     {
         if ($vehicle->company_id !== Auth::user()->company_id) {
@@ -59,17 +56,25 @@ class VehicleController extends Controller
         return new VehicleResource($vehicle);
     }
 
-    /** Update  */
+    /**
+     * @param UpdateVehicleRequest $request
+     * @param Vehicle $vehicle
+     * @return VehicleResource|JsonResponse
+     * @throws Exception
+     */
     public function update(UpdateVehicleRequest $request, Vehicle $vehicle): VehicleResource|JsonResponse
     {
         if ($vehicle->company_id !== Auth::user()->company_id) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
-        $vehicle->update($request->validated());
-        return new VehicleResource($vehicle);
+
+        return new VehicleResource(VehicleService::update($request->validated(), $vehicle));
     }
 
-    /** Destroy  */
+    /**
+     * @param Vehicle $vehicle
+     * @return JsonResponse
+     */
     public function destroy(Vehicle $vehicle): JsonResponse
     {
         if ($vehicle->company_id !== Auth::user()->company_id) {

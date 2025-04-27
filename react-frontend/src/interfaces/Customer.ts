@@ -8,5 +8,4 @@ export interface Customer {
     created_at: string;
     status: 'Active' | 'Inactive';
     total_spent: number;
-    avatar_url?: string;
 }

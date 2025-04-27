@@ -2,7 +2,7 @@ import {api} from './api';
 import {Customer} from '../interfaces/Customer';
 import {PaginatedResponse} from "../interfaces/PaginatedResponse.ts";
 
-export type CreateCustomerPayload = Omit<Customer, 'uuid' | 'created_at' | 'total_spent' | 'avatar_url'> & {};
+export type CreateCustomerPayload = Omit<Customer, 'uuid' | 'created_at' | 'total_spent'> & {};
 
 export type UpdateCustomerPayload = Partial<Omit<Customer, 'uuid' | 'created_at'>>;
 

@@ -21,7 +21,6 @@ return new class extends Migration {
             $table->string('address')->nullable();
             $table->enum('status', ['Active', 'Inactive'])->default('Active');
             $table->decimal('total_spent', 10, 2)->default(0);
-            $table->string('avatar_url')->nullable();
             $table->softDeletes();
             $table->timestamps();
         });

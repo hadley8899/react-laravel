@@ -1,82 +1,92 @@
-import React from "react";
-import {Box, Button, IconButton, Toolbar, Tooltip, Typography} from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
-import FilterListIcon from "@mui/icons-material/FilterList";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
+import React from 'react';
+import {Box, Button, Typography, InputAdornment, TextField} from '@mui/material';
+import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
+import SearchIcon from '@mui/icons-material/Search';
+import AddIcon from '@mui/icons-material/Add';
+import DeleteIcon from '@mui/icons-material/Delete';
+import RefreshIcon from '@mui/icons-material/Refresh';
 
-interface VehiclesTopBarProps {
-    selectedVehicles: number[];
+interface Props {
+    searchInput: string;
+    onSearchChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    selectedCount: number;
+    onAdd: () => void;
+    onDeleteSelected: () => void;
+    onRefresh: () => void;
 }
 
-const VehiclesTopBar: React.FC<VehiclesTopBarProps> = ({selectedVehicles}) => {
-    return (
-        <Toolbar
-            sx={{
-                pl: {sm: 2},
-                pr: {xs: 1, sm: 1},
-                mb: 2,
-                borderRadius: 1,
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                flexWrap: 'wrap',
-                gap: 2,
-            }}
-        >
-            {/* Title / Selection Count */}
-            <Typography
-                variant={selectedVehicles.length > 0 ? "subtitle1" : "h6"}
-                component="div"
-                sx={{flexGrow: 1, flexShrink: 1, mr: 2}} // Allow growing/shrinking, add margin
-            >
-                {selectedVehicles.length > 0
-                    ? `${selectedVehicles.length} selected`
-                    : "All Vehicles"}
-            </Typography>
+const VehiclesTopBar: React.FC<Props> = ({
+                                             searchInput,
+                                             onSearchChange,
+                                             selectedCount,
+                                             onAdd,
+                                             onDeleteSelected,
+                                             onRefresh
+                                         }) => (
+    <Box
+        sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: 2,
+            mb: 3
+        }}
+    >
+        <Typography variant="h5" fontWeight={600} sx={{display: 'flex', alignItems: 'center'}}>
+            <DirectionsCarIcon sx={{mr: 1.5, color: 'primary.main'}}/>
+            Vehicles
+        </Typography>
 
-            {/* Actions Group */}
-            <Box
-                sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1,
-                    flexWrap: 'nowrap',
-                    flexShrink: 0
+        <Box sx={{display: 'flex', gap: 1.5, flexWrap: 'nowrap'}}>
+            <TextField
+                size="small"
+                placeholder="Search..."
+                value={searchInput}
+                onChange={onSearchChange}
+                InputProps={{
+                    startAdornment: (
+                        <InputAdornment position="start">
+                            <SearchIcon/>
+                        </InputAdornment>
+                    )
                 }}
+                sx={{minWidth: 250, '& .MuiOutlinedInput-root': {borderRadius: 2}}}
+            />
+
+            <Button
+                variant="contained"
+                size="medium"
+                startIcon={<AddIcon/>}
+                onClick={onAdd}
+                sx={{borderRadius: 2, whiteSpace: 'nowrap'}}
             >
-                <Button
-                    variant="contained"
-                    startIcon={<AddIcon/>}
-                    size="small"
-                >
-                    Add Vehicle
-                </Button>
+                Add Vehicle
+            </Button>
 
-                <Tooltip title="Filter list">
-                    <IconButton size="small">
-                        <FilterListIcon/>
-                    </IconButton>
-                </Tooltip>
+            <Button
+                variant="outlined"
+                size="medium"
+                color="error"
+                startIcon={<DeleteIcon/>}
+                disabled={selectedCount === 0}
+                onClick={onDeleteSelected}
+                sx={{borderRadius: 2, whiteSpace: 'nowrap'}}
+            >
+                Delete&nbsp;({selectedCount})
+            </Button>
 
-                <Tooltip title="Edit selected vehicle">
-                    <span>
-                        <IconButton size="small" disabled={selectedVehicles.length !== 1}>
-                            <EditIcon/>
-                        </IconButton>
-                    </span>
-                </Tooltip>
-
-                <Tooltip title="Delete selected vehicles">
-                    <span>
-                        <IconButton size="small" disabled={selectedVehicles.length === 0}>
-                            <DeleteIcon/>
-                        </IconButton>
-                    </span>
-                </Tooltip>
-            </Box>
-        </Toolbar>
-    );
-}
+            <Button
+                variant="outlined"
+                size="medium"
+                startIcon={<RefreshIcon/>}
+                onClick={onRefresh}
+                sx={{borderRadius: 2}}
+            >
+                Refresh
+            </Button>
+        </Box>
+    </Box>
+);
 
 export default VehiclesTopBar;

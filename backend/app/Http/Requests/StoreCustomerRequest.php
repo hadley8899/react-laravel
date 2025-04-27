@@ -29,7 +29,6 @@ class StoreCustomerRequest extends FormRequest
             'address' => ['sometimes', 'required', 'string', 'max:255'],
             'status' => ['sometimes', 'required', 'in:Active,Inactive'],
             'total_spent' => ['sometimes', 'required', 'numeric', 'min:0'],
-            'avatar_url' => ['nullable', 'url'],
         ];
     }
 }

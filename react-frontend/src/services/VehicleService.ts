@@ -2,81 +2,47 @@ import { api } from './api';
 import { Vehicle } from '../interfaces/Vehicle';
 import { PaginatedResponse } from '../interfaces/PaginatedResponse';
 
-/* --------------------------------------------------------
-   Payload types
--------------------------------------------------------- */
-
+/* ---------- payloads ---------- */
 export type CreateVehiclePayload = {
+    customer_id: string;           // REQUIRED
     make: string;
     model: string;
-    year: number;
-    registration: string;          // UK “reg”
-    status: Vehicle['status'];
-    owner: string;
-    last_service?: string | null;  // ISO yyyy‑mm‑dd or null
+    year: number | null;
+    registration: string;
+    last_service?: string | null;
     next_service_due?: string | null;
     type?: string | null;
 };
 
 export type UpdateVehiclePayload = Partial<CreateVehiclePayload>;
 
-/* --------------------------------------------------------
-   CRUD helpers
--------------------------------------------------------- */
-
-/**
- * Fetch a paginated list of vehicles.
- */
-export async function getVehicles(
-    page: number = 1,
-    perPage: number = 10,
-    searchTerm: string = ''
-): Promise<PaginatedResponse<Vehicle>> {
+/* ---------- CRUD ---------- */
+export const getVehicles = async (
+    page = 1,
+    perPage = 10,
+    search = ''
+): Promise<PaginatedResponse<Vehicle>> => {
     const { data } = await api.get<PaginatedResponse<Vehicle>>('/vehicles', {
-        params: {
-            page,
-            per_page: perPage,
-            search: searchTerm || undefined,
-        },
+        params: { page, per_page: perPage, search: search || undefined }
     });
     return data;
-}
+};
 
-/**
- * Fetch a single vehicle by ID.
- */
-export async function getVehicle(id: number): Promise<Vehicle> {
-    const { data } = await api.get<{ data: Vehicle }>(`/vehicles/${id}`);
-    return data.data;
-}
-
-/**
- * Create a new vehicle.
- */
-export async function createVehicle(
+export const createVehicle = async (
     payload: CreateVehiclePayload
-): Promise<Vehicle> {
+): Promise<Vehicle> => {
     const { data } = await api.post<{ data: Vehicle }>('/vehicles', payload);
     return data.data;
-}
+};
 
-/**
- * Update an existing vehicle.
- */
-export async function updateVehicle(
-    id: number,
+export const updateVehicle = async (
+    uuid: string,
     payload: UpdateVehiclePayload
-): Promise<Vehicle> {
-    const { data } = await api.put<{ data: Vehicle }>(
-        `/vehicles/${id}`,
-        payload
-    );
+): Promise<Vehicle> => {
+    const { data } = await api.put<{ data: Vehicle }>(`/vehicles/${uuid}`, payload);
     return data.data;
-}
+};
 
-/**
- * Delete a vehicle.
- */
-export async function deleteVehicle(id: number): Promise<void> {
-    await api.delete(`/vehicles/${id}`);
-}
+export const deleteVehicle = async (uuid: string): Promise<void> => {
+    await api.delete(`/vehicles/${uuid}`);
+};

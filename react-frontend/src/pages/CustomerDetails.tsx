@@ -9,7 +9,6 @@ import {
     Alert,
     Button,
     Grid,
-    Avatar,
     Chip
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -17,11 +16,10 @@ import EmailIcon from '@mui/icons-material/Email';
 import PhoneIcon from '@mui/icons-material/Phone';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
-import { alpha } from '@mui/material/styles';
 
 import MainLayout from '../components/layout/MainLayout';
 import { Customer } from '../interfaces/Customer';
-import { getCustomer } from '../services/CustomerService';  // We'll define this in CustomerService
+import { getCustomer } from '../services/CustomerService';
 
 const CustomerDetails: React.FC = () => {
     const { uuid } = useParams();
@@ -100,7 +98,6 @@ const CustomerDetails: React.FC = () => {
                     )}
                     {customer && !loading && !error && (
                         <Grid container spacing={3}>
-                            {/* Left Column: Avatar and Status */}
                             <Grid size={{ xs: 12, md: 4 }}>
                                 <Box
                                     sx={{
@@ -110,21 +107,6 @@ const CustomerDetails: React.FC = () => {
                                         textAlign: 'center'
                                     }}
                                 >
-                                    <Avatar
-                                        src={customer.avatar_url}
-                                        alt={`${customer.first_name} ${customer.last_name}`}
-                                        sx={{
-                                            width: 120,
-                                            height: 120,
-                                            mb: 2,
-                                            bgcolor: alpha('#1976d2', 0.15),
-                                            color: 'primary.main',
-                                            fontSize: '2rem'
-                                        }}
-                                    >
-                                        {customer.first_name?.charAt(0)}
-                                        {customer.last_name?.charAt(0)}
-                                    </Avatar>
                                     {getStatusChip(customer.status)}
                                 </Box>
                             </Grid>
