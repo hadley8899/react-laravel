@@ -83,7 +83,7 @@ const VehicleFormDialog: React.FC<Props> = ({
         }
         setError(null);
         setFieldErrors({});
-    }, [open]);
+    }, [open, isEdit, vehicleToEdit]);
 
     /* ---------- customer search ---------- */
     const handleCustomerSearch = async (q: string) => {
@@ -244,14 +244,18 @@ const VehicleFormDialog: React.FC<Props> = ({
 
                         <Stack direction={{xs: 'column', md: 'row'}} spacing={2}>
                             <TextField
-                                label="Last Service" type="date" InputLabelProps={{shrink: true}}
-                                fullWidth disabled={submitting}
-                                value={lastService} onChange={e => setLastService(e.target.value)}
+                                label="Last Service" type="date" fullWidth
+                                disabled={submitting} value={lastService}
+                                onChange={e => setLastService(e.target.value)} slotProps={{
+                                inputLabel: {shrink: true}
+                            }}
                             />
                             <TextField
-                                label="Next Service Due" type="date" InputLabelProps={{shrink: true}}
-                                fullWidth disabled={submitting}
-                                value={nextServiceDue} onChange={e => setNextServiceDue(e.target.value)}
+                                label="Next Service Due" type="date" fullWidth
+                                disabled={submitting} value={nextServiceDue}
+                                onChange={e => setNextServiceDue(e.target.value)} slotProps={{
+                                inputLabel: {shrink: true}
+                            }}
                             />
                         </Stack>
                     </DialogContent>
@@ -275,7 +279,6 @@ const VehicleFormDialog: React.FC<Props> = ({
                     </DialogActions>
                 </Box>
             </Dialog>
-
             {/* quick-add customer */}
             <CustomerFormDialog
                 open={quickAddOpen}
