@@ -1,7 +1,7 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {
     Box, Paper, Stack, TextField, Typography, Button, Grid,
-    Avatar, CircularProgress, Alert, Snackbar, Tabs, Tab,
+    Avatar, CircularProgress, Alert, Tabs, Tab,
     IconButton, alpha, useTheme, MenuItem
 } from '@mui/material';
 import {
@@ -14,7 +14,6 @@ import {
     Info as InfoIcon,
     Delete as DeleteIcon,
     Save as SaveIcon,
-    CheckCircleOutline as CheckCircleOutlineIcon
 } from '@mui/icons-material';
 import Autocomplete from '@mui/material/Autocomplete';
 import {Company} from '../../interfaces/Company';
@@ -24,6 +23,7 @@ import {AdapterDateFns} from "@mui/x-date-pickers/AdapterDateFns";
 import {DatePicker} from "@mui/x-date-pickers/DatePicker";
 import {DATE_FORMAT} from '../../services/dateService';
 import {format} from 'date-fns';
+import {useNotifier} from "../../contexts/NotificationContext.tsx";
 
 /* ------------------------------------------------------------------ */
 /* helpers                                                             */
@@ -44,6 +44,7 @@ const CompanyInfo: React.FC = () => {
     const theme = useTheme();
     const fileRef = useRef<HTMLInputElement>(null);
     const [tab, setTab] = useState(0);
+    const { showNotification } = useNotifier();
 
     /* ---------- state ---------- */
     const [company, setCompany] = useState<Company | null>(null);
@@ -80,7 +81,6 @@ const CompanyInfo: React.FC = () => {
     const [loading, setLoad] = useState(true);
     const [saving, setSave] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [ok, setOk] = useState(false);
 
     const timezones: string[] =
         (Intl as any).supportedValuesOf?.('timeZone') ?? [
@@ -105,7 +105,7 @@ const CompanyInfo: React.FC = () => {
             try {
                 const c = await getMyCompany();
                 initialise(c);
-            } catch (e) {
+            } catch (e: any) {
                 /* fall back to localStorage copy if available */
                 const user = JSON.parse(localStorage.getItem('user') ?? 'null');
                 if (user?.company) {
@@ -166,7 +166,8 @@ const CompanyInfo: React.FC = () => {
             const updated = await updateCompany(company.uuid, payload);
             setCompany(updated);
             setLogoFile(null);
-            setOk(true);
+
+            showNotification('Company information saved successfully!', 'success');
         } catch (e: any) {
             setError(e.message ?? 'Save failed');
         } finally {
@@ -459,13 +460,6 @@ const CompanyInfo: React.FC = () => {
                     </Button>
                 </Box>
             </Paper>
-            <Snackbar
-                open={ok}
-                autoHideDuration={4000}
-                onClose={() => setOk(false)}
-                message={<Stack direction="row" spacing={1} alignItems="center"><CheckCircleOutlineIcon
-                    color="success"/>Saved</Stack>}
-            />
         </Box>
     );
 };

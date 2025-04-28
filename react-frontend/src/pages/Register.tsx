@@ -1,21 +1,18 @@
 import React, {useState} from 'react';
-import {TextField, Button, Typography, Snackbar, Alert} from '@mui/material';
+import {TextField, Button, Typography} from '@mui/material';
 import AuthLayout from '../components/layout/AuthLayout';
 import {registerUser} from '../services/authService';
+import {useNotifier} from "../contexts/NotificationContext.tsx";
 
 const Register: React.FC = () => {
+    const {showNotification} = useNotifier();
+
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [errors, setErrors] = useState<Record<string, string>>({});
-    const [apiError, setApiError] = useState('');
-    const [successMessage, setSuccessMessage] = useState('');
     const [loading, setLoading] = useState(false);
-
-    // We'll show these in a toast
-    const [openErrorToast, setOpenErrorToast] = useState(false);
-    const [openSuccessToast, setOpenSuccessToast] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -56,20 +53,17 @@ const Register: React.FC = () => {
         }
 
         setErrors({});
-        setApiError('');
-        setSuccessMessage('');
         setLoading(true);
 
         try {
-            const responseData = await registerUser({
+            await registerUser({
                 name,
                 email,
                 password,
                 password_confirmation: confirmPassword,
             });
 
-            setSuccessMessage(responseData.message || 'Registered successfully! Check your email.');
-            setOpenSuccessToast(true);
+            showNotification('Registration successful!', 'success');
 
             clearForm();
 
@@ -77,11 +71,9 @@ const Register: React.FC = () => {
             if (error.response) {
                 const data = error.response.data;
                 const msg = data.message || 'Registration failed';
-                setApiError(msg);
-                setOpenErrorToast(true);
+                showNotification(msg, 'error');
             } else {
-                setApiError('An error occurred. Please try again.');
-                setOpenErrorToast(true);
+                showNotification('An error occurred. Please try again.', 'error');
             }
         } finally {
             setLoading(false);
@@ -95,17 +87,6 @@ const Register: React.FC = () => {
         setConfirmPassword('');
         setErrors({});
     }
-
-    // Handlers to close the Snackbar toasts
-    const handleCloseErrorToast = () => {
-        setOpenErrorToast(false);
-        setApiError('');
-    };
-
-    const handleCloseSuccessToast = () => {
-        setOpenSuccessToast(false);
-        setSuccessMessage('');
-    };
 
     return (
         <AuthLayout>
@@ -161,30 +142,6 @@ const Register: React.FC = () => {
                     {loading ? 'Registering...' : 'Register'}
                 </Button>
             </form>
-
-            {/* Error Toast */}
-            <Snackbar
-                open={openErrorToast}
-                autoHideDuration={6000}
-                onClose={handleCloseErrorToast}
-                anchorOrigin={{vertical: 'top', horizontal: 'right'}}
-            >
-                <Alert onClose={handleCloseErrorToast} severity="error" sx={{width: '100%'}}>
-                    {apiError}
-                </Alert>
-            </Snackbar>
-
-            {/* Success Toast */}
-            <Snackbar
-                open={openSuccessToast}
-                autoHideDuration={6000}
-                onClose={handleCloseSuccessToast}
-                anchorOrigin={{vertical: 'top', horizontal: 'right'}}
-            >
-                <Alert onClose={handleCloseSuccessToast} severity="success" sx={{width: '100%'}}>
-                    {successMessage}
-                </Alert>
-            </Snackbar>
         </AuthLayout>
     );
 };

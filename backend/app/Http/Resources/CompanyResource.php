@@ -31,6 +31,17 @@ class CompanyResource extends JsonResource
             'default_units' => $this->default_units,
             'billing_address' => $this->billing_address,
             'notes' => $this->notes,
+
+            // Appointment Settings
+            'default_appointment_duration' => $this->default_appointment_duration,
+            'enable_online_booking' => $this->enable_online_booking,
+            'send_appointment_reminders' => $this->send_appointment_reminders,
+            // Return the stored value, could be null if reminders are off
+            'appointment_reminder_timing' => $this->appointment_reminder_timing,
+            // Optional
+            'appointment_buffer_time' => $this->appointment_buffer_time,
+            'min_booking_notice_hours' => $this->min_booking_notice_hours,
+
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

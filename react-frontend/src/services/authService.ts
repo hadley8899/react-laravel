@@ -1,4 +1,5 @@
 import {api} from './api';
+import User from "../interfaces/User.ts";
 
 export interface RegisterPayload {
     name: string;
@@ -44,13 +45,17 @@ export async function resetPassword(payload: ResetPasswordPayload) {
     return response.data;
 }
 
-export async function getAuthUser() {
+export async function getAuthUser(): Promise<User> {
     if (!localStorage.getItem('token')) {
         throw new Error('Not authenticated');
     }
 
     const response = await api.get('/user');
     return response.data.data;
+}
+
+export async function setAuthUser(user: User) {
+    localStorage.setItem('user', JSON.stringify(user));
 }
 
 export async function logout() {

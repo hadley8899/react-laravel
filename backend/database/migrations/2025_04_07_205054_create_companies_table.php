@@ -10,7 +10,7 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('companies', function (Blueprint $table) {
+        Schema::create('companies', static function (Blueprint $table) {
             $table->id();
             $table->uuid()->unique();
             $table->string('name');
@@ -40,6 +40,15 @@ return new class extends Migration {
 
             $table->text('billing_address')->nullable();
             $table->text('notes')->nullable();
+
+            $table->integer('default_appointment_duration')->default(60); // Default 60 minutes
+            $table->boolean('enable_online_booking')->default(true);
+            $table->boolean('send_appointment_reminders')->default(true);
+            $table->string('appointment_reminder_timing', 10)->default('24h'); // e.g., '1h', '24h'
+            // Optional: Add buffer time (in minutes)
+            $table->integer('appointment_buffer_time')->default(0); // Time before/after unavailable
+            // Optional: Minimum booking notice (in hours)
+            $table->integer('min_booking_notice_hours')->default(24);
 
             $table->softDeletes();
             $table->timestamps();

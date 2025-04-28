@@ -59,6 +59,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::controller(CompanyController::class)->group(function () {
         Route::get('/current-company', 'currentCompany');
+        // Keep the general update route if needed for name/address etc.
+        // Route::put('/companies/{company:uuid}', 'update');
+        // Add a specific route for updating settings
+        Route::put('/companies/{company:uuid}/settings', 'updateSettings')->name('companies.updateSettings');
     });
 
     Route::put('/companies/{company:uuid}', [CompanyController::class, 'update']);

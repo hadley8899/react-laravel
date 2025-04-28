@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreCompanyRequest;
 use App\Http\Requests\UpdateCompanyRequest;
+use App\Http\Requests\UpdateCompanySettingsRequest;
 use App\Http\Resources\CompanyResource;
 use App\Models\Company;
 use Exception;
@@ -41,9 +42,37 @@ class CompanyController extends Controller
         return new CompanyResource($company);
     }
 
-    public function currentCompany()
+    /**
+     * Display the currently authenticated user's company details.
+     */
+    public function currentCompany(): CompanyResource|JsonResponse
     {
-        return new CompanyResource(Auth::user()->company);
+        $company = Auth::user()->company;
+
+        if (!$company) {
+            return response()->json(['message' => 'Company not found for the user.'], 404);
+        }
+
+        return new CompanyResource($company);
+    }
+
+    /**
+     * Update the specified company's appointment settings.
+     */
+    public function updateSettings(UpdateCompanySettingsRequest $request, Company $company): CompanyResource|JsonResponse
+    {
+        // Extract only the settings fields from the validated data
+        $settingsData = $request->validated();
+
+        // Handle nullable reminder timing if reminders are off
+        if (isset($settingsData['send_appointment_reminders']) && !$settingsData['send_appointment_reminders']) {
+            $settingsData['appointment_reminder_timing'] = null;
+        }
+
+
+        $company->update($settingsData);
+
+        return new CompanyResource($company->fresh());
     }
 
     /**
@@ -55,7 +84,7 @@ class CompanyController extends Controller
         Log::info('Company update request data', [
             'all' => $request->all(),
             'validated' => $request->validated(),
-            'files' => $request->allFiles()
+            'files' => $request->allFiles(),
         ]);
 
         $validated = $request->validated();
@@ -67,18 +96,18 @@ class CompanyController extends Controller
                     Storage::disk('public')->delete($company->logo_path);
                 }
 
-                $validated['logo_path'] = $request->file('logo')->store('company-logos', 'public');
+                $validated['logo_path'] = $request->file('logo')?->store('company-logos', 'public');
 
                 $validated['logo_url'] = asset('storage/' . $validated['logo_path']);
 
                 Log::info('Logo stored successfully', [
                     'path' => $validated['logo_path'],
-                    'url' => $validated['logo_url']
+                    'url' => $validated['logo_url'],
                 ]);
             } catch (Exception $e) {
                 Log::error('Error uploading logo', [
                     'exception' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString()
+                    'trace' => $e->getTraceAsString(),
                 ]);
             }
         }

@@ -22,6 +22,14 @@ export interface Company {
     default_units?: 'metric' | 'imperial' | null;
     billing_address?: string | null;
     notes?: string | null;
+
+    default_appointment_duration: number;
+    enable_online_booking: boolean;
+    send_appointment_reminders: boolean;
+    appointment_reminder_timing: string | null; // '1h', '24h', etc., or null
+    appointment_buffer_time: number;
+    min_booking_notice_hours: number;
+
     created_at: string;
     updated_at: string;
 }

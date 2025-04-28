@@ -42,6 +42,21 @@ class Company extends Model
         'default_units',
         'billing_address',
         'notes',
+        'default_appointment_duration',
+        'enable_online_booking',
+        'send_appointment_reminders',
+        'appointment_reminder_timing',
+        'appointment_buffer_time',
+        'min_booking_notice_hours',
+    ];
+
+    protected $casts = [
+        // Add casts for boolean and potentially integer values
+        'enable_online_booking' => 'boolean',
+        'send_appointment_reminders' => 'boolean',
+        'default_appointment_duration' => 'integer',
+        'appointment_buffer_time' => 'integer',
+        'min_booking_notice_hours' => 'integer',
     ];
 
     public function getLogoUrlAttribute(): ?string
