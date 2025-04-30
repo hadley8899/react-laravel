@@ -66,7 +66,7 @@ class CompanyController extends Controller
 
         // Handle nullable reminder timing if reminders are off
         if (isset($settingsData['send_appointment_reminders']) && !$settingsData['send_appointment_reminders']) {
-            $settingsData['appointment_reminder_timing'] = null;
+            $settingsData['appointment_reminder_timing'] = false;
         }
 
 

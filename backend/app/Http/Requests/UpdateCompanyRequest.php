@@ -42,6 +42,7 @@ class UpdateCompanyRequest extends FormRequest
             'locale' => ['sometimes', 'nullable', 'string', 'max:8'],
             'default_units' => ['sometimes', 'nullable', 'string', 'max:64'],
             'notes' => ['sometimes', 'nullable', 'string'],
+            'slug' => ['sometimes', 'nullable', 'string', 'max:255', 'regex:/^[A-Za-z0-9-]+$/'],
         ];
     }
 }
