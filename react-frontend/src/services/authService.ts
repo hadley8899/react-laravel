@@ -26,13 +26,17 @@ export async function registerUser(payload: RegisterPayload) {
 }
 
 export async function loginUser(credentials: LoginPayload) {
-    const response = await api.post('/login', credentials);
-    if (response.data.token) {
-        localStorage.setItem('token', response.data.token);
-        localStorage.setItem('user', JSON.stringify(response.data.user));
-        api.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
+    const res = await api.post('/login', credentials);
+    const { token, user } = res.data;
+
+    if (token) {
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(user));
+        api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        window.dispatchEvent(new Event('user-updated'));
     }
-    return response.data;
+
+    return res.data;
 }
 
 export async function forgotPassword(email: string) {

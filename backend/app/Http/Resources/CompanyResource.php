@@ -42,6 +42,11 @@ class CompanyResource extends JsonResource
             'appointment_buffer_time' => $this->appointment_buffer_time,
             'min_booking_notice_hours' => $this->min_booking_notice_hours,
 
+            'invoice_prefix' => $this->invoice_prefix,
+            'next_invoice_number' => $this->next_invoice_number,
+            'default_payment_terms' => $this->default_payment_terms,
+            'invoice_footer_notes' => $this->invoice_footer_notes,
+
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

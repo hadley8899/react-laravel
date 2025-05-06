@@ -6,4 +6,7 @@ export default interface User {
     email: string;
     avatar_url: string;
     company: Company;
+    notify_new_booking: boolean;
+    notify_job_complete: boolean;
+    preferred_theme: 'light' | 'dark' | 'system';
 }

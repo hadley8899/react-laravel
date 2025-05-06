@@ -16,6 +16,11 @@ use Laravel\Sanctum\HasApiTokens;
 use SensitiveParameter;
 use Spatie\Permission\Traits\HasRoles;
 
+/**
+ * @property-read Company|null $company
+ * @property mixed|string $password
+ * @property string $avatar_path
+ */
 class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
@@ -34,10 +39,13 @@ class User extends Authenticatable implements MustVerifyEmail
         'email',
         'password',
         'avatar_path',
+        'notify_new_booking',
+        'notify_job_complete',
+        'preferred_theme',
     ];
 
     /**
-     * The attributes that should be hidden for serialization.
+     * The attributes that should be hidden for serialisation.
      *
      * @var list<string>
      */
@@ -57,6 +65,8 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'notify_new_booking' => 'boolean',
+            'notify_job_complete' => 'boolean',
         ];
     }
 

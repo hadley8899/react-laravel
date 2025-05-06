@@ -17,6 +17,11 @@ class UserResource extends JsonResource
             'role' => $this->role,
             'status' => $this->status,
             'company' => new CompanyResource($this->company),
+            // Preferences
+            'notify_new_booking' => $this->notify_new_booking,
+            'notify_job_complete' => $this->notify_job_complete,
+            'preferred_theme' => $this->preferred_theme,
+
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

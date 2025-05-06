@@ -22,6 +22,7 @@ import SaveIcon from '@mui/icons-material/Save';
 import {getMyCompany, updateCompanySettings, UpdateCompanySettingsPayload} from "../../services/CompanyService.ts";
 import {useNotifier} from "../../contexts/NotificationContext.tsx";
 import {getAuthUser, setAuthUser} from "../../services/authService.ts";
+import SettingsAccordionItem from "../layout/SettingsAccordionItem.tsx";
 
 // Define the type for reminder timing options used in the component state
 type ReminderTiming = '1h' | '3h' | '12h' | '24h' | '48h';
@@ -154,167 +155,171 @@ const AppointmentSettings: React.FC = () => {
     }
 
     return (
-        <Box sx={{mb: 5}}>
-            <Box sx={{display: 'flex', alignItems: 'center', mb: 2}}>
-                <EventNoteIcon sx={{mr: 1}}/>
-                <Typography variant="h6" component="h2" fontWeight="medium">
-                    Appointment Settings
-                </Typography>
+        <SettingsAccordionItem
+            title="Appointment Settings"
+            icon={<EventNoteIcon/>}
+            isLoading={isLoading}
+            error={error && Object.keys(validationErrors).length === 0 ? error : null}
+        >
+            <Box sx={{mb: 5}}>
+                {error && Object.keys(validationErrors).length === 0 && ( // Show general error only if no specific validation errors
+                    (<Alert severity="error" sx={{mb: 2}}>{error}</Alert>)
+                )}
+                <Paper variant="outlined" sx={{p: {xs: 2, sm: 3}}}>
+                    <Grid container spacing={3}>
+
+                        {/* Default Duration - Updated Grid Syntax */}
+                        <Grid size={{xs: 12, sm: 6, md: 4}}>
+                            <FormControl fullWidth error={!!validationErrors.default_appointment_duration}>
+                                <InputLabel id="default-duration-label">Default Duration</InputLabel>
+                                <Select
+                                    labelId="default-duration-label"
+                                    label="Default Duration"
+                                    value={defaultDuration}
+                                    onChange={(e: SelectChangeEvent<number>) => setDefaultDuration(Number(e.target.value))}
+                                >
+                                    <MenuItem value={30}>30 Minutes</MenuItem>
+                                    <MenuItem value={45}>45 Minutes</MenuItem>
+                                    <MenuItem value={60}>1 Hour</MenuItem>
+                                    <MenuItem value={90}>1.5 Hours</MenuItem>
+                                    <MenuItem value={120}>2 Hours</MenuItem>
+                                </Select>
+                                {validationErrors.default_appointment_duration &&
+                                    <Typography color="error" variant="caption"
+                                                sx={{mt: 0.5}}>{validationErrors.default_appointment_duration}</Typography>}
+                            </FormControl>
+                        </Grid>
+
+                        {/* Buffer Time - Updated Grid Syntax */}
+                        <Grid size={{xs: 12, sm: 6, md: 4}}>
+                            <TextField
+                                fullWidth
+                                type="number"
+                                label="Booking Buffer Time (Minutes)"
+                                value={bufferTime}
+                                onChange={(e) => setBufferTime(Math.max(0, parseInt(e.target.value, 10) || 0))}
+                                helperText="Time before/after appointments that remains unavailable."
+                                error={!!validationErrors.appointment_buffer_time}
+                                slotProps={{
+                                    input: {inputProps: {min: 0, step: 5}},
+                                    formHelperText: validationErrors.appointment_buffer_time ? {error: true} : {}
+                                }}/>
+                            {validationErrors.appointment_buffer_time && <Typography color="error" variant="caption"
+                                                                                     sx={{mt: 0.5}}>{validationErrors.appointment_buffer_time}</Typography>}
+                        </Grid>
+
+                        {/* Min Notice - Updated Grid Syntax */}
+                        <Grid size={{xs: 12, sm: 6, md: 4}}>
+                            <TextField
+                                fullWidth
+                                type="number"
+                                label="Minimum Booking Notice (Hours)"
+                                value={minNoticeHours}
+                                onChange={(e) => setMinNoticeHours(Math.max(0, parseInt(e.target.value, 10) || 0))}
+                                helperText="How far in advance bookings must be made (0 for anytime)."
+                                error={!!validationErrors.min_booking_notice_hours}
+                                slotProps={{
+                                    input: {inputProps: {min: 0}},
+                                    formHelperText: validationErrors.min_booking_notice_hours ? {error: true} : {}
+                                }}/>
+                            {validationErrors.min_booking_notice_hours && <Typography color="error" variant="caption"
+                                                                                      sx={{mt: 0.5}}>{validationErrors.min_booking_notice_hours}</Typography>}
+                        </Grid>
+
+
+                        {/* Online Booking Switch - Updated Grid Syntax */}
+                        {/* Use Grid purely for layout, FormControlLabel contains the element */}
+                        <Grid size={{xs: 12, sm: 6, md: 4}} sx={{display: 'flex', alignItems: 'center'}}>
+                            <FormControl error={!!validationErrors.enable_online_booking}
+                                         sx={{width: '100%' /* Ensure FormControl takes space */}}>
+                                <FormControlLabel
+                                    control={<Switch checked={enableOnlineBooking}
+                                                     onChange={(e) => setEnableOnlineBooking(e.target.checked)}/>}
+                                    label="Enable Online Booking"
+                                    sx={{mr: 0}} // Adjust spacing if needed
+                                />
+                                {validationErrors.enable_online_booking &&
+                                    <Typography color="error" variant="caption" sx={{
+                                        display: 'block',
+                                        mt: -1
+                                    }}>{validationErrors.enable_online_booking}</Typography>}
+                            </FormControl>
+                        </Grid>
+
+                        {/* Send Reminders Switch - Updated Grid Syntax */}
+                        <Grid size={{xs: 12, sm: 6, md: 4}} sx={{display: 'flex', alignItems: 'center'}}>
+                            <FormControl error={!!validationErrors.send_appointment_reminders} sx={{width: '100%'}}>
+                                <FormControlLabel
+                                    control={<Switch checked={sendReminders}
+                                                     onChange={(e) => {
+                                                         setSendReminders(e.target.checked);
+                                                         if (!e.target.checked) {
+                                                             setReminderTiming('');
+                                                             // Clear potential validation error for timing
+                                                             setValidationErrors(prev => {
+                                                                 const newErrors = {...prev};
+                                                                 delete newErrors.appointment_reminder_timing;
+                                                                 return newErrors;
+                                                             });
+                                                         } else if (!reminderTiming) {
+                                                             // If turning on and no timing set, default to 24h
+                                                             setReminderTiming('24h');
+                                                         }
+                                                     }}/>}
+                                    label="Send Appointment Reminders"
+                                    sx={{mr: 0}}
+                                />
+                                {validationErrors.send_appointment_reminders &&
+                                    <Typography color="error" variant="caption"
+                                                sx={{
+                                                    display: 'block',
+                                                    mt: -1
+                                                }}>{validationErrors.send_appointment_reminders}</Typography>}
+                            </FormControl>
+                        </Grid>
+
+
+                        {/* Reminder Timing Select - Updated Grid Syntax */}
+                        <Grid size={{xs: 12, sm: 6, md: 4}}>
+                            <FormControl fullWidth disabled={!sendReminders}
+                                         error={!!validationErrors.appointment_reminder_timing}>
+                                <InputLabel id="reminder-timing-label">Reminder Timing</InputLabel>
+                                <Select
+                                    labelId="reminder-timing-label"
+                                    label="Reminder Timing"
+                                    value={sendReminders ? reminderTiming : ''}
+                                    onChange={(e: SelectChangeEvent<ReminderTimingState>) => setReminderTiming(e.target.value as ReminderTiming)}
+                                    sx={{backgroundColor: !sendReminders ? 'action.disabledBackground' : 'inherit'}}
+                                >
+                                    {/* Avoid empty value if required when enabled */}
+                                    {/* <MenuItem value={''} disabled>_Select Timing_</MenuItem> */}
+                                    <MenuItem value={'1h'}>1 Hour Before</MenuItem>
+                                    <MenuItem value={'3h'}>3 Hours Before</MenuItem>
+                                    <MenuItem value={'12h'}>12 Hours Before</MenuItem>
+                                    <MenuItem value={'24h'}>24 Hours Before</MenuItem>
+                                    <MenuItem value={'48h'}>48 Hours Before</MenuItem>
+                                </Select>
+                                {validationErrors.appointment_reminder_timing &&
+                                    <Typography color="error" variant="caption"
+                                                sx={{mt: 0.5}}>{validationErrors.appointment_reminder_timing}</Typography>}
+                            </FormControl>
+                        </Grid>
+
+                        <Grid size={12} sx={{mt: 2, display: 'flex', justifyContent: 'flex-end'}}>
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                startIcon={isSaving ? <CircularProgress size={20} color="inherit"/> : <SaveIcon/>}
+                                onClick={handleSaveSettings}
+                                disabled={isSaving || isLoading}
+                            >
+                                {isSaving ? "Saving..." : "Save Appointment Settings"}
+                            </Button>
+                        </Grid>
+                    </Grid>
+                </Paper>
             </Box>
-            {error && Object.keys(validationErrors).length === 0 && ( // Show general error only if no specific validation errors
-                (<Alert severity="error" sx={{mb: 2}}>{error}</Alert>)
-            )}
-            <Paper variant="outlined" sx={{p: {xs: 2, sm: 3}}}>
-                {/* Use container spacing for gutters between items */}
-                <Grid container spacing={3}>
-
-                    {/* Default Duration - Updated Grid Syntax */}
-                    <Grid size={{xs: 12, sm: 6, md: 4}}>
-                        <FormControl fullWidth error={!!validationErrors.default_appointment_duration}>
-                            <InputLabel id="default-duration-label">Default Duration</InputLabel>
-                            <Select
-                                labelId="default-duration-label"
-                                label="Default Duration"
-                                value={defaultDuration}
-                                onChange={(e: SelectChangeEvent<number>) => setDefaultDuration(Number(e.target.value))}
-                            >
-                                <MenuItem value={30}>30 Minutes</MenuItem>
-                                <MenuItem value={45}>45 Minutes</MenuItem>
-                                <MenuItem value={60}>1 Hour</MenuItem>
-                                <MenuItem value={90}>1.5 Hours</MenuItem>
-                                <MenuItem value={120}>2 Hours</MenuItem>
-                            </Select>
-                            {validationErrors.default_appointment_duration &&
-                                <Typography color="error" variant="caption"
-                                            sx={{mt: 0.5}}>{validationErrors.default_appointment_duration}</Typography>}
-                        </FormControl>
-                    </Grid>
-
-                    {/* Buffer Time - Updated Grid Syntax */}
-                    <Grid size={{xs: 12, sm: 6, md: 4}}>
-                        <TextField
-                            fullWidth
-                            type="number"
-                            label="Booking Buffer Time (Minutes)"
-                            value={bufferTime}
-                            onChange={(e) => setBufferTime(Math.max(0, parseInt(e.target.value, 10) || 0))}
-                            helperText="Time before/after appointments that remains unavailable."
-                            error={!!validationErrors.appointment_buffer_time}
-                            slotProps={{
-                                input: {inputProps: {min: 0, step: 5}},
-                                formHelperText: validationErrors.appointment_buffer_time ? {error: true} : {}
-                            }}/>
-                        {validationErrors.appointment_buffer_time && <Typography color="error" variant="caption"
-                                                                                 sx={{mt: 0.5}}>{validationErrors.appointment_buffer_time}</Typography>}
-                    </Grid>
-
-                    {/* Min Notice - Updated Grid Syntax */}
-                    <Grid size={{xs: 12, sm: 6, md: 4}}>
-                        <TextField
-                            fullWidth
-                            type="number"
-                            label="Minimum Booking Notice (Hours)"
-                            value={minNoticeHours}
-                            onChange={(e) => setMinNoticeHours(Math.max(0, parseInt(e.target.value, 10) || 0))}
-                            helperText="How far in advance bookings must be made (0 for anytime)."
-                            error={!!validationErrors.min_booking_notice_hours}
-                            slotProps={{
-                                input: {inputProps: {min: 0}},
-                                formHelperText: validationErrors.min_booking_notice_hours ? {error: true} : {}
-                            }}/>
-                        {validationErrors.min_booking_notice_hours && <Typography color="error" variant="caption"
-                                                                                  sx={{mt: 0.5}}>{validationErrors.min_booking_notice_hours}</Typography>}
-                    </Grid>
-
-
-                    {/* Online Booking Switch - Updated Grid Syntax */}
-                    {/* Use Grid purely for layout, FormControlLabel contains the element */}
-                    <Grid size={{xs: 12, sm: 6, md: 4}} sx={{display: 'flex', alignItems: 'center'}}>
-                        <FormControl error={!!validationErrors.enable_online_booking}
-                                     sx={{width: '100%' /* Ensure FormControl takes space */}}>
-                            <FormControlLabel
-                                control={<Switch checked={enableOnlineBooking}
-                                                 onChange={(e) => setEnableOnlineBooking(e.target.checked)}/>}
-                                label="Enable Online Booking"
-                                sx={{mr: 0}} // Adjust spacing if needed
-                            />
-                            {validationErrors.enable_online_booking && <Typography color="error" variant="caption" sx={{
-                                display: 'block',
-                                mt: -1
-                            }}>{validationErrors.enable_online_booking}</Typography>}
-                        </FormControl>
-                    </Grid>
-
-                    {/* Send Reminders Switch - Updated Grid Syntax */}
-                    <Grid size={{xs: 12, sm: 6, md: 4}} sx={{display: 'flex', alignItems: 'center'}}>
-                        <FormControl error={!!validationErrors.send_appointment_reminders} sx={{width: '100%'}}>
-                            <FormControlLabel
-                                control={<Switch checked={sendReminders}
-                                                 onChange={(e) => {
-                                                     setSendReminders(e.target.checked);
-                                                     if (!e.target.checked) {
-                                                         setReminderTiming('');
-                                                         // Clear potential validation error for timing
-                                                         setValidationErrors(prev => {
-                                                             const {appointment_reminder_timing, ...rest} = prev;
-                                                             return rest;
-                                                         });
-                                                     } else if (!reminderTiming) {
-                                                         // If turning on and no timing set, default to 24h
-                                                         setReminderTiming('24h');
-                                                     }
-                                                 }}/>}
-                                label="Send Appointment Reminders"
-                                sx={{mr: 0}}
-                            />
-                            {validationErrors.send_appointment_reminders && <Typography color="error" variant="caption"
-                                                                                        sx={{
-                                                                                            display: 'block',
-                                                                                            mt: -1
-                                                                                        }}>{validationErrors.send_appointment_reminders}</Typography>}
-                        </FormControl>
-                    </Grid>
-
-
-                    {/* Reminder Timing Select - Updated Grid Syntax */}
-                    <Grid size={{xs: 12, sm: 6, md: 4}}>
-                        <FormControl fullWidth disabled={!sendReminders}
-                                     error={!!validationErrors.appointment_reminder_timing}>
-                            <InputLabel id="reminder-timing-label">Reminder Timing</InputLabel>
-                            <Select
-                                labelId="reminder-timing-label"
-                                label="Reminder Timing"
-                                value={sendReminders ? reminderTiming : ''}
-                                onChange={(e: SelectChangeEvent<ReminderTimingState>) => setReminderTiming(e.target.value as ReminderTiming)}
-                                sx={{backgroundColor: !sendReminders ? 'action.disabledBackground' : 'inherit'}}
-                            >
-                                {/* Avoid empty value if required when enabled */}
-                                {/* <MenuItem value={''} disabled>_Select Timing_</MenuItem> */}
-                                <MenuItem value={'1h'}>1 Hour Before</MenuItem>
-                                <MenuItem value={'3h'}>3 Hours Before</MenuItem>
-                                <MenuItem value={'12h'}>12 Hours Before</MenuItem>
-                                <MenuItem value={'24h'}>24 Hours Before</MenuItem>
-                                <MenuItem value={'48h'}>48 Hours Before</MenuItem>
-                            </Select>
-                            {validationErrors.appointment_reminder_timing && <Typography color="error" variant="caption"
-                                                                                         sx={{mt: 0.5}}>{validationErrors.appointment_reminder_timing}</Typography>}
-                        </FormControl>
-                    </Grid>
-
-                    <Grid size={12} sx={{mt: 2, display: 'flex', justifyContent: 'flex-end'}}>
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            startIcon={isSaving ? <CircularProgress size={20} color="inherit"/> : <SaveIcon/>}
-                            onClick={handleSaveSettings}
-                            disabled={isSaving || isLoading}
-                        >
-                            {isSaving ? "Saving..." : "Save Appointment Settings"}
-                        </Button>
-                    </Grid>
-                </Grid>
-            </Paper>
-        </Box>
+        </SettingsAccordionItem>
     );
 }
 

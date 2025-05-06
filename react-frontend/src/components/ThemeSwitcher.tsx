@@ -2,26 +2,38 @@ import React from 'react';
 import {
     ToggleButtonGroup,
     ToggleButton,
-    useTheme as useMuiTheme
+    useTheme as useMuiTheme,
 } from '@mui/material';
 import {
     LightMode,
     DarkMode,
-    SettingsBrightness
+    SettingsBrightness,
 } from '@mui/icons-material';
-import { useTheme } from '../context/ThemeContext.tsx';
 
+import {getCurrentUserLocal, updateUserPreferences} from '../services/UserService';
+import {useTheme} from '../hooks/useTheme.ts'
 const ThemeSwitcher: React.FC = () => {
-    const { mode, setMode } = useTheme();
+    const {mode, setMode} = useTheme();
     const muiTheme = useMuiTheme();
 
-    const handleChange = (
-        _event: React.MouseEvent<HTMLElement>,
-        newMode: 'light' | 'dark' | 'system' | null,
+    const handleChange = async (
+        _e: React.MouseEvent<HTMLElement>,
+        newMode: 'light' | 'dark' | 'system' | null
     ) => {
-        if (newMode !== null) {
-            setMode(newMode);
+        if (!newMode || newMode === mode) return;
+
+        setMode(newMode);
+
+        const currentUser = getCurrentUserLocal();
+
+        const currentUserUuId = currentUser?.uuid;
+
+        if (!currentUserUuId) {
+            return;
         }
+        updateUserPreferences(currentUserUuId, {preferred_theme: newMode}).catch((error) => {
+            console.error(error);
+        })
     };
 
     return (
@@ -29,8 +41,8 @@ const ThemeSwitcher: React.FC = () => {
             value={mode}
             exclusive
             onChange={handleChange}
-            aria-label="theme mode"
             size="small"
+            aria-label="theme mode"
             sx={{
                 bgcolor: muiTheme.palette.background.paper,
                 '& .MuiToggleButtonGroup-grouped': {
@@ -42,13 +54,13 @@ const ThemeSwitcher: React.FC = () => {
             }}
         >
             <ToggleButton value="light" aria-label="light mode">
-                <LightMode fontSize="small" />
+                <LightMode fontSize="small"/>
             </ToggleButton>
             <ToggleButton value="dark" aria-label="dark mode">
-                <DarkMode fontSize="small" />
+                <DarkMode fontSize="small"/>
             </ToggleButton>
             <ToggleButton value="system" aria-label="system preference">
-                <SettingsBrightness fontSize="small" />
+                <SettingsBrightness fontSize="small"/>
             </ToggleButton>
         </ToggleButtonGroup>
     );

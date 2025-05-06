@@ -11,7 +11,7 @@ import AppointmentSettings from "../components/settings/AppointmentSettings.tsx"
 import InvoiceAndPaymentSettings from "../components/settings/InvoiceAndPaymentSettings.tsx";
 import NotificationPreferences from "../components/settings/NotificationPreferences.tsx";
 import SettingsThemeSwitcher from "../components/settings/SettingsThemeSwitcher.tsx";
-import Integrations from "../components/settings/Integrations.tsx";
+// import Integrations from "../components/settings/Integrations.tsx";
 
 const Settings: React.FC = () => {
     return (
@@ -24,13 +24,13 @@ const Settings: React.FC = () => {
                     </Typography>
                 </Box>
 
+                {/* First accordion expanded by default */}
                 <CompanyInfo/>
                 <AppointmentSettings/>
                 <InvoiceAndPaymentSettings/>
                 <NotificationPreferences/>
                 <SettingsThemeSwitcher/>
-                <Integrations/>
-
+                {/*<Integrations/>*/}
             </Container>
         </MainLayout>
     );

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ChangePasswordRequest;
+use App\Http\Requests\UpdateUserPreferencesRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
@@ -13,7 +14,7 @@ use Illuminate\Validation\ValidationException;
 
 class UserController extends Controller
 {
-    public function user()
+    public function user(): UserResource
     {
         $user = auth()->user();
         return new UserResource($user);
@@ -23,12 +24,13 @@ class UserController extends Controller
     {
         $validated = $request->validated();
 
-        /* handle avatar */
         if ($request->hasFile('avatar')) {
 
-            if ($user->avatar_path) Storage::delete($user->avatar_path);
+            if ($user->avatar_path) {
+                Storage::delete($user->avatar_path);
+            }
 
-            $path = $request->file('avatar')->store('avatars', 'public');
+            $path = $request->file('avatar')?->store('avatars', 'public');
             $validated['avatar_path'] = $path;
         }
 
@@ -61,5 +63,11 @@ class UserController extends Controller
         $user->save();
 
         return response()->json(['message' => 'Password changed successfully']);
+    }
+
+    public function updatePreferences(UpdateUserPreferencesRequest $req, User $user): JsonResponse
+    {
+        $user->update($req->validated());
+        return response()->json(['data' => $user->fresh()]);
     }
 }

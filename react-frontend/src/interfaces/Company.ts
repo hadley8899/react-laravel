@@ -30,6 +30,13 @@ export interface Company {
     appointment_buffer_time: number;
     min_booking_notice_hours: number;
 
+    invoice_prefix: string;
+    next_invoice_number: number;
+    default_payment_terms: 'DueOnReceipt' | 'Net7' | 'Net15' | 'Net30';
+    invoice_footer_notes: string | null;
+    invoice_footer_notes_html: string | null;
+    invoice_footer_notes_markdown: string | null;
+
     created_at: string;
     updated_at: string;
 }

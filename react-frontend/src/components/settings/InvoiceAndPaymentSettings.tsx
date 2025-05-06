@@ -1,77 +1,152 @@
+import React, {useEffect, useState} from 'react';
 import {
-    Box,
-    FormControl,
+    Paper,
     Grid,
-    InputAdornment,
-    InputLabel,
-    MenuItem, Paper,
-    Select,
     TextField,
-    Typography
-} from "@mui/material";
-import React, {useState} from "react";
-import ReceiptIcon from "@mui/icons-material/Receipt";
+    InputAdornment,
+    MenuItem,
+    Button,
+    CircularProgress,
+} from '@mui/material';
+import ReceiptIcon from '@mui/icons-material/Receipt';
+import SaveIcon from '@mui/icons-material/Save';
+
+import {
+    getMyCompany,
+    updateCompanyBilling,
+    UpdateCompanyBillingPayload,
+} from '../../services/CompanyService';
+import {useNotifier} from '../../contexts/NotificationContext';
+import SettingsAccordionItem from "../layout/SettingsAccordionItem.tsx";
 
 type PaymentTerms = 'DueOnReceipt' | 'Net7' | 'Net15' | 'Net30';
 
 const InvoiceAndPaymentSettings: React.FC = () => {
+    const {showNotification} = useNotifier();
 
-    // Invoicing
-    const [invoicePrefix, setInvoicePrefix] = useState<string>("INV-");
-    const [nextInvoiceNum] = useState<number>(1056); // Display only example
+    /* -------------------------------- state ------------------------------- */
+    const [companyUuid, setCompanyUuid] = useState<string>('');
+
+    const [invoicePrefix, setInvoicePrefix] = useState('INV-');
+    const [nextInvoiceNumber, setNextInvoiceNumber] = useState(1);
     const [paymentTerms, setPaymentTerms] = useState<PaymentTerms>('Net15');
-    const [invoiceNotes, setInvoiceNotes] = useState<string>("Thank you for your business. Payment is due within 15 days.");
+    const [invoiceNotes, setInvoiceNotes] = useState('');
+
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    /* ----------------------------- fetch current -------------------------- */
+    useEffect(() => {
+        (async () => {
+            try {
+                const c = await getMyCompany();
+                setCompanyUuid(c.uuid);
+                setInvoicePrefix(c.invoice_prefix ?? 'INV-');
+                setNextInvoiceNumber(c.next_invoice_number ?? 1);
+                setPaymentTerms((c.default_payment_terms ?? 'Net15') as PaymentTerms);
+                setInvoiceNotes(c.invoice_footer_notes ?? '');
+            } catch (e: any) {
+                setError(e.message ?? 'Failed to load invoice settings.');
+            } finally {
+                setLoading(false);
+            }
+        })();
+    }, []);
+
+    /* ----------------------------- save handler --------------------------- */
+    const handleSave = async () => {
+        if (!companyUuid) return;
+        setSaving(true);
+        setError(null);
+        try {
+            const payload: UpdateCompanyBillingPayload = {
+                invoice_prefix: invoicePrefix.trim(),
+                default_payment_terms: paymentTerms,
+                invoice_footer_notes: invoiceNotes.trim(),
+            };
+            await updateCompanyBilling(companyUuid, payload);
+            showNotification('Invoice & payment settings saved!', 'success');
+        } catch (e: any) {
+            setError(e.message ?? 'Save failed.');
+        } finally {
+            setSaving(false);
+        }
+    };
 
     return (
-
-        <Box sx={{mb: 5}}>
-            <Box sx={{display: 'flex', alignItems: 'center', mb: 2}}>
-                <ReceiptIcon/>
-                <Typography variant="h6" component="h2" fontWeight="medium">
-                    Invoice and Payment Settings
-                </Typography>
-            </Box>
+        <SettingsAccordionItem
+            title="Invoice & Payment Settings"
+            icon={<ReceiptIcon/>}
+            isLoading={loading}
+            error={error}
+        >
             <Paper variant="outlined" sx={{p: {xs: 2, sm: 3}}}>
                 <Grid container spacing={3}>
-                    <Grid>
+                    <Grid size={{xs: 12, md: 4}}>
                         <TextField
-                            label="Invoice ID Prefix"
+                            label="Invoice Prefix"
+                            fullWidth
                             value={invoicePrefix}
                             onChange={(e) => setInvoicePrefix(e.target.value)}
-                            fullWidth
                             slotProps={{
-                                input: {startAdornment: <InputAdornment position="start">#</InputAdornment>}
+                                input: {
+                                    startAdornment: <InputAdornment position="start">#</InputAdornment>,
+                                }
                             }}
                         />
                     </Grid>
-                    <Grid>
-                        <TextField label="Next Invoice Number" value={nextInvoiceNum} disabled fullWidth
-                                   helperText="Auto-increments, cannot be edited here."/>
+
+                    <Grid size={{xs: 12, md: 4}}>
+                        <TextField
+                            label="Next Invoice #"
+                            fullWidth
+                            disabled
+                            value={nextInvoiceNumber}
+                            helperText="Auto-increments; edit via DB if you must reset."
+                        />
                     </Grid>
-                    <Grid>
-                        <FormControl fullWidth>
-                            <InputLabel id="payment-terms-label">Default Payment Terms</InputLabel>
-                            <Select
-                                labelId="payment-terms-label"
-                                label="Default Payment Terms"
-                                value={paymentTerms}
-                                onChange={(e) => setPaymentTerms(e.target.value as PaymentTerms)}
-                            >
-                                <MenuItem value={'DueOnReceipt'}>Due On Receipt</MenuItem>
-                                <MenuItem value={'Net7'}>Net 7 Days</MenuItem>
-                                <MenuItem value={'Net15'}>Net 15 Days</MenuItem>
-                                <MenuItem value={'Net30'}>Net 30 Days</MenuItem>
-                            </Select>
-                        </FormControl>
+
+                    <Grid size={{xs: 12, md: 4}}>
+                        <TextField
+                            select
+                            label="Default Payment Terms"
+                            fullWidth
+                            value={paymentTerms}
+                            onChange={(e) => setPaymentTerms(e.target.value as PaymentTerms)}
+                        >
+                            <MenuItem value="DueOnReceipt">Due on Receipt</MenuItem>
+                            <MenuItem value="Net7">Net 7 Days</MenuItem>
+                            <MenuItem value="Net15">Net 15 Days</MenuItem>
+                            <MenuItem value="Net30">Net 30 Days</MenuItem>
+                        </TextField>
                     </Grid>
-                    <Grid>
-                        <TextField label="Default Invoice Footer Notes" value={invoiceNotes}
-                                   onChange={(e) => setInvoiceNotes(e.target.value)} fullWidth multiline rows={3}/>
+
+                    <Grid size={12}>
+                        <TextField
+                            label="Default Invoice Footer Notes"
+                            fullWidth
+                            multiline
+                            rows={3}
+                            value={invoiceNotes}
+                            onChange={(e) => setInvoiceNotes(e.target.value)}
+                        />
+                    </Grid>
+
+                    <Grid size={12} sx={{textAlign: 'right'}}>
+                        <Button
+                            variant="contained"
+                            startIcon={saving ? <CircularProgress size={20} color="inherit"/> : <SaveIcon/>}
+                            disabled={saving}
+                            onClick={handleSave}
+                        >
+                            {saving ? 'Saving…' : 'Save Settings'}
+                        </Button>
                     </Grid>
                 </Grid>
             </Paper>
-        </Box>
-    )
-}
+        </SettingsAccordionItem>
+    );
+};
 
 export default InvoiceAndPaymentSettings;

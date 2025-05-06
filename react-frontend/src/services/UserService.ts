@@ -18,27 +18,65 @@ export const getCurrentUser = async (): Promise<{ data: User }> => {
     return response.data;
 };
 
+export const getCurrentUserLocal = (): User | null => {
+    const userJson = localStorage.getItem('user');
+    if (userJson) {
+        try {
+            return JSON.parse(userJson);
+        } catch (e) {
+            console.error('Error parsing user data from localStorage', e);
+        }
+    }
+    return null;
+}
+
+export type UpdateUserPreferencesPayload = {
+    notify_new_booking?: boolean;
+    notify_job_complete?: boolean;
+    preferred_theme?: 'light' | 'dark' | 'system';
+};
+
 export const updateUser = async (
     uuid: string,
     payload: UpdateUserPayload
 ): Promise<User> => {
-    /* If there's a file we must use multipart/form-data */
     if (payload.avatar) {
         const form = new FormData();
-        if (payload.name) form.append('name', payload.name);
-        if (payload.email) form.append('email', payload.email);
+        Object.entries(payload).forEach(([k, v]) => {
+            if (v && k !== 'avatar') form.append(k, v as string);
+        });
         form.append('avatar', payload.avatar);
-        /* POST with _method trick because Laravel won't parse multipart on PUT */
+
         const {data} = await api.post<{ data: User }>(
             `/users/${uuid}?_method=PUT`,
             form,
             {headers: {'Content-Type': 'multipart/form-data'}}
         );
-        return data.data;
+        return storeUser(data.data);
     }
 
     const {data} = await api.put<{ data: User }>(`/users/${uuid}`, payload);
-    return data.data;
+    return storeUser(data.data);
+};
+
+/* ------------------------------------------------------------------ */
+/* localStorage helper                                                */
+
+/* ------------------------------------------------------------------ */
+function storeUser(u: User): User {
+    localStorage.setItem('user', JSON.stringify(u));
+    return u;
+}
+
+export const updateUserPreferences = async (
+    uuid: string,
+    payload: UpdateUserPreferencesPayload
+): Promise<User> => {
+    const {data} = await api.put<{ data: User }>(
+        `/users/${uuid}/preferences`,
+        payload
+    );
+    return storeUser(data.data);
 };
 
 export const changePassword = async (

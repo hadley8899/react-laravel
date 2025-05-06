@@ -1,54 +1,82 @@
-import React, {createContext, useContext, useEffect, useState} from 'react';
+import React, {
+    createContext,
+    useEffect,
+    useState,
+    ReactNode,
+} from 'react';
 import {ThemeProvider as MUIThemeProvider} from '@mui/material/styles';
 import {lightTheme, darkTheme} from '../theme';
 
+/* ------------------------------------------------------------------ */
+/* types & helpers                                                    */
+/* ------------------------------------------------------------------ */
 type ThemeMode = 'light' | 'dark' | 'system';
 
-interface ThemeContextType {
+interface ThemeCtx {
     mode: ThemeMode;
-    setMode: (mode: ThemeMode) => void;
+    setMode: (m: ThemeMode) => void;
 }
 
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+export const ThemeContext = createContext<ThemeCtx | null>(null);
 
-export const useTheme = () => {
-    const context = useContext(ThemeContext);
-    if (!context) {
-        throw new Error('useTheme must be used within a ThemeProvider');
+const getPreferredFromLocal = (): ThemeMode => {
+    try {
+        const u = JSON.parse(localStorage.getItem('user') || 'null');
+        return u?.preferred_theme ?? 'system';
+    } catch {
+        return 'system';
     }
-    return context;
 };
 
-export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({children}) => {
-    const [mode, setMode] = useState<ThemeMode>('system');
-    const [activeTheme, setActiveTheme] = useState(lightTheme);
+/* ------------------------------------------------------------------ */
+/* provider                                                           */
+/* ------------------------------------------------------------------ */
+export const ThemeProvider: React.FC<{ children: ReactNode }> = ({children}) => {
+    const [mode, setModeState] = useState<ThemeMode>(getPreferredFromLocal());
+    const [muiTheme, setMuiTheme] = useState(mode === 'dark' ? darkTheme : lightTheme);
 
+    /* whenever mode changes, switch palette */
     useEffect(() => {
-        const handleSystemThemeChange = (e: MediaQueryListEvent) => {
-            if (mode === 'system') {
-                setActiveTheme(e.matches ? darkTheme : lightTheme);
+        const apply = (m: ThemeMode) => {
+            if (m === 'light') setMuiTheme(lightTheme);
+            else if (m === 'dark') setMuiTheme(darkTheme);
+            else {
+                const darkPref = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                setMuiTheme(darkPref ? darkTheme : lightTheme);
             }
         };
+        apply(mode);
 
-        if (mode === 'light') {
-            setActiveTheme(lightTheme);
-        } else if (mode === 'dark') {
-            setActiveTheme(darkTheme);
-        } else {
-            // System mode
-            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
-            setActiveTheme(prefersDark.matches ? darkTheme : lightTheme);
-
-            prefersDark.addEventListener('change', handleSystemThemeChange);
-            return () => prefersDark.removeEventListener('change', handleSystemThemeChange);
-        }
+        /* react to system change only in “system” mode */
+        const mq = window.matchMedia('(prefers-color-scheme: dark)');
+        const sys = (e: MediaQueryListEvent) => mode === 'system' && apply(e.matches ? 'dark' : 'light');
+        mq.addEventListener('change', sys);
+        return () => mq.removeEventListener('change', sys);
     }, [mode]);
+
+    /* listen for updates from login or user‐pref save */
+    useEffect(() => {
+        const sync = () => {
+            const local = getPreferredFromLocal();
+            if (local !== mode) setModeState(local);
+        };
+        window.addEventListener('user-updated', sync);
+        window.addEventListener('storage', sync); // other tabs
+        return () => {
+            window.removeEventListener('user-updated', sync);
+            window.removeEventListener('storage', sync);
+        };
+    }, [mode]);
+
+    /* public setter */
+    const setMode = (m: ThemeMode) => {
+        setModeState(m);
+        /* leave persisting to caller (ThemeSwitcher already does it) */
+    };
 
     return (
         <ThemeContext.Provider value={{mode, setMode}}>
-            <MUIThemeProvider theme={activeTheme}>
-                {children}
-            </MUIThemeProvider>
+            <MUIThemeProvider theme={muiTheme}>{children}</MUIThemeProvider>
         </ThemeContext.Provider>
     );
 };

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreCompanyRequest;
+use App\Http\Requests\UpdateCompanyBillingRequest;
 use App\Http\Requests\UpdateCompanyRequest;
 use App\Http\Requests\UpdateCompanySettingsRequest;
 use App\Http\Resources\CompanyResource;
@@ -69,7 +70,6 @@ class CompanyController extends Controller
             $settingsData['appointment_reminder_timing'] = false;
         }
 
-
         $company->update($settingsData);
 
         return new CompanyResource($company->fresh());
@@ -114,6 +114,14 @@ class CompanyController extends Controller
 
         $company->update($validated);
 
+        return new CompanyResource($company->fresh());
+    }
+
+    public function updateBilling(UpdateCompanyBillingRequest $request, Company $company): CompanyResource
+    {
+        $validated = $request->validated();
+
+        $company->update($validated);
         return new CompanyResource($company->fresh());
     }
 

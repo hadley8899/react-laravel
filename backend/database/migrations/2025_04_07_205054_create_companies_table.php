@@ -50,6 +50,11 @@ return new class extends Migration {
             // Optional: Minimum booking notice (in hours)
             $table->integer('min_booking_notice_hours')->default(24);
 
+            $table->string('invoice_prefix')->default('INV-');
+            $table->unsignedBigInteger('next_invoice_number')->default(1);
+            $table->enum('default_payment_terms', ['DueOnReceipt','Net7','Net15','Net30'])->default('Net15');
+            $table->text('invoice_footer_notes')->nullable();
+
             $table->softDeletes();
             $table->timestamps();
         });

@@ -20,6 +20,10 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->string('avatar_path')->nullable();
+            $table->boolean('notify_new_booking')->default(true);
+            $table->boolean('notify_job_complete')->default(false);
+            $table->enum('preferred_theme', ['light','dark','system'])->default('system');
+
             $table->rememberToken();
             $table->timestamps();
         });

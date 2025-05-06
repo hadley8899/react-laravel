@@ -48,10 +48,12 @@ const CustomerPageFilterBar: React.FC<CustomerPageFilerBarProps> = ({
                     size="small"
                     value={searchTermInput}
                     onChange={handleSearchChange}
-                    InputProps={{
-                        startAdornment: (<InputAdornment position="start"><SearchIcon/></InputAdornment>),
-                    }}
                     sx={{minWidth: '250px', '& .MuiOutlinedInput-root': {borderRadius: 2}}}
+                    slotProps={{
+                        input: {
+                            startAdornment: (<InputAdornment position="start"><SearchIcon/></InputAdornment>),
+                        }
+                    }}
                 />
                 <Button
                     variant="contained"
@@ -64,7 +66,7 @@ const CustomerPageFilterBar: React.FC<CustomerPageFilerBarProps> = ({
                 </Button>
             </Box>
         </Box>
-    )
+    );
 }
 
 export default CustomerPageFilterBar;

@@ -44,7 +44,7 @@ const CompanyInfo: React.FC = () => {
     const theme = useTheme();
     const fileRef = useRef<HTMLInputElement>(null);
     const [tab, setTab] = useState(0);
-    const { showNotification } = useNotifier();
+    const {showNotification} = useNotifier();
 
     /* ---------- state ---------- */
     const [company, setCompany] = useState<Company | null>(null);
@@ -106,6 +106,7 @@ const CompanyInfo: React.FC = () => {
                 const c = await getMyCompany();
                 initialise(c);
             } catch (e: any) {
+                console.info(e);
                 /* fall back to localStorage copy if available */
                 const user = JSON.parse(localStorage.getItem('user') ?? 'null');
                 if (user?.company) {
@@ -308,7 +309,7 @@ const CompanyInfo: React.FC = () => {
                                         value={address} onChange={e => setAddress(e.target.value)}
                                     />
                                 </Grid>
-                                <Grid size={{xs: 12}}>
+                                <Grid size={{xs: 12}} sx={{mb: 2}}>
                                     <TextField
                                         label="Billing Address" fullWidth multiline rows={2}
                                         value={billing} onChange={e => setBilling(e.target.value)}

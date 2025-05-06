@@ -1,45 +1,127 @@
-import {Box, FormControlLabel, Grid, Paper, Switch, Typography} from "@mui/material";
-import React, {useState} from "react";
-import PaletteIcon from "@mui/icons-material/Palette";
+import React, {useEffect, useState} from 'react';
+import {
+    Box,
+    Paper,
+    Grid,
+    Switch,
+    FormControlLabel,
+    Button,
+    CircularProgress,
+    Alert,
+} from '@mui/material';
+import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
+import SaveIcon from '@mui/icons-material/Save';
+import SettingsAccordionItem from '../layout/SettingsAccordionItem';
+
+import {
+    getCurrentUser,
+    updateUserPreferences,
+} from '../../services/UserService';
+import {useNotifier} from '../../contexts/NotificationContext';
 
 const NotificationPreferences: React.FC = () => {
+    const {showNotification} = useNotifier();
 
-    // Notifications (Example - simple toggles)
-    const [notifyNewBooking, setNotifyNewBooking] = useState<boolean>(true);
-    const [notifyJobComplete, setNotifyJobComplete] = useState<boolean>(false);
+    /* state */
+    const [uuid, setUuid] = useState('');
+    const [notifyBooking, setNotifyBooking] = useState(true);
+    const [notifyJobDone, setNotifyJobDone] = useState(false);
+
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    /* fetch on mount */
+    useEffect(() => {
+        (async () => {
+            try {
+                const userData = await getCurrentUser();
+                const u = userData.data;
+                setUuid(u.uuid);
+                setNotifyBooking(u.notify_new_booking ?? true);
+                setNotifyJobDone(u.notify_job_complete ?? false);
+            } catch (e: any) {
+                setError(e.message ?? 'Failed to load preferences.');
+            } finally {
+                setLoading(false);
+            }
+        })();
+    }, []);
+
+    /* save */
+    const handleSave = async () => {
+        setSaving(true);
+        setError(null);
+        try {
+            await updateUserPreferences(uuid, {
+                notify_new_booking: notifyBooking,
+                notify_job_complete: notifyJobDone,
+            });
+            showNotification('Notification preferences saved!', 'success');
+        } catch (e: any) {
+            setError(e.message ?? 'Save failed.');
+        } finally {
+            setSaving(false);
+        }
+    };
 
     return (
 
-        <Box sx={{mb: 5}}>
-            <Box sx={{display: 'flex', alignItems: 'center', mb: 2}}>
-               <PaletteIcon/>
-                <Typography variant="h6" component="h2" fontWeight="medium">
-                    Notification Preferences
-                </Typography>
+        <SettingsAccordionItem
+            title="Notification Preferences"
+            icon={<NotificationsActiveIcon/>}
+            isLoading={loading}
+            error={error}
+        >
+
+            <Box mb={6}>
+                {error && (
+                    <Alert severity="error" sx={{mb: 2}}>
+                        {error}
+                    </Alert>
+                )}
+
+                <Paper variant="outlined" sx={{p: {xs: 2, sm: 3}}}>
+                    <Grid container spacing={2}>
+                        <Grid size={12}>
+                            <FormControlLabel
+                                control={
+                                    <Switch
+                                        checked={notifyBooking}
+                                        onChange={(e) => setNotifyBooking(e.target.checked)}
+                                    />
+                                }
+                                label="Email me for new online bookings"
+                            />
+                        </Grid>
+                        <Grid size={12}>
+                            <FormControlLabel
+                                control={
+                                    <Switch
+                                        checked={notifyJobDone}
+                                        onChange={(e) => setNotifyJobDone(e.target.checked)}
+                                    />
+                                }
+                                label="Email me when a job is marked completed"
+                            />
+                        </Grid>
+                        <Grid size={12} sx={{textAlign: 'right', mt: 1}}>
+                            <Button
+                                variant="contained"
+                                startIcon={
+                                    saving ? <CircularProgress size={20} color="inherit"/> : <SaveIcon/>
+                                }
+                                disabled={saving}
+                                onClick={handleSave}
+                            >
+                                {saving ? 'Saving…' : 'Save Preferences'}
+                            </Button>
+                        </Grid>
+                    </Grid>
+                </Paper>
             </Box>
-            <Paper variant="outlined" sx={{p: {xs: 2, sm: 3}}}>
-                <Grid container spacing={2}>
-                    <Grid>
-                        <FormControlLabel
-                            control={<Switch checked={notifyNewBooking}
-                                             onChange={(e) => setNotifyNewBooking(e.target.checked)}/>}
-                            label="Email me for new online bookings"
-                        />
-                    </Grid>
-                    <Grid>
-                        <FormControlLabel
-                            control={<Switch checked={notifyJobComplete}
-                                             onChange={(e) => setNotifyJobComplete(e.target.checked)}/>}
-                            label="Email me when a job status is set to 'Completed'"
-                        />
-                    </Grid>
-                    {/* Add more notification toggles here */}
-                </Grid>
-            </Paper>
-        </Box>
-
-
-    )
-}
+        </SettingsAccordionItem>
+    );
+};
 
 export default NotificationPreferences;

@@ -1,8 +1,7 @@
 // src/services/companyService.ts
-import { api } from './api'; // Assuming 'api' is your configured axios instance
-import { Company } from '../interfaces/Company.ts'; // Ensure Company interface includes settings fields
+import {api} from './api'; // Axios
+import {Company} from '../interfaces/Company.ts';
 
-// Existing type for general update
 export type UpdateCompanyPayload = {
     name?: string;
     address?: string | null;
@@ -25,9 +24,7 @@ export type UpdateCompanySettingsPayload = {
     min_booking_notice_hours?: number;
 };
 
-// --- Existing getMyCompany function (keep as is) ---
 export const getMyCompany = async (): Promise<Company> => {
-    // Try to get from localStorage first
     const userJson = localStorage.getItem('user');
     let localCompany: Company | null = null;
 
@@ -39,7 +36,7 @@ export const getMyCompany = async (): Promise<Company> => {
                 // Ensure localCompany matches the Company interface structure
                 // Potentially add default values for settings if missing locally
 
-                if(localCompany) {
+                if (localCompany) {
                     localCompany.default_appointment_duration = localCompany.default_appointment_duration ?? 60;
                     localCompany.enable_online_booking = localCompany.enable_online_booking ?? true;
                     localCompany.send_appointment_reminders = localCompany.send_appointment_reminders ?? true;
@@ -53,9 +50,8 @@ export const getMyCompany = async (): Promise<Company> => {
         }
     }
 
-    // Always fetch fresh data from server
     try {
-        const { data } = await api.get<{ data: Company }>('/current-company');
+        const {data} = await api.get<{ data: Company }>('/current-company');
 
         // Update localStorage with fresh data
         if (userJson) {
@@ -71,18 +67,14 @@ export const getMyCompany = async (): Promise<Company> => {
         return data.data;
     } catch (e) {
         console.error('Failed to fetch company from server:', e);
-        // If server fetch fails but we have local data, use that
         if (localCompany) {
             console.warn('Using potentially stale company data from localStorage.');
             return localCompany;
         }
-        // If no local data either, re-throw the error
         throw e;
     }
 };
 
-
-// --- Existing updateCompany function (keep as is for general updates) ---
 export const updateCompany = async (
     uuid: string,
     payload: UpdateCompanyPayload,
@@ -91,7 +83,7 @@ export const updateCompany = async (
 
     // Remove logo from payload if it's null before creating FormData
     const hasLogo = payload.logo instanceof File;
-    const payloadWithoutLogo = { ...payload };
+    const payloadWithoutLogo = {...payload};
     if (!hasLogo) {
         delete payloadWithoutLogo.logo;
     }
@@ -107,24 +99,18 @@ export const updateCompany = async (
 
         form.append('logo', payload.logo); // Add the logo file
 
-        console.log('Sending form data with logo', Array.from(form.entries()));
-
-        // Use POST with _method=PUT for file uploads often
-        const { data } = await api.post<{ data: Company }>(
+        const {data} = await api.post<{ data: Company }>(
             `/companies/${uuid}?_method=PUT`, // Check if your backend handles this route for general updates
             form,
-            { headers: { 'Content-Type': 'multipart/form-data' } },
+            {headers: {'Content-Type': 'multipart/form-data'}},
         );
         updatedCompany = data.data;
     } else {
-        /* plain JSON */
         const cleanPayload = Object.fromEntries(
             Object.entries(payloadWithoutLogo).filter(([, v]) => v !== undefined) // Keep 'null' values if intended, filter undefined
         );
 
-        // Use PUT for standard JSON updates
-        // NOTE: Make sure you have a PUT /companies/{uuid} route in api.php for this
-        const { data } = await api.put<{ data: Company }>(`/companies/${uuid}`, cleanPayload);
+        const {data} = await api.put<{ data: Company }>(`/companies/${uuid}`, cleanPayload);
         updatedCompany = data.data;
     }
 
@@ -137,7 +123,7 @@ export const updateCompany = async (
             if (user.company && user.company.id === uuid) {
                 // Merge updated fields into existing company data in localStorage
                 // This preserves fields not returned by the specific update operation
-                user.company = { ...user.company, ...updatedCompany };
+                user.company = {...user.company, ...updatedCompany};
                 localStorage.setItem('user', JSON.stringify(user));
             } else if (!user.company) {
                 // If no company existed before, set it (less likely case here)
@@ -159,7 +145,7 @@ export const updateCompanySettings = async (
     payload: UpdateCompanySettingsPayload,
 ): Promise<Company> => { // Return the full updated Company object
     try {
-        const { data } = await api.put<{ data: Company }>(
+        const {data} = await api.put<{ data: Company }>(
             `/companies/${uuid}/settings`, // Use the specific settings endpoint
             payload // Send only the settings fields as JSON
         );
@@ -172,10 +158,9 @@ export const updateCompanySettings = async (
                 // Ensure user.company exists and IDs match before updating
                 if (user.company && user.company.id === uuid) {
                     // Merge the updated settings into the existing company data
-                    user.company = { ...user.company, ...data.data };
+                    user.company = {...user.company, ...data.data};
                     localStorage.setItem('user', JSON.stringify(user));
                 } else if (!user.company) {
-                    // If no company existed, set the returned one (unlikely for settings update)
                     user.company = data.data;
                     localStorage.setItem('user', JSON.stringify(user));
                 }
@@ -187,7 +172,42 @@ export const updateCompanySettings = async (
         return data.data; // Return the updated company data from the API response
     } catch (error) {
         console.error("Failed to update company settings:", error);
-        // Re-throw the error so the component can handle it (e.g., show validation errors)
         throw error;
     }
+};
+
+// src/services/companyService.ts
+export type UpdateCompanyBillingPayload = {
+    invoice_prefix?: string;
+    default_payment_terms?: 'DueOnReceipt' | 'Net7' | 'Net15' | 'Net30';
+    invoice_footer_notes?: string;
+};
+
+export const updateCompanyBilling = async (
+    uuid: string,
+    payload: UpdateCompanyBillingPayload
+): Promise<Company> => {
+    const {data} = await api.put<{ data: Company }>(
+        `/companies/${uuid}/billing`,   // new endpoint below
+        payload
+    );
+    // Update the company settings in localStorage
+    const userJson = localStorage.getItem('user');
+    if (userJson) {
+        try {
+            const user = JSON.parse(userJson);
+            // Ensure user.company exists and IDs match before updating
+            if (user.company && user.company.id === uuid) {
+                // Merge the updated settings into the existing company data
+                user.company = {...user.company, ...data.data};
+                localStorage.setItem('user', JSON.stringify(user));
+            } else if (!user.company) {
+                user.company = data.data;
+                localStorage.setItem('user', JSON.stringify(user));
+            }
+        } catch (e) {
+            console.error('Error updating localStorage after settings update', e);
+        }
+    }
+    return data.data;
 };

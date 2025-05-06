@@ -48,6 +48,10 @@ class Company extends Model
         'appointment_reminder_timing',
         'appointment_buffer_time',
         'min_booking_notice_hours',
+        'invoice_prefix',
+        'next_invoice_number',
+        'default_payment_terms',
+        'invoice_footer_notes',
     ];
 
     protected $casts = [

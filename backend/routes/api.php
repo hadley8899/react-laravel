@@ -28,6 +28,7 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::put('/{user:uuid}', 'update');
             Route::post('/{user:uuid}/change-password', 'changePassword');
             // Route::delete('/{user:uuid}', 'destroy');
+            Route::put('/{user:uuid}/preferences', [UserController::class, 'updatePreferences']);
         });
     });
 
@@ -63,6 +64,7 @@ Route::middleware('auth:sanctum')->group(function () {
         // Route::put('/companies/{company:uuid}', 'update');
         // Add a specific route for updating settings
         Route::put('/companies/{company:uuid}/settings', 'updateSettings')->name('companies.updateSettings');
+        Route::put('/companies/{company:uuid}/billing', [CompanyController::class, 'updateBilling'])->name('companies.updateBilling');
     });
 
     Route::put('/companies/{company:uuid}', [CompanyController::class, 'update']);
