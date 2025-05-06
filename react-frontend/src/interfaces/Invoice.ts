@@ -1,11 +1,38 @@
-export type InvoiceStatus = 'Paid' | 'Pending' | 'Overdue' | 'Draft';
+export type InvoiceStatus = 'draft' | 'pending' | 'paid' | 'overdue' | 'cancelled';
+
+export interface Customer {
+    id: number;
+    name: string;
+    email?: string;
+    phone?: string;
+}
 
 export interface Invoice {
-    id: string; // e.g., "INV-001"
-    customerId: number; // Link back to customer ID
-    customerName: string; // Denormalized for easy display
-    issueDate: string; // Format: YYYY-MM-DD
-    dueDate: string; // Format: YYYY-MM-DD
-    amount: number;
+    uuid: string;
+    invoice_number: string;
+    customer_id: number;
+    company_id: number;
+    customer?: Customer;
+    issue_date: string;
+    due_date: string;
+    subtotal: number;
+    tax_rate: number;
+    tax_amount: number;
+    total: number;
     status: InvoiceStatus;
+    notes?: string;
+    created_at?: string;
+    updated_at?: string;
+}
+
+export interface InvoiceListResponse {
+    data: Invoice[];
+    meta: {
+        current_page: number;
+        from: number;
+        last_page: number;
+        per_page: number;
+        to: number;
+        total: number;
+    }
 }

@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VehicleController;
 use App\Http\Controllers\VehicleMakeModelController;
@@ -40,6 +41,17 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/{customer:uuid}', 'show');
             Route::put('/{customer:uuid}', 'update');
             Route::delete('/{customer:uuid}', 'destroy');
+        });
+    });
+
+    // Invoice routes
+    Route::controller(InvoiceController::class)->group(function () {
+        Route::prefix('/invoices')->group(function () {
+            Route::get('/', 'index');
+            Route::post('/', 'store');
+            Route::get('/{uuid}', 'show');
+            Route::put('/{uuid}', 'update');
+            Route::delete('/{uuid}', 'destroy');
         });
     });
 

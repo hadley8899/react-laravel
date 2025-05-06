@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import MainLayout from "../components/layout/MainLayout";
 import {
     Typography,
@@ -19,94 +20,93 @@ import {
     IconButton,
     Tooltip,
     Button,
+    CircularProgress,
+    Alert,
 } from "@mui/material";
 import SearchIcon from '@mui/icons-material/Search';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import VisibilityIcon from '@mui/icons-material/Visibility';
-import GetAppIcon from '@mui/icons-material/GetApp'; // Download icon
+import GetAppIcon from '@mui/icons-material/GetApp';
 import AddIcon from "@mui/icons-material/Add";
 
-// Import data and interface
-import { Invoice, InvoiceStatus } from "../interfaces/Invoice";
-import invoicesData from "../example-data/invoices"; // Default import
+// Import service and interface
+import { Invoice } from "../interfaces/Invoice";
+import { getInvoices, downloadInvoicePdf } from "../services/invoiceService";
 
 // Helper type for sorting
 type Order = 'asc' | 'desc';
 
-// Head cell configuration
+// Updated HeadCell configuration to match API response
 interface HeadCell {
-    id: keyof Invoice;
+    id: string;
     label: string;
     numeric: boolean;
     sortable: boolean;
 }
 
 const headCells: readonly HeadCell[] = [
-    { id: 'id', numeric: false, label: 'Invoice ID', sortable: true },
-    { id: 'customerName', numeric: false, label: 'Customer', sortable: true },
-    { id: 'issueDate', numeric: false, label: 'Issued', sortable: true },
-    { id: 'dueDate', numeric: false, label: 'Due Date', sortable: true },
-    { id: 'amount', numeric: true, label: 'Amount ($)', sortable: true },
+    { id: 'invoice_number', numeric: false, label: 'Invoice #', sortable: true },
+    { id: 'customer.name', numeric: false, label: 'Customer', sortable: true },
+    { id: 'issue_date', numeric: false, label: 'Issued', sortable: true },
+    { id: 'due_date', numeric: false, label: 'Due Date', sortable: true },
+    { id: 'total', numeric: true, label: 'Amount ($)', sortable: true },
     { id: 'status', numeric: false, label: 'Status', sortable: true },
-    { id: 'actions' as any, numeric: false, label: 'Actions', sortable: false }, // Action column
+    { id: 'actions', numeric: false, label: 'Actions', sortable: false },
 ];
 
-
-// Utility for stable sorting
-function stableSort<T>(array: readonly T[], comparator: (a: T, b: T) => number): T[] {
-    const stabilizedThis = array.map((el, index) => [el, index] as [T, number]);
-    stabilizedThis.sort((a, b) => {
-        const order = comparator(a[0], b[0]);
-        if (order !== 0) return order;
-        return a[1] - b[1]; // Stabilize by original index if equal
-    });
-    return stabilizedThis.map((el) => el[0]);
-}
-
-// Utility for getting comparator
-function getComparator<Key extends keyof any>(
-    order: Order,
-    orderBy: Key,
-): (a: { [key in Key]: number | string }, b: { [key in Key]: number | string }) => number {
-    return order === 'desc'
-        ? (a, b) => descendingComparator(a, b, orderBy)
-        : (a, b) => -descendingComparator(a, b, orderBy);
-}
-
-function descendingComparator<T>(a: T, b: T, orderBy: keyof T) {
-    if (b[orderBy] < a[orderBy]) return -1;
-    if (b[orderBy] > a[orderBy]) return 1;
-    return 0;
-}
-
-
 const Invoices: React.FC = () => {
+    const navigate = useNavigate();
+    const [invoices, setInvoices] = useState<Invoice[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    // Pagination state
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
+    const [totalCount, setTotalCount] = useState(0);
+
+    // Search and sort state
     const [searchTerm, setSearchTerm] = useState("");
-    const [order, setOrder] = useState<Order>('asc');
-    const [orderBy, setOrderBy] = useState<keyof Invoice>('dueDate'); // Default sort
+    const [order, setOrder] = useState<Order>('desc');
+    const [orderBy, setOrderBy] = useState<string>('issue_date');
 
+    // Fetch invoices function
+    const fetchInvoices = useCallback(async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const apiPage = page + 1; // API uses 1-based pagination
+            const response = await getInvoices(apiPage, rowsPerPage, searchTerm);
+            setInvoices(response.data);
+            setTotalCount(response.meta.total);
+            setLoading(false);
+        } catch (err) {
+            setError('Failed to load invoices. Please try again.');
+            setLoading(false);
+            console.error('Error fetching invoices:', err);
+        }
+    }, [page, rowsPerPage, searchTerm]);
 
-    const handleRequestSort = (property: keyof Invoice) => {
+    // Load invoices on component mount and when dependencies change
+    useEffect(() => {
+        fetchInvoices();
+    }, [fetchInvoices]);
+
+    // Handle search input with debounce
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchTerm(e.target.value);
+        setPage(0); // Reset to first page on new search
+    };
+
+    // Sorting handler
+    const handleRequestSort = (property: string) => {
         const isAsc = orderBy === property && order === 'asc';
         setOrder(isAsc ? 'desc' : 'asc');
         setOrderBy(property);
+        // Note: Ideally the API would handle sorting, but we're sorting client-side for now
     };
 
-    // Filter invoices based on search term
-    const filteredInvoices = useMemo(() => invoicesData.filter(invoice =>
-        invoice.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        invoice.customerName.toLowerCase().includes(searchTerm.toLowerCase())
-    ), [searchTerm]);
-
-    // Sort and paginate visible rows
-    const visibleRows = useMemo(() =>
-            stableSort(filteredInvoices, getComparator(order, orderBy))
-                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
-        [filteredInvoices, order, orderBy, page, rowsPerPage]
-    );
-
+    // Pagination handlers
     const handleChangePage = (_event: unknown, newPage: number) => {
         setPage(newPage);
     };
@@ -116,16 +116,48 @@ const Invoices: React.FC = () => {
         setPage(0);
     };
 
-    // Get status color for Chips
-    const getStatusChip = (status: InvoiceStatus) => {
-        let color: "success" | "warning" | "error" | "info" | "default" = "default";
-        switch (status) {
-            case 'Paid': color = "success"; break;
-            case 'Pending': color = "warning"; break;
-            case 'Overdue': color = "error"; break;
-            case 'Draft': color = "info"; break;
+    // Handle view invoice
+    const handleViewInvoice = (uuid: string) => {
+        navigate(`/invoices/${uuid}`);
+    };
+
+    // Handle download PDF
+    const handleDownloadPdf = async (uuid: string) => {
+        try {
+            const blob = await downloadInvoicePdf(uuid);
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `invoice-${uuid}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        } catch (err) {
+            console.error('Error downloading PDF:', err);
+            setError('Failed to download PDF. Please try again.');
         }
-        return <Chip label={status} color={color} size="small" />;
+    };
+
+    // Handle create invoice
+    const handleCreateInvoice = () => {
+        navigate('/invoices/create');
+    };
+
+    // Get status chip
+    const getStatusChip = (status: string) => {
+        let color: "success" | "warning" | "error" | "info" | "default" = "default";
+        const formattedStatus = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+
+        switch (status.toLowerCase()) {
+            case 'paid': color = "success"; break;
+            case 'pending': color = "warning"; break;
+            case 'overdue': color = "error"; break;
+            case 'draft': color = "info"; break;
+            case 'cancelled': color = "default"; break;
+        }
+
+        return <Chip label={formattedStatus} color={color} size="small" />;
     };
 
     return (
@@ -151,10 +183,10 @@ const Invoices: React.FC = () => {
                         <Box sx={{ display: 'flex', gap: 1, flexWrap: 'nowrap' }}>
                             <TextField
                                 variant="outlined"
-                                placeholder="Search Invoice ID or Customer..."
+                                placeholder="Search invoices..."
                                 size="small"
                                 value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
+                                onChange={handleSearchChange}
                                 InputProps={{
                                     startAdornment: (
                                         <InputAdornment position="start">
@@ -162,17 +194,25 @@ const Invoices: React.FC = () => {
                                         </InputAdornment>
                                     ),
                                 }}
-                                sx={{ minWidth: '280px' }} // Wider search
+                                sx={{ minWidth: '280px' }}
                             />
                             <Button
                                 variant="contained"
                                 startIcon={<AddIcon />}
                                 size="medium"
+                                onClick={handleCreateInvoice}
                             >
                                 Create Invoice
                             </Button>
                         </Box>
                     </Box>
+
+                    {/* Error message */}
+                    {error && (
+                        <Alert severity="error" sx={{ mb: 3 }}>
+                            {error}
+                        </Alert>
+                    )}
 
                     {/* Invoices Table */}
                     <TableContainer>
@@ -202,29 +242,41 @@ const Invoices: React.FC = () => {
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                {visibleRows.length > 0 ? (
-                                    visibleRows.map((invoice) => (
+                                {loading ? (
+                                    <TableRow>
+                                        <TableCell colSpan={headCells.length} align="center" sx={{ py: 5 }}>
+                                            <CircularProgress />
+                                        </TableCell>
+                                    </TableRow>
+                                ) : invoices.length > 0 ? (
+                                    invoices.map((invoice) => (
                                         <TableRow
-                                            hover // Add hover effect
-                                            key={invoice.id}
+                                            hover
+                                            key={invoice.uuid}
                                             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                                         >
                                             <TableCell component="th" scope="row">
-                                                {invoice.id}
+                                                {invoice.invoice_number}
                                             </TableCell>
-                                            <TableCell align="left">{invoice.customerName}</TableCell>
-                                            <TableCell align="left">{new Date(invoice.issueDate).toLocaleDateString()}</TableCell>
-                                            <TableCell align="left">{new Date(invoice.dueDate).toLocaleDateString()}</TableCell>
-                                            <TableCell align="right">${invoice.amount.toFixed(2)}</TableCell>
+                                            <TableCell align="left">{invoice.customer?.name || 'N/A'}</TableCell>
+                                            <TableCell align="left">{new Date(invoice.issue_date).toLocaleDateString()}</TableCell>
+                                            <TableCell align="left">{new Date(invoice.due_date).toLocaleDateString()}</TableCell>
+                                            <TableCell align="right">${Number(invoice.total).toFixed(2)}</TableCell>
                                             <TableCell align="left">{getStatusChip(invoice.status)}</TableCell>
                                             <TableCell align="left">
                                                 <Tooltip title="View Invoice">
-                                                    <IconButton size="small">
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={() => handleViewInvoice(invoice.uuid)}
+                                                    >
                                                         <VisibilityIcon fontSize='small'/>
                                                     </IconButton>
                                                 </Tooltip>
                                                 <Tooltip title="Download PDF">
-                                                    <IconButton size="small">
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={() => handleDownloadPdf(invoice.uuid)}
+                                                    >
                                                         <GetAppIcon fontSize='small'/>
                                                     </IconButton>
                                                 </Tooltip>
@@ -248,7 +300,7 @@ const Invoices: React.FC = () => {
                     <TablePagination
                         rowsPerPageOptions={[5, 10, 25]}
                         component="div"
-                        count={filteredInvoices.length}
+                        count={totalCount}
                         rowsPerPage={rowsPerPage}
                         page={page}
                         onPageChange={handleChangePage}
