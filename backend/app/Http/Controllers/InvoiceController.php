@@ -18,11 +18,25 @@ class InvoiceController extends Controller
      */
     public function index(): AnonymousResourceCollection
     {
-        $invoices = Invoice::with(['customer', 'items'])
-            ->orderBy('created_at', 'desc')
-            ->paginate(15);
+        $search = request()->input('search');
 
-        return InvoiceResource::collection($invoices);
+        $invoices = Invoice::with(['customer', 'items'])
+            ->orderBy('created_at', 'desc');
+
+        if ($search) {
+            $invoices->where(function ($query) use ($search) {
+                $query->where('invoice_number', 'like', "%$search%")
+                    ->orWhereHas('customer', function ($q) use ($search) {
+                        $q->where('first_name', 'like', "%$search%");
+                        $q->orWhere('last_name', 'like', "%$search%");
+                        $q->orWhere('email', 'like', "%$search%");
+                    });
+            });
+        }
+
+        $results = $invoices->paginate(15);
+
+        return InvoiceResource::collection($results);
     }
 
     /**
@@ -175,7 +189,7 @@ class InvoiceController extends Controller
      */
     public function destroy(string $uuid): JsonResponse
     {
-        $invoice = Invoice::where('uuid', $uuid)->firstOrFail();
+        $invoice = Invoice::query()->where('uuid', $uuid)->firstOrFail();
 
         try {
             DB::beginTransaction();

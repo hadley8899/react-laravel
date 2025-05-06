@@ -1,11 +1,6 @@
-export type InvoiceStatus = 'draft' | 'pending' | 'paid' | 'overdue' | 'cancelled';
+import {Customer} from "./Customer.ts";
 
-export interface Customer {
-    id: number;
-    name: string;
-    email?: string;
-    phone?: string;
-}
+export type InvoiceStatus = 'draft' | 'pending' | 'paid' | 'overdue' | 'cancelled';
 
 export interface Invoice {
     uuid: string;

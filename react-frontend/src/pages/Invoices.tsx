@@ -1,58 +1,29 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, {useState, useEffect, useCallback} from 'react';
+import {useNavigate} from 'react-router-dom';
 import MainLayout from "../components/layout/MainLayout";
 import {
     Typography,
     Container,
     Paper,
     Box,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow,
     TablePagination,
-    TableSortLabel,
     TextField,
     InputAdornment,
-    Chip,
-    IconButton,
-    Tooltip,
     Button,
-    CircularProgress,
     Alert,
 } from "@mui/material";
 import SearchIcon from '@mui/icons-material/Search';
 import ReceiptIcon from '@mui/icons-material/Receipt';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import GetAppIcon from '@mui/icons-material/GetApp';
 import AddIcon from "@mui/icons-material/Add";
 
 // Import service and interface
-import { Invoice } from "../interfaces/Invoice";
-import { getInvoices, downloadInvoicePdf } from "../services/invoiceService";
+import {Invoice} from "../interfaces/Invoice";
+import {getInvoices, downloadInvoicePdf} from "../services/invoiceService";
+import InvoicesTable from "../components/invoices/InvoicesTable.tsx";
 
 // Helper type for sorting
 type Order = 'asc' | 'desc';
 
-// Updated HeadCell configuration to match API response
-interface HeadCell {
-    id: string;
-    label: string;
-    numeric: boolean;
-    sortable: boolean;
-}
-
-const headCells: readonly HeadCell[] = [
-    { id: 'invoice_number', numeric: false, label: 'Invoice #', sortable: true },
-    { id: 'customer.name', numeric: false, label: 'Customer', sortable: true },
-    { id: 'issue_date', numeric: false, label: 'Issued', sortable: true },
-    { id: 'due_date', numeric: false, label: 'Due Date', sortable: true },
-    { id: 'total', numeric: true, label: 'Amount ($)', sortable: true },
-    { id: 'status', numeric: false, label: 'Status', sortable: true },
-    { id: 'actions', numeric: false, label: 'Actions', sortable: false },
-];
 
 const Invoices: React.FC = () => {
     const navigate = useNavigate();
@@ -144,26 +115,11 @@ const Invoices: React.FC = () => {
         navigate('/invoices/create');
     };
 
-    // Get status chip
-    const getStatusChip = (status: string) => {
-        let color: "success" | "warning" | "error" | "info" | "default" = "default";
-        const formattedStatus = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
-
-        switch (status.toLowerCase()) {
-            case 'paid': color = "success"; break;
-            case 'pending': color = "warning"; break;
-            case 'overdue': color = "error"; break;
-            case 'draft': color = "info"; break;
-            case 'cancelled': color = "default"; break;
-        }
-
-        return <Chip label={formattedStatus} color={color} size="small" />;
-    };
 
     return (
         <MainLayout>
-            <Container maxWidth="lg" sx={{ py: 4 }}>
-                <Paper sx={{ p: 3, borderRadius: 2, overflow: 'hidden' }} elevation={3}>
+            <Container maxWidth="lg" sx={{py: 4}}>
+                <Paper sx={{p: 3, borderRadius: 2, overflow: 'hidden'}} elevation={3}>
                     {/* Header */}
                     <Box
                         sx={{
@@ -176,29 +132,31 @@ const Invoices: React.FC = () => {
                         }}
                     >
                         <Typography variant="h5" component="h1" fontWeight="bold">
-                            <ReceiptIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
+                            <ReceiptIcon sx={{mr: 1, verticalAlign: 'middle'}}/>
                             Invoices
                         </Typography>
 
-                        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'nowrap' }}>
+                        <Box sx={{display: 'flex', gap: 1, flexWrap: 'nowrap'}}>
                             <TextField
                                 variant="outlined"
                                 placeholder="Search invoices..."
                                 size="small"
                                 value={searchTerm}
                                 onChange={handleSearchChange}
-                                InputProps={{
-                                    startAdornment: (
-                                        <InputAdornment position="start">
-                                            <SearchIcon />
-                                        </InputAdornment>
-                                    ),
+                                sx={{minWidth: '280px'}}
+                                slotProps={{
+                                    input: {
+                                        startAdornment: (
+                                            <InputAdornment position="start">
+                                                <SearchIcon/>
+                                            </InputAdornment>
+                                        ),
+                                    }
                                 }}
-                                sx={{ minWidth: '280px' }}
                             />
                             <Button
                                 variant="contained"
-                                startIcon={<AddIcon />}
+                                startIcon={<AddIcon/>}
                                 size="medium"
                                 onClick={handleCreateInvoice}
                             >
@@ -209,92 +167,20 @@ const Invoices: React.FC = () => {
 
                     {/* Error message */}
                     {error && (
-                        <Alert severity="error" sx={{ mb: 3 }}>
+                        <Alert severity="error" sx={{mb: 3}}>
                             {error}
                         </Alert>
                     )}
 
-                    {/* Invoices Table */}
-                    <TableContainer>
-                        <Table sx={{ minWidth: 750 }} aria-labelledby="tableTitle" size='medium'>
-                            <TableHead sx={{ backgroundColor: (theme) => theme.palette.action.hover }}>
-                                <TableRow>
-                                    {headCells.map((headCell) => (
-                                        <TableCell
-                                            key={headCell.id}
-                                            align={headCell.numeric ? 'right' : 'left'}
-                                            padding='normal'
-                                            sortDirection={orderBy === headCell.id ? order : false}
-                                        >
-                                            {headCell.sortable ? (
-                                                <TableSortLabel
-                                                    active={orderBy === headCell.id}
-                                                    direction={orderBy === headCell.id ? order : 'asc'}
-                                                    onClick={() => handleRequestSort(headCell.id)}
-                                                >
-                                                    {headCell.label}
-                                                </TableSortLabel>
-                                            ) : (
-                                                headCell.label
-                                            )}
-                                        </TableCell>
-                                    ))}
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {loading ? (
-                                    <TableRow>
-                                        <TableCell colSpan={headCells.length} align="center" sx={{ py: 5 }}>
-                                            <CircularProgress />
-                                        </TableCell>
-                                    </TableRow>
-                                ) : invoices.length > 0 ? (
-                                    invoices.map((invoice) => (
-                                        <TableRow
-                                            hover
-                                            key={invoice.uuid}
-                                            sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                                        >
-                                            <TableCell component="th" scope="row">
-                                                {invoice.invoice_number}
-                                            </TableCell>
-                                            <TableCell align="left">{invoice.customer?.name || 'N/A'}</TableCell>
-                                            <TableCell align="left">{new Date(invoice.issue_date).toLocaleDateString()}</TableCell>
-                                            <TableCell align="left">{new Date(invoice.due_date).toLocaleDateString()}</TableCell>
-                                            <TableCell align="right">${Number(invoice.total).toFixed(2)}</TableCell>
-                                            <TableCell align="left">{getStatusChip(invoice.status)}</TableCell>
-                                            <TableCell align="left">
-                                                <Tooltip title="View Invoice">
-                                                    <IconButton
-                                                        size="small"
-                                                        onClick={() => handleViewInvoice(invoice.uuid)}
-                                                    >
-                                                        <VisibilityIcon fontSize='small'/>
-                                                    </IconButton>
-                                                </Tooltip>
-                                                <Tooltip title="Download PDF">
-                                                    <IconButton
-                                                        size="small"
-                                                        onClick={() => handleDownloadPdf(invoice.uuid)}
-                                                    >
-                                                        <GetAppIcon fontSize='small'/>
-                                                    </IconButton>
-                                                </Tooltip>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))
-                                ) : (
-                                    <TableRow>
-                                        <TableCell colSpan={headCells.length} align="center" sx={{ py: 4 }}>
-                                            <Typography color="text.secondary">
-                                                No invoices found matching your search criteria.
-                                            </Typography>
-                                        </TableCell>
-                                    </TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
+                    <InvoicesTable
+                        invoices={invoices}
+                        loading={loading}
+                        handleDownloadPdf={(invoice) => handleDownloadPdf(invoice.uuid)}
+                        handleViewInvoice={(invoice) => handleViewInvoice(invoice.uuid)}
+                        handleRequestSort={handleRequestSort}
+                        order={order}
+                        orderBy={orderBy}
+                    />
 
                     {/* Pagination */}
                     <TablePagination
@@ -305,7 +191,7 @@ const Invoices: React.FC = () => {
                         page={page}
                         onPageChange={handleChangePage}
                         onRowsPerPageChange={handleChangeRowsPerPage}
-                        sx={{ borderTop: 1, borderColor: 'divider' }}
+                        sx={{borderTop: 1, borderColor: 'divider'}}
                     />
                 </Paper>
             </Container>
