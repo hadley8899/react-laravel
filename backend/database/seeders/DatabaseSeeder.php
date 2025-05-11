@@ -44,5 +44,7 @@ class DatabaseSeeder extends Seeder
             VehicleMakeModelSeeder::class,
             InvoiceSeeder::class,  // Add InvoiceSeeder to the list
         ]);
+
+        $this->call(AppointmentSeeder::class);
     }
 }

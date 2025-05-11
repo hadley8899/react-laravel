@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\InvoiceController;
@@ -80,6 +81,18 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/companies/{company:uuid}/settings', 'updateSettings')->name('companies.updateSettings');
         Route::put('/companies/{company:uuid}/billing', [CompanyController::class, 'updateBilling'])->name('companies.updateBilling');
     });
+
+    Route::prefix('/appointments')
+        ->middleware('auth:sanctum')
+        ->controller(AppointmentController::class)
+        ->group(function () {
+            Route::get('/', 'index');
+            Route::post('/', 'store');
+            Route::get('/{uuid}', 'show');
+            Route::put('/{uuid}', 'update');
+            Route::delete('/{uuid}', 'destroy');
+        });
+
 
     Route::put('/companies/{company:uuid}', [CompanyController::class, 'update']);
 });

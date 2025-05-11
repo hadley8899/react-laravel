@@ -17,16 +17,20 @@ export type CreateVehiclePayload = {
 export type UpdateVehiclePayload = Partial<CreateVehiclePayload>;
 
 /* ---------- CRUD ---------- */
-export const getVehicles = async (
+export async function getVehicles(
     page = 1,
-    perPage = 10,
-    search = ''
-): Promise<PaginatedResponse<Vehicle>> => {
+    perPage = 1000,
+    customer_uuid?: string,
+) {
     const { data } = await api.get<PaginatedResponse<Vehicle>>('/vehicles', {
-        params: { page, per_page: perPage, search: search || undefined }
+        params: {
+            page,
+            per_page: perPage,
+            customer_uuid,
+        },
     });
     return data;
-};
+}
 
 export const createVehicle = async (
     payload: CreateVehiclePayload

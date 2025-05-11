@@ -4,19 +4,23 @@ import {ThemeProvider} from './context/ThemeContext.tsx';
 import AppRoutes from './routes';
 import {AuthProvider} from "./context/AuthContext.tsx";
 import {NotificationProvider} from "./components/providers/NotificationProvider.tsx";
+import {LocalizationProvider} from "@mui/x-date-pickers/LocalizationProvider";
+import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
 
 function App() {
     return (
         <AuthProvider>
             <ThemeProvider>
-                <NotificationProvider>
-                    <CssBaseline/>
-                    <BrowserRouter>
+                <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="en-gb">
+                    <NotificationProvider>
+                        <CssBaseline/>
+                        <BrowserRouter>
 
-                        <AppRoutes/>
+                            <AppRoutes/>
 
-                    </BrowserRouter>
-                </NotificationProvider>
+                        </BrowserRouter>
+                    </NotificationProvider>
+                </LocalizationProvider>
             </ThemeProvider>
         </AuthProvider>
     );
