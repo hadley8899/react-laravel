@@ -1,80 +1,72 @@
 import {api} from './api';
 import {Invoice} from '../interfaces/Invoice';
-import {PaginatedResponse} from "../interfaces/PaginatedResponse";
+import {PaginatedResponse} from '../interfaces/PaginatedResponse';
+
+/* ---------- types ---------- */
+export interface InvoiceItemInput {
+    description: string;
+    quantity: number;
+    unit?: string | null;
+    unit_price: number;
+    amount: number;
+}
 
 export type CreateInvoicePayload = {
-    customer_id: string;
+    customer_uuid: string;
     invoice_number: string;
     issue_date: string;
     due_date: string;
-    tax_rate?: number;
+    tax_rate: number;
+    subtotal: number;
+    tax_amount: number;
+    total: number;
     status: 'Draft' | 'Pending' | 'Paid' | 'Overdue';
     notes?: string;
-    items: Array<{
-        description: string;
-        quantity: number;
-        unit?: string;
-        unit_price: number;
-    }>;
+    items: InvoiceItemInput[];
 };
 
 export type UpdateInvoicePayload = Partial<CreateInvoicePayload>;
 
-/**
- * Fetches a paginated list of invoices with optional search.
- */
+/* ---------- API calls ---------- */
 export async function getInvoices(
-    page: number = 1,
-    perPage: number = 10,
-    searchTerm: string = '',
-): Promise<PaginatedResponse<Invoice>> {
-    const response = await api.get<PaginatedResponse<Invoice>>('/invoices', {
+    page = 1,
+    perPage = 10,
+    searchTerm = '',
+    sortBy = 'created_at',
+    sortDirection: 'asc' | 'desc' = 'desc',
+) {
+    const {data} = await api.get<PaginatedResponse<Invoice>>('/invoices', {
         params: {
             page,
             per_page: perPage,
             search: searchTerm || undefined,
-        }
+            sort_by: sortBy,
+            sort_direction: sortDirection,
+        },
     });
-    return response.data;
+    return data;
 }
 
-/**
- * Fetches a single invoice by UUID.
- */
-export async function getInvoice(uuid: string): Promise<Invoice> {
-    const response = await api.get<{ data: Invoice }>(`/invoices/${uuid}`);
-    return response.data.data;
+export async function getInvoice(uuid: string) {
+    const {data} = await api.get<{ data: Invoice }>(`/invoices/${uuid}`);
+    return data.data;
 }
 
-/**
- * Creates a new invoice.
- */
-export async function createInvoice(payload: CreateInvoicePayload): Promise<Invoice> {
-    const response = await api.post<{ data: Invoice }>('/invoices', payload);
-    return response.data.data;
+export async function createInvoice(payload: CreateInvoicePayload) {
+    const {data} = await api.post<{ data: Invoice }>('/invoices', payload);
+    return data.data;
 }
 
-/**
- * Updates an existing invoice.
- */
-export async function updateInvoice(uuid: string, payload: UpdateInvoicePayload): Promise<Invoice> {
-    const response = await api.put<{ data: Invoice }>(`/invoices/${uuid}`, payload);
-    return response.data.data;
+export async function updateInvoice(uuid: string, payload: UpdateInvoicePayload) {
+    const {data} = await api.put<{ data: Invoice }>(`/invoices/${uuid}`, payload);
+    return data.data;
 }
 
-/**
- * Deletes an invoice.
- */
-export async function deleteInvoice(uuid: string): Promise<void> {
+export async function deleteInvoice(uuid: string) {
     await api.delete(`/invoices/${uuid}`);
 }
 
-/**
- * Download invoice as PDF
- */
-export async function downloadInvoicePdf(uuid: string): Promise<Blob> {
-    const response = await api.get(`/invoices/${uuid}/pdf`, {
-        responseType: 'blob',
-    });
-    return response.data;
+export async function downloadInvoicePdf(uuid: string) {
+    const {data} = await api.get(`/invoices/${uuid}/pdf`, {responseType: 'blob'});
+    return data;
 }

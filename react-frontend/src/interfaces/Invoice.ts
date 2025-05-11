@@ -1,4 +1,5 @@
 import {Customer} from "./Customer.ts";
+import {InvoiceItem} from "./InvoiceItem.ts";
 
 export type InvoiceStatus = 'draft' | 'pending' | 'paid' | 'overdue' | 'cancelled';
 
@@ -18,6 +19,7 @@ export interface Invoice {
     notes?: string;
     created_at?: string;
     updated_at?: string;
+    items: InvoiceItem[];
 }
 
 export interface InvoiceListResponse {

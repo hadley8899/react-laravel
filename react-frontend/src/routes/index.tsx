@@ -14,10 +14,13 @@ import Dashboard from "../pages/Dashboard";
 import Vehicles from "../pages/Vehicles";
 import Customers from "../pages/Customers";
 import Invoices from "../pages/Invoices";
+import InvoiceDetails from "../pages/InvoiceDetails";
 import Appointments from "../pages/Appointments";
 import Profile from "../pages/Profile";
 import Settings from "../pages/Settings";
 import CustomerDetails from '../pages/CustomerDetails.tsx';
+import InvoiceCreate from "../pages/InvoiceCreate.tsx";
+import InvoiceEdit from '../pages/InvoiceEdit.tsx';
 
 const AppRoutes: React.FC = () => {
     return (
@@ -35,6 +38,9 @@ const AppRoutes: React.FC = () => {
                 <Route path="/customers" element={<Customers/>}/>
                 <Route path="/customers/:uuid" element={<CustomerDetails/>}/>
                 <Route path="/invoices" element={<Invoices/>}/>
+                <Route path="/invoices/create" element={<InvoiceCreate/>}/>
+                <Route path="/invoices/:uuid" element={<InvoiceDetails/>}/>
+                <Route path="/invoices/:uuid/edit" element={<InvoiceEdit />} />
                 <Route path="/appointments" element={<Appointments/>}/>
                 <Route path="/profile" element={<Profile/>}/>
                 <Route path="/settings" element={<Settings/>}/>

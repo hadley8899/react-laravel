@@ -5,11 +5,16 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreInvoiceRequest;
 use App\Http\Requests\UpdateInvoiceRequest;
 use App\Http\Resources\InvoiceResource;
+use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Symfony\Component\HttpFoundation\Response;
 
 class InvoiceController extends Controller
 {
@@ -19,9 +24,30 @@ class InvoiceController extends Controller
     public function index(): AnonymousResourceCollection
     {
         $search = request()->input('search');
+        $sortBy = request()->input('sort_by', 'created_at');
+        $sortDirection = request()->input('sort_direction', 'desc');
+        $perPage = request()->input('per_page', 10);
 
-        $invoices = Invoice::with(['customer', 'items'])
-            ->orderBy('created_at', 'desc');
+        // Validate sort field to prevent SQL injection
+        $allowedSortFields = [
+            'invoice_number', 'issue_date', 'due_date', 'total', 'status', 'created_at',
+        ];
+
+        if (!in_array($sortBy, $allowedSortFields)) {
+            $sortBy = 'created_at';
+        }
+
+        $invoices = Invoice::with(['customer', 'items']);
+
+        // Handle special case for customer name sorting
+        if ($sortBy === 'customer.name') {
+            $invoices->join('customers', 'invoices.customer_id', '=', 'customers.id')
+                ->orderBy('customers.first_name', $sortDirection)
+                ->orderBy('customers.last_name', $sortDirection)
+                ->select('invoices.*');
+        } else {
+            $invoices->orderBy($sortBy, $sortDirection);
+        }
 
         if ($search) {
             $invoices->where(function ($query) use ($search) {
@@ -34,7 +60,9 @@ class InvoiceController extends Controller
             });
         }
 
-        $results = $invoices->paginate(15);
+        $invoices->where('invoices.company_id', Auth::user()->company->id);
+
+        $results = $invoices->paginate($perPage);
 
         return InvoiceResource::collection($results);
     }
@@ -42,48 +70,52 @@ class InvoiceController extends Controller
     /**
      * Store a newly created invoice in storage.
      */
-    public function store(StoreInvoiceRequest $request): JsonResponse
+    public function store(StoreInvoiceRequest $request): JsonResponse|InvoiceResource
     {
         $validated = $request->validated();
 
         try {
             DB::beginTransaction();
 
-            // Create the invoice
-            $invoice = Invoice::create([
+            $customer = Customer::query()->where('company_id', Auth::user()->company->id)
+                ->where('uuid', $validated['customer_uuid'])
+                ->firstOrFail();
+
+            $subtotal = collect($validated['items'])
+                ->sum(fn($i) => $i['quantity'] * $i['unit_price']);
+
+            $taxRate = $validated['tax_rate'] ?? 0;
+            $taxAmount = round($subtotal * ($taxRate / 100), 2);
+            $total = $subtotal + $taxAmount;
+
+            $invoice = Invoice::query()->create([
                 'invoice_number' => $validated['invoice_number'],
-                'customer_id' => $validated['customer_id'],
+                'customer_id' => $customer->id,
                 'issue_date' => $validated['issue_date'],
                 'due_date' => $validated['due_date'],
-                'subtotal' => $validated['subtotal'],
-                'tax_rate' => $validated['tax_rate'],
-                'tax_amount' => $validated['tax_amount'],
-                'total' => $validated['total'],
+                'subtotal' => $subtotal,
+                'tax_rate' => $taxRate,
+                'tax_amount' => $taxAmount,
+                'total' => $total,
                 'status' => $validated['status'] ?? 'draft',
                 'notes' => $validated['notes'] ?? null,
+                'company_id' => Auth::user()->company->id,
             ]);
 
-            // Create invoice items
-            if (!empty($validated['items'])) {
-                foreach ($validated['items'] as $item) {
-                    $invoice->items()->create([
-                        'description' => $item['description'],
-                        'quantity' => $item['quantity'],
-                        'unit' => $item['unit'] ?? null,
-                        'unit_price' => $item['unit_price'],
-                        'amount' => $item['amount'],
-                    ]);
-                }
+            foreach ($validated['items'] as $item) {
+                $invoice->items()->create([
+                    'description' => $item['description'],
+                    'quantity' => $item['quantity'],
+                    'unit' => $item['unit'] ?? null,
+                    'unit_price' => $item['unit_price'],
+                    'amount' => $item['quantity'] * $item['unit_price'],
+                ]);
             }
 
             DB::commit();
 
-            return response()->json([
-                'message' => 'Invoice created successfully',
-                'invoice' => new InvoiceResource($invoice->load(['customer', 'items'])),
-            ], 201);
-
-        } catch (\Exception $e) {
+            return new InvoiceResource($invoice);
+        } catch (Exception $e) {
             DB::rollBack();
             return response()->json([
                 'message' => 'Error creating invoice',
@@ -92,18 +124,18 @@ class InvoiceController extends Controller
         }
     }
 
+
     /**
      * Display the specified invoice.
      */
-    public function show(string $uuid): JsonResponse
+    public function show(string $uuid)
     {
         $invoice = Invoice::with(['customer', 'items'])
             ->where('uuid', $uuid)
+            ->where('company_id', Auth::user()->company->id)
             ->firstOrFail();
 
-        return response()->json([
-            'invoice' => new InvoiceResource($invoice),
-        ]);
+        return new InvoiceResource($invoice);
     }
 
     /**
@@ -112,70 +144,84 @@ class InvoiceController extends Controller
     public function update(UpdateInvoiceRequest $request, string $uuid): JsonResponse
     {
         $validated = $request->validated();
-        $invoice = Invoice::where('uuid', $uuid)->firstOrFail();
+
+        $invoice = Invoice::query()->where('uuid', $uuid)
+            ->where('company_id', Auth::user()->company->id)
+            ->with('items')
+            ->firstOrFail();
 
         try {
             DB::beginTransaction();
 
-            // Update invoice
-            $invoice->update($validated);
-
-            // Handle invoice items if provided
-            if (isset($validated['items'])) {
-                // Get existing item UUIDs
-                $existingItemUuids = $invoice->items->pluck('uuid')->toArray();
-                $updatedItemUuids = [];
-
-                // Update or create items
-                foreach ($validated['items'] as $itemData) {
-                    if (isset($itemData['uuid'])) {
-                        // Update existing item
-                        $item = InvoiceItem::where('uuid', $itemData['uuid'])
-                            ->where('invoice_id', $invoice->id)
-                            ->first();
-
-                        if ($item) {
-                            $item->update([
-                                'description' => $itemData['description'],
-                                'quantity' => $itemData['quantity'],
-                                'unit' => $itemData['unit'] ?? null,
-                                'unit_price' => $itemData['unit_price'],
-                                'amount' => $itemData['amount'],
-                            ]);
-
-                            $updatedItemUuids[] = $itemData['uuid'];
-                        }
-                    } else {
-                        // Create new item
-                        $item = $invoice->items()->create([
-                            'description' => $itemData['description'],
-                            'quantity' => $itemData['quantity'],
-                            'unit' => $itemData['unit'] ?? null,
-                            'unit_price' => $itemData['unit_price'],
-                            'amount' => $itemData['amount'],
-                        ]);
-
-                        $updatedItemUuids[] = $item->uuid;
-                    }
-                }
-
-                // Delete items not included in the update
-                $itemsToDelete = array_diff($existingItemUuids, $updatedItemUuids);
-                if (!empty($itemsToDelete)) {
-                    InvoiceItem::whereIn('uuid', $itemsToDelete)
-                        ->where('invoice_id', $invoice->id)
-                        ->delete();
-                }
+            /* ---- customer (optional) ---- */
+            if (isset($validated['customer_uuid'])) {
+                $customer = Customer::where('company_id', Auth::user()->company->id)
+                    ->where('uuid', $validated['customer_uuid'])
+                    ->firstOrFail();
+                $invoice->customer_id = $customer->id;
             }
+
+            /* ---- base fields ---- */
+            $invoice->fill([
+                'invoice_number' => $validated['invoice_number'] ?? $invoice->invoice_number,
+                'issue_date' => $validated['issue_date'] ?? $invoice->issue_date,
+                'due_date' => $validated['due_date'] ?? $invoice->due_date,
+                'tax_rate' => $validated['tax_rate'] ?? $invoice->tax_rate,
+                'status' => $validated['status'] ?? $invoice->status,
+                'notes' => $validated['notes'] ?? $invoice->notes,
+            ]);
+
+            /* ---- items ---- */
+            if (isset($validated['items'])) {
+                $existing = $invoice->items->keyBy('uuid');
+
+                $newItemUuids = [];
+                foreach ($validated['items'] as $data) {
+                    if (isset($data['uuid']) && $existing->has($data['uuid'])) {
+                        // update existing
+                        $item = $existing[$data['uuid']];
+                        $item->update([
+                            'description' => $data['description'],
+                            'quantity' => $data['quantity'],
+                            'unit' => $data['unit'] ?? null,
+                            'unit_price' => $data['unit_price'],
+                            'amount' => $data['quantity'] * $data['unit_price'],
+                        ]);
+                    } else {
+                        // new row
+                        $item = $invoice->items()->create([
+                            'description' => $data['description'],
+                            'quantity' => $data['quantity'],
+                            'unit' => $data['unit'] ?? null,
+                            'unit_price' => $data['unit_price'],
+                            'amount' => $data['quantity'] * $data['unit_price'],
+                        ]);
+                    }
+                    $newItemUuids[] = $item->uuid;
+                }
+
+                // delete removed
+                $invoice->items()
+                    ->whereNotIn('uuid', $newItemUuids)
+                    ->delete();
+            }
+
+            /* ---- recalc totals ---- */
+            $subtotal = $invoice->items()->sum(DB::raw('quantity * unit_price'));
+            $taxAmount = round($subtotal * ($invoice->tax_rate / 100), 2);
+            $invoice->subtotal = $subtotal;
+            $invoice->tax_amount = $taxAmount;
+            $invoice->total = $subtotal + $taxAmount;
+
+            $invoice->save();
 
             DB::commit();
 
             return response()->json([
-                'message' => 'Invoice updated successfully',
+                'message' => 'Invoice updated',
                 'invoice' => new InvoiceResource($invoice->fresh(['customer', 'items'])),
             ]);
-
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             DB::rollBack();
             return response()->json([
                 'message' => 'Error updating invoice',
@@ -184,12 +230,13 @@ class InvoiceController extends Controller
         }
     }
 
+
     /**
      * Remove the specified invoice from storage.
      */
     public function destroy(string $uuid): JsonResponse
     {
-        $invoice = Invoice::query()->where('uuid', $uuid)->firstOrFail();
+        $invoice = Invoice::query()->where('uuid', $uuid)->where('company_id', Auth::user()->company->id)->firstOrFail();
 
         try {
             DB::beginTransaction();
@@ -206,12 +253,29 @@ class InvoiceController extends Controller
                 'message' => 'Invoice deleted successfully',
             ]);
 
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             DB::rollBack();
             return response()->json([
                 'message' => 'Error deleting invoice',
                 'error' => $e->getMessage(),
             ], 500);
         }
+    }
+
+    /**
+     * Generate PDF for the invoice
+     */
+    public function generatePdf(string $uuid): Response
+    {
+        $invoice = Invoice::with(['customer', 'items', 'company'])
+            ->where('uuid', $uuid)
+            ->where('company_id', Auth::user()->company->id)
+            ->firstOrFail();
+
+        $pdf = PDF::loadView('pdf.invoice', [
+            'invoice' => $invoice,
+        ]);
+
+        return $pdf->download("invoice-{$invoice->invoice_number}.pdf");
     }
 }

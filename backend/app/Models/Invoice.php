@@ -13,6 +13,11 @@ class Invoice extends Model
 {
     use HasFactory, HasUuid, SoftDeletes;
 
+    public const STATUS_DRAFT = 'Draft';
+    public const STATUS_PENDING = 'Pending';
+    public const STATUS_PAID = 'Paid';
+    public const STATUS_OVERDUE = 'Overdue';
+
     protected $fillable = [
         'uuid',
         'company_id',
@@ -52,5 +57,15 @@ class Invoice extends Model
     public function items(): HasMany
     {
         return $this->hasMany(InvoiceItem::class);
+    }
+
+    public static function validStatuses(): array
+    {
+        return [
+            self::STATUS_DRAFT,
+            self::STATUS_PENDING,
+            self::STATUS_PAID,
+            self::STATUS_OVERDUE
+        ];
     }
 }

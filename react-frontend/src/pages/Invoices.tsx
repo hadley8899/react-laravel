@@ -24,7 +24,6 @@ import InvoicesTable from "../components/invoices/InvoicesTable.tsx";
 // Helper type for sorting
 type Order = 'asc' | 'desc';
 
-
 const Invoices: React.FC = () => {
     const navigate = useNavigate();
     const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -47,7 +46,13 @@ const Invoices: React.FC = () => {
         setError(null);
         try {
             const apiPage = page + 1; // API uses 1-based pagination
-            const response = await getInvoices(apiPage, rowsPerPage, searchTerm);
+            const response = await getInvoices(
+                apiPage,
+                rowsPerPage,
+                searchTerm,
+                orderBy,
+                order
+            );
             setInvoices(response.data);
             setTotalCount(response.meta.total);
             setLoading(false);
@@ -56,7 +61,7 @@ const Invoices: React.FC = () => {
             setLoading(false);
             console.error('Error fetching invoices:', err);
         }
-    }, [page, rowsPerPage, searchTerm]);
+    }, [page, rowsPerPage, searchTerm, orderBy, order]);
 
     // Load invoices on component mount and when dependencies change
     useEffect(() => {
