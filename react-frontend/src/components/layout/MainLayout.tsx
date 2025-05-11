@@ -40,29 +40,31 @@ const MainLayout: React.FC<MainLayoutProps> = ({children, title}) => {
 
             {/* Main content area */}
 
-                <Box
-                    component="main"
-                    sx={{
-                        flexGrow: 1,
-                        p: 0,
-                        width: {sm: `calc(100% - ${drawerWidth}px)`}
-                    }}
-                >
-                    {/* Top bar */}
-                    <TopBar
-                        drawerWidth={drawerWidth}
-                        handleDrawerToggle={handleDrawerToggle}
-                        user={user}
-                        pageName={title}
-                    />
+            <Box
+                component="main"
+                sx={{
+                    flexGrow: 1,
+                    p: 0,
+                    width: {xs: '100%', sm: `calc(100% - ${drawerWidth}px)`},
+                    minWidth: 0,
+                    overflowX: 'hidden',
+                }}
+            >
+                {/* Top bar */}
+                <TopBar
+                    drawerWidth={drawerWidth}
+                    handleDrawerToggle={handleDrawerToggle}
+                    user={user}
+                    pageName={title}
+                />
 
-                    {/* Page content */}
-                    <Toolbar/>
+                {/* Page content */}
+                <Toolbar/>
 
-                    <div style={{marginRight: '3%', marginLeft: '3%', paddingTop: '3%'}}>
-                        {children}
-                    </div>
-                </Box>
+                <div style={{marginRight: '3%', marginLeft: '3%', paddingTop: '3%'}}>
+                    {children}
+                </div>
+            </Box>
 
         </Box>
     );
