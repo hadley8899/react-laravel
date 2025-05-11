@@ -52,7 +52,8 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/{uuid}', 'show');
             Route::put('/{uuid}', 'update');
             Route::delete('/{uuid}', 'destroy');
-            Route::get('/{uuid}/pdf', 'generatePdf'); // Add this line
+            Route::get('/{uuid}/pdf', 'generatePdf');
+            Route::post('/{uuid}/email', 'email');
         });
     });
 

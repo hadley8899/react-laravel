@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreInvoiceRequest;
 use App\Http\Requests\UpdateInvoiceRequest;
 use App\Http\Resources\InvoiceResource;
+use App\Mail\InvoiceMail;
 use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
@@ -14,6 +15,7 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Mail;
 use Symfony\Component\HttpFoundation\Response;
 
 class InvoiceController extends Controller
@@ -278,4 +280,23 @@ class InvoiceController extends Controller
 
         return $pdf->download("invoice-{$invoice->invoice_number}.pdf");
     }
+
+    public function email(string $uuid): JsonResponse
+    {
+        $invoice = Invoice::with(['customer', 'items', 'company'])
+            ->where('uuid', $uuid)
+            ->where('company_id', Auth::user()->company->id)
+            ->firstOrFail();
+
+        // basic guard
+        if (!$invoice->customer?->email) {
+            return response()->json(['message' => 'Customer has no email address'], 422);
+        }
+
+        Mail::to($invoice->customer->email)
+            ->send(new InvoiceMail($invoice));
+
+        return response()->json(['message' => 'Invoice emailed successfully']);
+    }
+
 }

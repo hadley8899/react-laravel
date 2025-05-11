@@ -70,3 +70,8 @@ export async function downloadInvoicePdf(uuid: string) {
     const {data} = await api.get(`/invoices/${uuid}/pdf`, {responseType: 'blob'});
     return data;
 }
+
+export async function emailInvoice(uuid: string) {
+    const {data} = await api.post(`/invoices/${uuid}/email`);
+    return data;
+}

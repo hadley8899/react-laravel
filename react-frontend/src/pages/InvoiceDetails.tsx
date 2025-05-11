@@ -28,7 +28,7 @@ import PaymentIcon from '@mui/icons-material/Payment';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import {Invoice} from '../interfaces/Invoice';
-import {getInvoice, downloadInvoicePdf, deleteInvoice} from '../services/invoiceService';
+import {getInvoice, downloadInvoicePdf, deleteInvoice, emailInvoice} from '../services/invoiceService';
 
 const InvoiceDetails: React.FC = () => {
     const {uuid} = useParams<{ uuid: string }>();
@@ -109,6 +109,19 @@ const InvoiceDetails: React.FC = () => {
         setInvoiceToDelete(null);
     };
 
+    const handleEmail = async () => {
+        try {
+            if (!uuid) return;
+            setLoading(true);
+            await emailInvoice(uuid);
+            setLoading(false);
+        } catch (err) {
+            console.error(err);
+            setError('Failed to send email');
+            setLoading(false);
+        }
+    };
+
     // Get status chip
     const getStatusChip = (status: string) => {
         let color: "success" | "warning" | "error" | "info" | "default" = "default";
@@ -181,8 +194,8 @@ const InvoiceDetails: React.FC = () => {
                                 </Tooltip>
 
                                 <Tooltip title="Send to Customer">
-                                    <IconButton size="small">
-                                        <MailOutlineIcon fontSize="small"/>
+                                    <IconButton size="small" onClick={handleEmail}>
+                                        <MailOutlineIcon fontSize="small" />
                                     </IconButton>
                                 </Tooltip>
 
