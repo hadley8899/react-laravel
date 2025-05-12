@@ -12,20 +12,21 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Throwable;
 
 class AppointmentController extends Controller
 {
     /* -------- index (paginated, optional filters) */
     public function index(): AnonymousResourceCollection
     {
-        $q = Appointment::with(['customer','vehicle'])
+        $q = Appointment::with(['customer', 'vehicle'])
             ->where('company_id', Auth::user()->company->id);
 
         if ($type = request('service_type')) $q->where('service_type', $type);
-        if ($status = request('status'))     $q->where('status', $status);
+        if ($status = request('status')) $q->where('status', $status);
 
         if ($from = request('date_from')) $q->whereDate('date_time', '>=', $from);
-        if ($to   = request('date_to'))   $q->whereDate('date_time', '<=', $to);
+        if ($to = request('date_to')) $q->whereDate('date_time', '<=', $to);
 
         return AppointmentResource::collection(
             $q->orderBy('date_time')->paginate(request('per_page', 20))
@@ -43,33 +44,33 @@ class AppointmentController extends Controller
             $customer = Customer::whereUuid($v['customer_uuid'])
                 ->where('company_id', Auth::user()->company->id)->firstOrFail();
 
-            $vehicle  = Vehicle::whereUuid($v['vehicle_uuid'])
+            $vehicle = Vehicle::whereUuid($v['vehicle_uuid'])
                 ->where('company_id', Auth::user()->company->id)->firstOrFail();
 
             $appt = Appointment::create([
-                'company_id'        => Auth::user()->company->id,
-                'customer_id'       => $customer->id,
-                'vehicle_id'        => $vehicle->id,
-                'service_type'      => $v['service_type'],
-                'date_time'         => $v['date_time'],
-                'duration_minutes'  => $v['duration_minutes'],
-                'status'            => $v['status'],
+                'company_id' => Auth::user()->company->id,
+                'customer_id' => $customer->id,
+                'vehicle_id' => $vehicle->id,
+                'service_type' => $v['service_type'],
+                'date_time' => $v['date_time'],
+                'duration_minutes' => $v['duration_minutes'],
+                'status' => $v['status'],
                 'mechanic_assigned' => $v['mechanic_assigned'] ?? null,
-                'notes'             => $v['notes'] ?? null,
+                'notes' => $v['notes'] ?? null,
             ]);
 
             DB::commit();
-            return new AppointmentResource($appt->load(['customer','vehicle']));
-        } catch (\Throwable $e) {
+            return new AppointmentResource($appt->load(['customer', 'vehicle']));
+        } catch (Throwable $e) {
             DB::rollBack();
-            return response()->json(['message'=>'Error creating appointment','error'=>$e->getMessage()],500);
+            return response()->json(['message' => 'Error creating appointment', 'error' => $e->getMessage()], 500);
         }
     }
 
     /* -------- show */
     public function show(string $uuid): AppointmentResource
     {
-        $appt = Appointment::with(['customer','vehicle'])
+        $appt = Appointment::with(['customer', 'vehicle'])
             ->whereUuid($uuid)
             ->where('company_id', Auth::user()->company->id)
             ->firstOrFail();
@@ -77,8 +78,12 @@ class AppointmentController extends Controller
         return new AppointmentResource($appt);
     }
 
-    /* -------- update */
-    public function update(UpdateAppointmentRequest $req, string $uuid): JsonResponse
+    /**
+     * @param UpdateAppointmentRequest $req
+     * @param string $uuid
+     * @return AppointmentResource
+     */
+    public function update(UpdateAppointmentRequest $req, string $uuid): AppointmentResource|JsonResponse
     {
         $v = $req->validated();
         $appt = Appointment::whereUuid($uuid)
@@ -102,23 +107,19 @@ class AppointmentController extends Controller
             $appt->fill($v)->save();
 
             DB::commit();
-            return response()->json([
-                'message'=>'Appointment updated',
-                'appointment'=> new AppointmentResource($appt->fresh(['customer','vehicle']))
-            ]);
-        } catch (\Throwable $e) {
+            return new AppointmentResource($appt);
+        } catch (Throwable $e) {
             DB::rollBack();
-            return response()->json(['message'=>'Error','error'=>$e->getMessage()],500);
+            return response()->json(['message' => 'Error', 'error' => $e->getMessage()], 500);
         }
     }
 
-    /* -------- destroy */
     public function destroy(string $uuid): JsonResponse
     {
         Appointment::whereUuid($uuid)
             ->where('company_id', Auth::user()->company->id)
             ->firstOrFail()->delete();
 
-        return response()->json(['message'=>'Appointment deleted']);
+        return response()->json(['message' => 'Appointment deleted']);
     }
 }

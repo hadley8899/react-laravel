@@ -11,6 +11,7 @@ import BuildIcon from '@mui/icons-material/Build';
 import PersonIcon from '@mui/icons-material/Person';
 import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
 import { Appointment, AppointmentStatus, AppointmentType } from "../../interfaces/Appointment.ts";
+import {useNavigate} from "react-router-dom";
 
 interface AppointmentCardProps {
     appointment: Appointment;
@@ -19,6 +20,8 @@ interface AppointmentCardProps {
 const time = (iso: string) => new Date(iso).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
 
 const AppointmentCard: React.FC<AppointmentCardProps> = ({ appointment: a }) => {
+    const nav = useNavigate();
+
     const statusChip = (s: AppointmentStatus) => {
         const c =
             {
@@ -62,7 +65,10 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({ appointment: a }) => 
     };
 
     return (
-        <Card variant="outlined" sx={{width: '100%'}}>
+        <Card
+            variant="outlined"
+            sx={{width: '100%', cursor: 'pointer'}}
+            onClick={() => nav(`/appointments/${a.uuid}`)}>
             <CardContent sx={{p: 1.5, '&:last-child': {pb: 1.5}}}>
                 <Box sx={{
                     display: 'flex',

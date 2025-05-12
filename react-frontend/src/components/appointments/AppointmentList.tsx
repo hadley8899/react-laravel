@@ -3,8 +3,8 @@ import {
     Box, Divider, List, ListItem, Paper, Typography,
 } from '@mui/material';
 import dayjs from 'dayjs';
-import { Appointment } from '@/interfaces/Appointment';
 import AppointmentCard from './AppointmentCard';
+import {Appointment} from "../../interfaces/Appointment.ts";
 
 interface Props {
     groupedAppointments: Record<string, Appointment[]>;

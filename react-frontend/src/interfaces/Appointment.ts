@@ -1,3 +1,6 @@
+import {Customer} from "./Customer.ts";
+import {Vehicle} from "./Vehicle.ts";
+
 export type AppointmentType =
     | 'MOT'
     | 'Service'
@@ -17,23 +20,11 @@ export type AppointmentStatus =
 export interface Appointment {
     uuid: string;
     service_type: AppointmentType;
-    date_time: string;          // ISO string
+    date_time: string;
     duration_minutes: number;
     status: AppointmentStatus;
     mechanic_assigned?: string | null;
     notes?: string | null;
-
-    // relations (included by AppointmentResource)
-    customer: {
-        uuid: string;
-        first_name: string;
-        last_name: string;
-        email?: string | null;
-    };
-    vehicle: {
-        uuid: string;
-        make: string;
-        model: string;
-        registration: string;
-    };
+    customer: Customer,
+    vehicle: Vehicle,
 }
