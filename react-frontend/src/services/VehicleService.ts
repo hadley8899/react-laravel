@@ -20,13 +20,13 @@ export type UpdateVehiclePayload = Partial<CreateVehiclePayload>;
 export async function getVehicles(
     page = 1,
     perPage = 1000,
-    customer_uuid?: string,
+    search?: string,
 ) {
     const { data } = await api.get<PaginatedResponse<Vehicle>>('/vehicles', {
         params: {
             page,
             per_page: perPage,
-            customer_uuid,
+            search,
         },
     });
     return data;

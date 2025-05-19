@@ -8,31 +8,31 @@ use App\Http\Requests\UpdateCompanyRequest;
 use App\Http\Requests\UpdateCompanySettingsRequest;
 use App\Http\Resources\CompanyResource;
 use App\Models\Company;
-use Exception;
+use App\Services\Company\CompanyDestroyService;
+use App\Services\Company\CompanyListService;
+use App\Services\Company\CompanyStoreService;
+use App\Services\Company\CompanyUpdateService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Log;
 
 class CompanyController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index(): JsonResponse
+    public function index(): AnonymousResourceCollection
     {
-        $companies = Company::all();
-        return response()->json($companies);
+        return CompanyResource::collection(CompanyListService::listCompanies());
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreCompanyRequest $request): JsonResource
+    public function store(StoreCompanyRequest $request): CompanyResource
     {
-        $company = Company::query()->create($request->validated());
-        return new JsonResource($company);
+        return new CompanyResource(CompanyStoreService::storeCompany($request->validated()));
     }
 
     /**
@@ -80,39 +80,10 @@ class CompanyController extends Controller
      */
     public function update(UpdateCompanyRequest $request, Company $company): JsonResource
     {
-        // Log the request for debugging
-        Log::info('Company update request data', [
-            'all' => $request->all(),
-            'validated' => $request->validated(),
-            'files' => $request->allFiles(),
-        ]);
-
         $validated = $request->validated();
+        $file = $request->file('logo');
 
-        if ($request->hasFile('logo')) {
-            try {
-                // If we already have a logo, Delete it
-                if ($company->logo_path) {
-                    Storage::disk('public')->delete($company->logo_path);
-                }
-
-                $validated['logo_path'] = $request->file('logo')?->store('company-logos', 'public');
-
-                $validated['logo_url'] = asset('storage/' . $validated['logo_path']);
-
-                Log::info('Logo stored successfully', [
-                    'path' => $validated['logo_path'],
-                    'url' => $validated['logo_url'],
-                ]);
-            } catch (Exception $e) {
-                Log::error('Error uploading logo', [
-                    'exception' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString(),
-                ]);
-            }
-        }
-
-        $company->update($validated);
+        $company = CompanyUpdateService::updateCompany($company, $validated, $file);
 
         return new CompanyResource($company->fresh());
     }
@@ -130,7 +101,7 @@ class CompanyController extends Controller
      */
     public function destroy(Company $company): JsonResponse
     {
-        $company->delete();
+        CompanyDestroyService::destroyCompany($company);
         return response()->json(null, 204);
     }
 }

@@ -6,6 +6,10 @@ use App\Http\Requests\StoreCustomerRequest;
 use App\Http\Requests\UpdateCustomerRequest;
 use App\Http\Resources\CustomerResource;
 use App\Models\Customer;
+use App\Services\Customer\CustomerDestroyService;
+use App\Services\Customer\CustomerListService;
+use App\Services\Customer\CustomerStoreService;
+use App\Services\Customer\CustomerUpdateService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\Auth;
@@ -28,24 +32,9 @@ class CustomerController extends Controller
             $showInactive = request()->get('show_inactive') === 'true';
         }
 
-        $customers = Customer::query()
-            ->where('company_id', Auth::user()->company_id)
-            ->orderBy('last_name');
+        $customers = CustomerListService::listCustomers(Auth::user()->company_id, $showInactive, $search, $perPage);
 
-        if (!$showInactive) {
-            $customers->where('status', '!=', 'Inactive');
-        }
-
-        if ($search) {
-            $customers->where(function ($query) use ($search) {
-                $query->where('first_name', 'like', "%$search%")
-                    ->orWhere('last_name', 'like', "%$search%")
-                    ->orWhere('email', 'like', "%$search%")
-                    ->orWhere('phone', 'like', "%$search%");
-            });
-        }
-
-        return CustomerResource::collection($customers->paginate($perPage));
+        return CustomerResource::collection($customers);
     }
 
     /**
@@ -57,8 +46,7 @@ class CustomerController extends Controller
         // Add the company_id to the validated data
         $validated['company_id'] = Auth::user()->company_id;
 
-        $customer = Customer::query()->create($validated);
-        return new CustomerResource($customer);
+        return new CustomerResource(CustomerStoreService::storeCustomer($validated));
     }
 
     /**
@@ -83,8 +71,8 @@ class CustomerController extends Controller
         if ($customer->company_id !== Auth::user()->company_id) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
-        $customer->update($request->validated());
-        return new CustomerResource($customer);
+        $customer = CustomerUpdateService::updateCustomer($customer, $request->validated());
+        return new CustomerResource($customer->fresh());
     }
 
     /**
@@ -95,7 +83,8 @@ class CustomerController extends Controller
         if ($customer->company_id !== Auth::user()->company_id) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
-        $customer->delete();
+        CustomerDestroyService::destroyCustomer($customer);
+
         return response()->json(null, 204);
     }
 }
