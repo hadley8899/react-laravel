@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
     AppBar, Avatar, Badge, Box, Divider, IconButton,
     ListItemIcon, Menu, MenuItem, Toolbar, Typography, useTheme
@@ -11,8 +11,9 @@ import {
     Person
 } from "@mui/icons-material";
 import ThemeSwitcher from "./ThemeSwitcher";
-import {useNavigate} from "react-router-dom";
-import {useAuth} from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import NotificationService, { Notification } from "../services/NotificationService";
 
 interface TopBarProps {
     handleDrawerToggle: () => void;
@@ -29,7 +30,7 @@ const TopBar: React.FC<TopBarProps> = ({
                                        }) => {
     const theme = useTheme();
     const navigate = useNavigate();
-    const {logout} = useAuth();
+    const { logout, token } = useAuth(); // Assuming token is available from useAuth for authenticated API calls
 
     // User menu states
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -38,16 +39,31 @@ const TopBar: React.FC<TopBarProps> = ({
     // Notifications menu states
     const [notifAnchorEl, setNotifAnchorEl] = useState<null | HTMLElement>(null);
     const notifMenuOpen = Boolean(notifAnchorEl);
+    const [notifications, setNotifications] = useState<Notification[]>([]);
+    const [unreadCount, setUnreadCount] = useState(0);
+    const [isLoadingNotifications, setIsLoadingNotifications] = useState(false);
 
-    // Sample notifications
-    const notifications = [
-        {id: 1, message: "Service reminder for Honda Civic", read: false},
-        {id: 2, message: "New invoice created", read: false},
-        {id: 3, message: "Appointment scheduled for tomorrow", read: true}
-    ];
+    const fetchNotifications = useCallback(async () => {
+        console.log('Fetch!');
+        if (!token) return;
+        setIsLoadingNotifications(true);
+        try {
+            // For now, fetching only the first page. Implement pagination or infinite scroll as needed.
+            const response = await NotificationService.getNotifications(1);
+            setNotifications(response.data);
+            setUnreadCount(response.data.filter(n => !n.read_at).length);
+        } catch (error) {
+            console.error("Failed to fetch notifications:", error);
+        }
+        setIsLoadingNotifications(false);
+    }, [token]);
 
-    // Count unread notifications
-    const unreadCount = notifications.filter(n => !n.read).length;
+    useEffect(() => {
+        fetchNotifications();
+        // Optional: Set up polling for new notifications
+        const intervalId = setInterval(fetchNotifications, 30000);
+        return () => clearInterval(intervalId);
+    }, [fetchNotifications]);
 
     const handleUserMenuClick = (event: React.MouseEvent<HTMLElement>) => {
         setAnchorEl(event.currentTarget);
@@ -59,6 +75,8 @@ const TopBar: React.FC<TopBarProps> = ({
 
     const handleNotifMenuClick = (event: React.MouseEvent<HTMLElement>) => {
         setNotifAnchorEl(event.currentTarget);
+        // Optionally, refresh notifications when menu is opened
+        // fetchNotifications();
     };
 
     const handleNotifMenuClose = () => {
@@ -68,6 +86,8 @@ const TopBar: React.FC<TopBarProps> = ({
     const handleLogout = () => {
         logout();
         handleUserMenuClose();
+        setNotifications([]); // Clear notifications on logout
+        setUnreadCount(0);
         navigate("/login");
     };
 
@@ -79,6 +99,42 @@ const TopBar: React.FC<TopBarProps> = ({
     const handleSettingsClick = () => {
         navigate("/settings");
         handleUserMenuClose();
+    };
+
+    const handleMarkOneAsRead = async (notificationId: string) => {
+        try {
+            await NotificationService.markAsRead(notificationId);
+            // Refresh notifications or update the specific notification in the local state
+            setNotifications(prevNotifications =>
+                prevNotifications.map(n =>
+                    n.id === notificationId ? { ...n, read_at: new Date().toISOString() } : n
+                )
+            );
+            setUnreadCount(prevCount => (prevCount > 0 ? prevCount - 1 : 0));
+        } catch (error) {
+            console.error("Failed to mark notification as read:", error);
+        }
+    };
+
+    const handleMarkAllUserNotificationsAsRead = async () => {
+        try {
+            await NotificationService.markAllAsRead();
+            setNotifications(prevNotifications =>
+                prevNotifications.map(n => ({ ...n, read_at: new Date().toISOString() }))
+            );
+            setUnreadCount(0);
+            // Optionally close the menu
+            // handleNotifMenuClose();
+        } catch (error) {
+            console.error("Failed to mark all notifications as read:", error);
+        }
+    };
+
+    const handleViewAllNotifications = () => {
+        // Navigate to a dedicated notifications page if you have one
+        // navigate('/notifications');
+        console.log("View all notifications clicked");
+        handleNotifMenuClose();
     };
 
     return (
@@ -166,24 +222,38 @@ const TopBar: React.FC<TopBarProps> = ({
             >
                 <Typography sx={{p: 2, fontWeight: 'bold'}}>Notifications</Typography>
                 <Divider/>
-                {notifications.length > 0 ? (
+                {isLoadingNotifications ? (
+                    <MenuItem>
+                        <Typography variant="body2">Loading notifications...</Typography>
+                    </MenuItem>
+                ) : notifications.length > 0 ? (
                     notifications.map((notif) => (
-                        <MenuItem key={notif.id} sx={{
-                            py: 1.5,
-                            px: 2,
-                            borderLeft: notif.read ? 'none' : `4px solid ${theme.palette.primary.main}`,
-                            bgcolor: notif.read ? 'inherit' : 'action.hover'
-                        }}>
-                            <Typography variant="body2">{notif.message}</Typography>
+                        <MenuItem
+                            key={notif.id}
+                            onClick={() => !notif.read_at && handleMarkOneAsRead(notif.id)}
+                            sx={{
+                                py: 1.5,
+                                px: 2,
+                                borderLeft: notif.read_at ? 'none' : `4px solid ${theme.palette.primary.main}`,
+                                bgcolor: notif.read_at ? 'inherit' : 'action.hover',
+                                cursor: notif.read_at ? 'default' : 'pointer',
+                            }}
+                        >
+                            <Typography variant="body2">{notif.data.message}</Typography>
                         </MenuItem>
                     ))
                 ) : (
                     <MenuItem>
-                        <Typography variant="body2">No notifications</Typography>
+                        <Typography variant="body2">No new notifications</Typography>
                     </MenuItem>
                 )}
                 <Divider/>
-                <MenuItem onClick={handleNotifMenuClose} sx={{justifyContent: 'center'}}>
+                {notifications.length > 0 && unreadCount > 0 && (
+                    <MenuItem onClick={handleMarkAllUserNotificationsAsRead} sx={{justifyContent: 'center'}}>
+                        <Typography color="primary" variant="body2">Mark all as read</Typography>
+                    </MenuItem>
+                )}
+                <MenuItem onClick={handleViewAllNotifications} sx={{justifyContent: 'center'}}>
                     <Typography color="primary" variant="body2">View all notifications</Typography>
                 </MenuItem>
             </Menu>
@@ -229,3 +299,4 @@ const TopBar: React.FC<TopBarProps> = ({
 };
 
 export default TopBar;
+

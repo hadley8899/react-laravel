@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\CustomerController;
@@ -8,7 +9,6 @@ use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VehicleController;
 use App\Http\Controllers\VehicleMakeModelController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/login', [AuthController::class, 'login']);
@@ -32,6 +32,14 @@ Route::middleware('auth:sanctum')->group(function () {
             // Route::delete('/{user:uuid}', 'destroy');
             Route::put('/{user:uuid}/preferences', [UserController::class, 'updatePreferences']);
         });
+    });
+
+    // Notification routes
+    Route::prefix('notifications')->controller(NotificationController::class)->group(function () {
+        Route::get('/', 'index')->name('notifications.index');
+        Route::patch('/{id}/read', 'markAsRead')->name('notifications.markAsRead');
+        Route::patch('/read-all', 'markAllAsRead')->name('notifications.markAllAsRead');
+        Route::delete('/{id}', 'destroy')->name('notifications.destroy');
     });
 
     // Customer routes
