@@ -16,7 +16,7 @@ class UpdateUserRequest extends FormRequest
         return [
             'name' => ['sometimes', 'string', 'max:255'],
             'email' => ['sometimes', 'email', 'max:255', 'unique:users,email,' . $this->route('user')->id],
-            'avatar' => ['sometimes', 'image', 'max:2048'],
+            'avatar' => ['sometimes', 'image', 'max:16000'], // 16MB max
         ];
     }
 }

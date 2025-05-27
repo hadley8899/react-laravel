@@ -5,12 +5,18 @@ services:
             context: ../backend
             dockerfile: docker/Dockerfile
         container_name: laravel_app
+        environment:
+            HOST_USER_ID: ${HOST_USER_ID:-1000}
+            HOST_GROUP_ID: ${HOST_GROUP_ID:-1000}
+            # PHP error reporting settings
+            PHP_INI_ERROR_REPORTING: E_ALL
+            PHP_INI_DISPLAY_ERRORS: "On"
+            PHP_INI_DISPLAY_STARTUP_ERRORS: "On"
+            PHP_INI_LOG_ERRORS: "On"
+            PHP_INI_UPLOAD_MAX_FILESIZE: "100M"
+            PHP_INI_POST_MAX_SIZE: "100M"
         volumes:
             - ./:/var/www/html
-        # If you want to override php.ini settings directly, you can do it here:
-        # environment:
-        #   PHP_INI_DISPLAY_ERRORS: "On"
-        # ...
         networks:
             - laravel_net
 
