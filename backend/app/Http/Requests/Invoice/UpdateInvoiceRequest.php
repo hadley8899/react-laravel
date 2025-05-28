@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Invoice;
 
 use App\Models\Invoice;
 use Illuminate\Contracts\Validation\ValidationRule;

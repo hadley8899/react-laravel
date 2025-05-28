@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreCompanyRequest;
-use App\Http\Requests\UpdateCompanyBillingRequest;
-use App\Http\Requests\UpdateCompanyRequest;
-use App\Http\Requests\UpdateCompanySettingsRequest;
+use App\Http\Requests\Company\StoreCompanyRequest;
+use App\Http\Requests\Company\UpdateCompanyBillingRequest;
+use App\Http\Requests\Company\UpdateCompanyRequest;
+use App\Http\Requests\Company\UpdateCompanySettingsRequest;
 use App\Http\Resources\CompanyResource;
 use App\Models\Company;
 use App\Services\Company\CompanyDestroyService;

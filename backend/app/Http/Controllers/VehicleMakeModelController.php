@@ -16,7 +16,7 @@ class VehicleMakeModelController extends Controller
     {
         $query = VehicleMake::query();
 
-        if ($request->has('search') && !empty($request->search)) {
+        if (!empty($request->search)) {
             $search = $request->search;
             $query->where('name', 'LIKE', "%{$search}%");
         }
@@ -35,7 +35,7 @@ class VehicleMakeModelController extends Controller
     {
         $query = $make->models();
 
-        if ($request->has('search') && !empty($request->search)) {
+        if (!empty($request->search)) {
             $search = $request->search;
             $query->where('name', 'LIKE', "%$search%");
         }

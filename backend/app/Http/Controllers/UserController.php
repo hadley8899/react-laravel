@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\ChangePasswordRequest;
-use App\Http\Requests\UpdateUserPreferencesRequest;
-use App\Http\Requests\UpdateUserRequest;
+use App\Http\Requests\User\ChangePasswordRequest;
+use App\Http\Requests\User\UpdateUserPreferencesRequest;
+use App\Http\Requests\User\UpdateUserRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;

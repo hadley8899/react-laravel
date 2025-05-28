@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Vehicle;
 
 use App\Models\Customer;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class UpdateVehicleRequest extends FormRequest
+class StoreVehicleRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -15,8 +15,6 @@ class UpdateVehicleRequest extends FormRequest
 
     public function rules(): array
     {
-        $vehicleId = $this->route('vehicle')->id ?? null;
-
         return [
             'customer_id' => [
                 'required',
@@ -32,18 +30,16 @@ class UpdateVehicleRequest extends FormRequest
                     }
                 },
             ],
-            'make' => ['sometimes', 'required', 'string', 'max:100'],
-            'model' => ['sometimes', 'required', 'string', 'max:100'],
-            'year' => ['sometimes', 'nullable', 'digits:4', 'integer', 'min:1900', 'max:' . date('Y')],
+            'make' => ['required', 'string', 'max:100'],
+            'model' => ['required', 'string', 'max:100'],
+            'year' => ['nullable', 'digits:4', 'integer', 'min:1900', 'max:' . date('Y')],
             'registration' => [
-                'sometimes', 'required', 'string', 'max:20',
-                Rule::unique('vehicles', 'registration')
-                    ->where('company_id', auth()->user()->company_id)
-                    ->ignore($vehicleId),
+                'required', 'string', 'max:20',
+                Rule::unique('vehicles', 'registration')->where('company_id', auth()->user()->company_id)
             ],
-            'last_service' => ['sometimes', 'nullable', 'date'],
-            'next_service_due' => ['sometimes', 'nullable', 'date', 'after_or_equal:last_service'],
-            'type' => ['sometimes', 'nullable', 'string', 'max:50'],
+            'last_service' => ['nullable', 'date'],
+            'next_service_due' => ['nullable', 'date', 'after_or_equal:last_service'],
+            'type' => ['nullable', 'string', 'max:50'],
         ];
     }
 }

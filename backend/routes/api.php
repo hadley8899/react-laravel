@@ -22,85 +22,69 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', [UserController::class, 'user']);
 
     // User routes
-    Route::controller(UserController::class)->group(function () {
-        Route::prefix('/users')->group(function () {
-            // Route::get('', 'index');
-            // Route::post('', 'store');
-            // Route::get('/{user:uuid}', 'show');
-            Route::put('/{user:uuid}', 'update');
-            Route::post('/{user:uuid}/change-password', 'changePassword');
-            // Route::delete('/{user:uuid}', 'destroy');
-            Route::put('/{user:uuid}/preferences', [UserController::class, 'updatePreferences']);
-        });
+    Route::prefix('/users')->group(function () {
+        // Route::get('', [UserController::class, 'index']);
+        // Route::post('', [UserController::class, 'store']);
+        // Route::get('/{user:uuid}', [UserController::class, 'show']);
+        Route::put('/{user:uuid}', [UserController::class, 'update']);
+        Route::post('/{user:uuid}/change-password', [UserController::class, 'changePassword']);
+        // Route::delete('/{user:uuid}', [UserController::class, 'destroy']);
+        Route::put('/{user:uuid}/preferences', [UserController::class, 'updatePreferences']);
     });
 
     // Notification routes
-    Route::prefix('notifications')->controller(NotificationController::class)->group(function () {
-        Route::get('/', 'index')->name('notifications.index');
-        Route::patch('/{id}/read', 'markAsRead')->name('notifications.markAsRead');
-        Route::patch('/read-all', 'markAllAsRead')->name('notifications.markAllAsRead');
-        Route::delete('/{id}', 'destroy')->name('notifications.destroy');
+    Route::prefix('notifications')->group(function () {
+        Route::get('/', [NotificationController::class, 'index'])->name('notifications.index');
+        Route::patch('/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
+        Route::patch('/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.markAllAsRead');
+        Route::delete('/{id}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
     });
 
     // Customer routes
-    Route::controller(CustomerController::class)->group(function () {
-        Route::prefix('/customers')->group(function () {
-            Route::get('/', 'index');
-            Route::post('/', 'store');
-            Route::get('/{customer:uuid}', 'show');
-            Route::put('/{customer:uuid}', 'update');
-            Route::delete('/{customer:uuid}', 'destroy');
-        });
+    Route::prefix('/customers')->group(function () {
+        Route::get('/', [CustomerController::class, 'index']);
+        Route::post('/', [CustomerController::class, 'store']);
+        Route::get('/{customer:uuid}', [CustomerController::class, 'show']);
+        Route::put('/{customer:uuid}', [CustomerController::class, 'update']);
+        Route::delete('/{customer:uuid}', [CustomerController::class, 'destroy']);
     });
 
     // Invoice routes
-    Route::controller(InvoiceController::class)->group(function () {
-        Route::prefix('/invoices')->group(function () {
-            Route::get('/', 'index');
-            Route::post('/', 'store');
-            Route::get('/{uuid}', 'show');
-            Route::put('/{uuid}', 'update');
-            Route::delete('/{uuid}', 'destroy');
-            Route::get('/{uuid}/pdf', 'generatePdf');
-            Route::post('/{uuid}/email', 'email');
-        });
+    Route::prefix('/invoices')->group(function () {
+        Route::get('/', [InvoiceController::class, 'index']);
+        Route::post('/', [InvoiceController::class, 'store']);
+        Route::get('/{uuid}', [InvoiceController::class, 'show']);
+        Route::put('/{uuid}', [InvoiceController::class, 'update']);
+        Route::delete('/{uuid}', [InvoiceController::class, 'destroy']);
+        Route::get('/{uuid}/pdf', [InvoiceController::class, 'generatePdf']);
+        Route::post('/{uuid}/email', [InvoiceController::class, 'email']);
     });
 
     // Vehicle routes
-    Route::controller(VehicleController::class)->group(function () {
-        Route::get('/vehicles', 'index');
-        Route::post('/vehicles', 'store');
-        Route::get('/vehicles/{vehicle:uuid}', 'show');
-        Route::put('/vehicles/{vehicle:uuid}', 'update');
-        Route::delete('/vehicles/{vehicle:uuid}', 'destroy');
+    Route::prefix('/vehicles')->group(function () {
+        Route::get('/', [VehicleController::class, 'index']);
+        Route::post('/', [VehicleController::class, 'store']);
+        Route::get('/{vehicle:uuid}', [VehicleController::class, 'show']);
+        Route::put('/{vehicle:uuid}', [VehicleController::class, 'update']);
+        Route::delete('/{vehicle:uuid}', [VehicleController::class, 'destroy']);
     });
 
-    Route::controller(VehicleMakeModelController::class)->group(function () {
-        Route::get('/vehicle-makes', 'getMakes');
-        Route::get('/vehicle-makes/{make:uuid}/models', 'getModels');
-    });
+    // Vehicle makes and models
+    Route::get('/vehicle-makes', [VehicleMakeModelController::class, 'getMakes']);
+    Route::get('/vehicle-makes/{make:uuid}/models', [VehicleMakeModelController::class, 'getModels']);
 
-
-    Route::controller(CompanyController::class)->group(function () {
-        Route::get('/current-company', 'currentCompany');
-        // Keep the general update route if needed for name/address etc.
-        // Route::put('/companies/{company:uuid}', 'update');
-        // Add a specific route for updating settings
-        Route::put('/companies/{company:uuid}/settings', 'updateSettings')->name('companies.updateSettings');
-        Route::put('/companies/{company:uuid}/billing', [CompanyController::class, 'updateBilling'])->name('companies.updateBilling');
-    });
-
-    Route::prefix('/appointments')
-        ->middleware('auth:sanctum')
-        ->controller(AppointmentController::class)
-        ->group(function () {
-            Route::get('/', 'index');
-            Route::post('/', 'store');
-            Route::get('/{uuid}', 'show');
-            Route::put('/{uuid}', 'update');
-            Route::delete('/{uuid}', 'destroy');
-        });
-
-
+    // Company routes
+    Route::get('/current-company', [CompanyController::class, 'currentCompany']);
+    Route::put('/companies/{company:uuid}/settings', [CompanyController::class, 'updateSettings'])->name('companies.updateSettings');
+    Route::put('/companies/{company:uuid}/billing', [CompanyController::class, 'updateBilling'])->name('companies.updateBilling');
     Route::put('/companies/{company:uuid}', [CompanyController::class, 'update']);
+
+    // Appointments routes
+    Route::prefix('/appointments')->group(function () {
+        Route::get('/', [AppointmentController::class, 'index']);
+        Route::post('/', [AppointmentController::class, 'store']);
+        Route::get('/{appointment:uuid}', [AppointmentController::class, 'show']);
+        Route::put('/{appointment:uuid}', [AppointmentController::class, 'update']);
+        Route::delete('/{appointment:uuid}', [AppointmentController::class, 'destroy']);
+    });
 });

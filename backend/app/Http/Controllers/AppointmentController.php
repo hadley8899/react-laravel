@@ -2,123 +2,103 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreAppointmentRequest;
-use App\Http\Requests\UpdateAppointmentRequest;
+use App\Http\Requests\Appointment\StoreAppointmentRequest;
+use App\Http\Requests\Appointment\UpdateAppointmentRequest;
 use App\Http\Resources\AppointmentResource;
 use App\Models\Appointment;
-use App\Models\Customer;
-use App\Models\Vehicle;
+use App\Services\Appointment\AppointmentDestroyService;
+use App\Services\Appointment\AppointmentListService;
+use App\Services\Appointment\AppointmentStoreService;
+use App\Services\Appointment\AppointmentUpdateService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Throwable;
 
 class AppointmentController extends Controller
 {
-    /* -------- index (paginated, optional filters) */
-    public function index(): AnonymousResourceCollection
+    use AuthorizesRequests;
+
+    public function __construct()
     {
-        $q = Appointment::with(['customer', 'vehicle'])
-            ->where('company_id', Auth::user()->company->id);
-
-        if ($type = request('service_type')) $q->where('service_type', $type);
-        if ($status = request('status')) $q->where('status', $status);
-
-        if ($from = request('date_from')) $q->whereDate('date_time', '>=', $from);
-        if ($to = request('date_to')) $q->whereDate('date_time', '<=', $to);
-
-        return AppointmentResource::collection(
-            $q->orderBy('date_time')->paginate(request('per_page', 20))
-        );
+        $this->authorizeResource(Appointment::class, 'appointment');
     }
 
-    /* -------- store */
-    public function store(StoreAppointmentRequest $req): AppointmentResource|JsonResponse
+    public function index(): AnonymousResourceCollection
     {
-        $v = $req->validated();
+        return AppointmentResource::collection(AppointmentListService::listAppointments(
+            Auth::user()->company->id,
+            request('service_type'),
+            request('status'),
+            request('date_from'),
+            request('date_to')
+        )->paginate());
+    }
+
+    public function store(StoreAppointmentRequest $request): AppointmentResource|JsonResponse
+    {
+        $validated = $request->validated();
 
         try {
-            DB::beginTransaction();
-
-            $customer = Customer::whereUuid($v['customer_uuid'])
-                ->where('company_id', Auth::user()->company->id)->firstOrFail();
-
-            $vehicle = Vehicle::whereUuid($v['vehicle_uuid'])
-                ->where('company_id', Auth::user()->company->id)->firstOrFail();
-
-            $appt = Appointment::create([
-                'company_id' => Auth::user()->company->id,
-                'customer_id' => $customer->id,
-                'vehicle_id' => $vehicle->id,
-                'service_type' => $v['service_type'],
-                'date_time' => $v['date_time'],
-                'duration_minutes' => $v['duration_minutes'],
-                'status' => $v['status'],
-                'mechanic_assigned' => $v['mechanic_assigned'] ?? null,
-                'notes' => $v['notes'] ?? null,
-            ]);
-
-            DB::commit();
-            return new AppointmentResource($appt->load(['customer', 'vehicle']));
+            $appointment = AppointmentStoreService::storeAppointment(
+                Auth::user()->company->id,
+                $validated['customer_uuid'] ?? null,
+                $validated['vehicle_uuid'] ?? null,
+                $validated['service_type'] ?? null,
+                $validated['date_time'] ?? null,
+                $validated['duration_minutes'] ?? null,
+                $validated['status'] ?? null,
+                $validated['mechanic_assigned'] ?? null,
+                $validated['notes'] ?? null
+            );
+            return new AppointmentResource($appointment->load(['customer', 'vehicle']));
         } catch (Throwable $e) {
             DB::rollBack();
             return response()->json(['message' => 'Error creating appointment', 'error' => $e->getMessage()], 500);
         }
     }
 
-    /* -------- show */
-    public function show(string $uuid): AppointmentResource
+    public function show(Appointment $appointment): AppointmentResource
     {
-        $appt = Appointment::with(['customer', 'vehicle'])
-            ->whereUuid($uuid)
-            ->where('company_id', Auth::user()->company->id)
-            ->firstOrFail();
+        // Does the appointment belong to the user's company?
+        if ($appointment->company_id !== Auth::user()->company->id) {
+            throw new NotFoundHttpException('Appointment not found');
+        }
 
-        return new AppointmentResource($appt);
+        return new AppointmentResource($appointment);
     }
 
     /**
      * @param UpdateAppointmentRequest $req
-     * @param string $uuid
-     * @return AppointmentResource
+     * @param Appointment $appointment
+     * @return AppointmentResource|JsonResponse
      */
-    public function update(UpdateAppointmentRequest $req, string $uuid): AppointmentResource|JsonResponse
+    public function update(UpdateAppointmentRequest $req, Appointment $appointment): AppointmentResource|JsonResponse
     {
-        $v = $req->validated();
-        $appt = Appointment::whereUuid($uuid)
-            ->where('company_id', Auth::user()->company->id)
-            ->firstOrFail();
+        // Does the appointment belong to the user's company?
+        if ($appointment->company_id !== Auth::user()->company->id) {
+            return response()->json(['message' => 'Appointment not found'], 404);
+        }
 
         try {
-            DB::beginTransaction();
-
-            if (isset($v['customer_uuid'])) {
-                $appt->customer_id = Customer::whereUuid($v['customer_uuid'])
-                    ->where('company_id', Auth::user()->company->id)
-                    ->value('id');
-            }
-            if (isset($v['vehicle_uuid'])) {
-                $appt->vehicle_id = Vehicle::whereUuid($v['vehicle_uuid'])
-                    ->where('company_id', Auth::user()->company->id)
-                    ->value('id');
-            }
-
-            $appt->fill($v)->save();
-
-            DB::commit();
-            return new AppointmentResource($appt);
+            $updatedAppointment = AppointmentUpdateService::update($appointment, $req->validated());
+            return new AppointmentResource($updatedAppointment);
         } catch (Throwable $e) {
-            DB::rollBack();
-            return response()->json(['message' => 'Error', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Error updating appointment', 'error' => $e->getMessage()], 500);
         }
     }
 
-    public function destroy(string $uuid): JsonResponse
+    public function destroy(Appointment $appointment): JsonResponse
     {
-        Appointment::whereUuid($uuid)
-            ->where('company_id', Auth::user()->company->id)
-            ->firstOrFail()->delete();
+        // Does the appointment belong to the user's company?
+        if ($appointment->company_id !== Auth::user()->company->id) {
+            return response()->json(['message' => 'Appointment not found'], 404);
+        }
+
+        AppointmentDestroyService::destroy($appointment);
 
         return response()->json(['message' => 'Appointment deleted']);
     }
