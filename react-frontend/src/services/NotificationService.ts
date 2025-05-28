@@ -1,3 +1,4 @@
+import {api} from './api';
 export interface Notification {
     id: string;
     type: string;

@@ -6,6 +6,7 @@ use App\Http\Requests\Appointment\StoreAppointmentRequest;
 use App\Http\Requests\Appointment\UpdateAppointmentRequest;
 use App\Http\Resources\AppointmentResource;
 use App\Models\Appointment;
+use App\Models\User;
 use App\Services\Appointment\AppointmentDestroyService;
 use App\Services\Appointment\AppointmentListService;
 use App\Services\Appointment\AppointmentStoreService;
@@ -27,6 +28,9 @@ class AppointmentController extends Controller
         $this->authorizeResource(Appointment::class, 'appointment');
     }
 
+    /**
+     * @return AnonymousResourceCollection
+     */
     public function index(): AnonymousResourceCollection
     {
         return AppointmentResource::collection(AppointmentListService::listAppointments(
@@ -38,13 +42,19 @@ class AppointmentController extends Controller
         )->paginate());
     }
 
+    /**
+     * @param StoreAppointmentRequest $request
+     * @return AppointmentResource|JsonResponse
+     */
     public function store(StoreAppointmentRequest $request): AppointmentResource|JsonResponse
     {
         $validated = $request->validated();
 
+        /** @var User $user */
+        $user = Auth::user();
         try {
             $appointment = AppointmentStoreService::storeAppointment(
-                Auth::user()->company->id,
+                $user,
                 $validated['customer_uuid'] ?? null,
                 $validated['vehicle_uuid'] ?? null,
                 $validated['service_type'] ?? null,
@@ -61,6 +71,10 @@ class AppointmentController extends Controller
         }
     }
 
+    /**
+     * @param Appointment $appointment
+     * @return AppointmentResource
+     */
     public function show(Appointment $appointment): AppointmentResource
     {
         // Does the appointment belong to the user's company?
@@ -91,6 +105,10 @@ class AppointmentController extends Controller
         }
     }
 
+    /**
+     * @param Appointment $appointment
+     * @return JsonResponse
+     */
     public function destroy(Appointment $appointment): JsonResponse
     {
         // Does the appointment belong to the user's company?

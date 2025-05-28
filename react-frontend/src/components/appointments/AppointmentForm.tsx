@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
     Alert,
     Box,
@@ -9,18 +9,18 @@ import {
     TextField,
     Typography,
 } from '@mui/material';
-import { DatePicker, TimePicker } from '@mui/x-date-pickers';
-import dayjs, { Dayjs } from 'dayjs';
+import {DatePicker, TimePicker} from '@mui/x-date-pickers';
+import dayjs, {Dayjs} from 'dayjs';
 import 'dayjs/locale/en-gb';
-import { getCustomers } from '../../services/CustomerService';
-import { getVehicles } from '../../services/VehicleService';
+import {getCustomers} from '../../services/CustomerService';
+import {getVehicles} from '../../services/VehicleService';
 import {
     createAppointment,
     updateAppointment,
     CreateAppointmentPayload,
     UpdateAppointmentPayload,
 } from '../../services/appointmentService';
-import { Appointment, AppointmentStatus, AppointmentType } from '../../interfaces/Appointment';
+import {Appointment, AppointmentStatus, AppointmentType} from '../../interfaces/Appointment';
 
 dayjs.locale('en-gb');
 
@@ -52,30 +52,29 @@ interface Props {
     onSuccess: (saved: Appointment) => void;
 }
 
-const AppointmentForm: React.FC<Props> = ({ mode, initial, onSuccess }) => {
+const AppointmentForm: React.FC<Props> = ({mode, initial, onSuccess}) => {
     /* ─────────────────────────────── state */
     const [customers, setCustomers] = useState<any[]>([]);
     const [vehicles, setVehicles] = useState<any[]>([]);
 
-    const [customer, setCustomer]       = useState(initial?.customer.uuid ?? '');
-    const [vehicle, setVehicle]         = useState(initial?.vehicle.uuid  ?? '');
+    const [customer, setCustomer] = useState(initial?.customer.uuid ?? '');
+    const [vehicle, setVehicle] = useState(initial?.vehicle.uuid ?? '');
     const [serviceType, setServiceType] = useState<AppointmentType>(
         (initial?.service_type as AppointmentType) ?? 'Service',
     );
-    const [status, setStatus]           = useState<AppointmentStatus>(
+    const [status, setStatus] = useState<AppointmentStatus>(
         (initial?.status as AppointmentStatus) ?? 'Scheduled',
     );
     const initDate = initial ? dayjs(initial.date_time) : dayjs();
-    const [date, setDate]               = useState<Dayjs | null>(initDate);
-    const [time, setTime]               = useState<Dayjs | null>(initDate);
-    const [duration, setDuration]       = useState(initial?.duration_minutes ?? 60);
-    const [mechanic, setMechanic]       = useState(initial?.mechanic_assigned ?? '');
-    const [notes, setNotes]             = useState(initial?.notes ?? '');
+    const [date, setDate] = useState<Dayjs | null>(initDate);
+    const [time, setTime] = useState<Dayjs | null>(initDate);
+    const [duration, setDuration] = useState(initial?.duration_minutes ?? 60);
+    const [mechanic, setMechanic] = useState(initial?.mechanic_assigned ?? '');
+    const [notes, setNotes] = useState(initial?.notes ?? '');
 
     const [saving, setSaving] = useState(false);
-    const [error , setError ] = useState<string | null>(null);
+    const [error, setError] = useState<string | null>(null);
 
-    /* ─────────────────────────────── data sources */
     useEffect(() => {
         (async () => {
             const res = await getCustomers(1, 1000);
@@ -84,19 +83,21 @@ const AppointmentForm: React.FC<Props> = ({ mode, initial, onSuccess }) => {
     }, []);
 
     useEffect(() => {
-        if (!customer) { setVehicles([]); setVehicle(''); return; }
+        if (!customer) {
+            setVehicles([]);
+            setVehicle('');
+            return;
+        }
         (async () => {
-            const res = await getVehicles(1, 1000, customer);
+            const res = await getVehicles(1, 1000, '', customer);
             setVehicles(res.data);
             /* keep selection if vehicle still belongs to new customer */
             if (vehicle && !res.data.find((v: any) => v.uuid === vehicle)) {
                 setVehicle('');
             }
         })();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [customer]);
+    }, [customer, vehicle]);
 
-    /* ─────────────────────────────── submit */
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!date || !time) return;
@@ -109,10 +110,10 @@ const AppointmentForm: React.FC<Props> = ({ mode, initial, onSuccess }) => {
             .toISOString();
 
         const base = {
-            customer_uuid  : customer,
-            vehicle_uuid   : vehicle,
-            service_type   : serviceType,
-            date_time      : dateTimeIso,
+            customer_uuid: customer,
+            vehicle_uuid: vehicle,
+            service_type: serviceType,
+            date_time: dateTimeIso,
             duration_minutes: duration,
             status,
             mechanic_assigned: mechanic || undefined,
@@ -136,13 +137,13 @@ const AppointmentForm: React.FC<Props> = ({ mode, initial, onSuccess }) => {
 
     /* ─────────────────────────────── UI */
     return (
-        <Paper sx={{ p: 3 }}>
+        <Paper sx={{p: 3}}>
             <Typography variant="h5" mb={3} fontWeight="bold">
                 {mode === 'create' ? 'New Appointment' : 'Edit Appointment'}
             </Typography>
 
             {error && (
-                <Alert severity="error" sx={{ mb: 2 }}>
+                <Alert severity="error" sx={{mb: 2}}>
                     {error}
                 </Alert>
             )}
@@ -187,7 +188,7 @@ const AppointmentForm: React.FC<Props> = ({ mode, initial, onSuccess }) => {
                     </Grid>
 
                     {/* type / status */}
-                    <Grid size={{ xs: 12, sm: 6 }}>
+                    <Grid size={{xs: 12, sm: 6}}>
                         <TextField
                             select
                             label="Service Type"
@@ -203,7 +204,7 @@ const AppointmentForm: React.FC<Props> = ({ mode, initial, onSuccess }) => {
                         </TextField>
                     </Grid>
 
-                    <Grid size={{ xs: 12, sm: 6 }}>
+                    <Grid size={{xs: 12, sm: 6}}>
                         <TextField
                             select
                             label="Status"
@@ -220,7 +221,7 @@ const AppointmentForm: React.FC<Props> = ({ mode, initial, onSuccess }) => {
                     </Grid>
 
                     {/* date / time */}
-                    <Grid size={{ xs: 12, sm: 6 }}>
+                    <Grid size={{xs: 12, sm: 6}}>
                         <DatePicker
                             label="Date"
                             value={date}
@@ -229,7 +230,7 @@ const AppointmentForm: React.FC<Props> = ({ mode, initial, onSuccess }) => {
                         />
                     </Grid>
 
-                    <Grid size={{ xs: 12, sm: 6 }}>
+                    <Grid size={{xs: 12, sm: 6}}>
                         <TimePicker
                             label="Time"
                             value={time}
@@ -246,7 +247,7 @@ const AppointmentForm: React.FC<Props> = ({ mode, initial, onSuccess }) => {
                             fullWidth
                             value={duration}
                             onChange={(e) => setDuration(+e.target.value)}
-                            slotProps={{ htmlInput: { min: 15 } }}
+                            slotProps={{htmlInput: {min: 15}}}
                         />
                     </Grid>
 

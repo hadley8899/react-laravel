@@ -7,83 +7,77 @@ use App\Http\Requests\Vehicle\UpdateVehicleRequest;
 use App\Http\Resources\VehicleResource;
 use App\Models\User;
 use App\Models\Vehicle;
-use App\Services\Vehicle\VehicleDestroyService;
-use App\Services\Vehicle\VehicleListService;
-use App\Services\Vehicle\VehicleStoreService;
-use App\Services\Vehicle\VehicleUpdateService;
 use Exception;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Support\Facades\Auth;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
+use App\Services\Vehicle\{
+    VehicleListService,
+    VehicleStoreService,
+    VehicleUpdateService,
+    VehicleDestroyService
+};
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Facades\Auth;
 
 class VehicleController extends Controller
 {
-    /**
-     * Display a paginated list.
-     * @throws ContainerExceptionInterface|NotFoundExceptionInterface
-     */
-    public function index(): AnonymousResourceCollection
+    public function __construct()
     {
-        return VehicleResource::collection(VehicleListService::listVehicles(
-            request()->get('search'),
-            (int)request()->get('per_page', 10),
-            (int)Auth::user()->company_id,
-        ));
+        $this->authorizeResource(Vehicle::class, 'vehicle');
     }
 
     /**
-     * @param StoreVehicleRequest $request
-     * @return VehicleResource
-     * @throws Exception
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
-    public function store(StoreVehicleRequest $request): VehicleResource
+    public function index(): AnonymousResourceCollection
     {
-        return new VehicleResource(
-            VehicleStoreService::store(
-                $request->validated(),
-                Auth::user()->company_id
-            )
+        $search = request()->get('search', '');
+        $customerUuid = request()->get('customer_uuid', null);
+        return VehicleResource::collection(
+            VehicleListService::listVehicles(
+                $search,
+                Auth::user()->company->id,
+                $customerUuid,
+            )->paginate((int)request('per_page', 10))
         );
     }
 
     /**
-     * @param Vehicle $vehicle
-     * @return VehicleResource|JsonResponse
+     * @throws Exception
      */
-    public function show(Vehicle $vehicle): VehicleResource|JsonResponse
+    public function store(StoreVehicleRequest $request): VehicleResource
     {
-        if ($vehicle->company_id !== Auth::user()->company_id) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
+        $vehicle = VehicleStoreService::store(
+            $request->validated(),
+            Auth::user()->company->id
+        );
+
+        return new VehicleResource($vehicle);
+    }
+
+    public function show(Vehicle $vehicle): VehicleResource
+    {
         return new VehicleResource($vehicle);
     }
 
     /**
-     * @param UpdateVehicleRequest $request
-     * @param Vehicle $vehicle
-     * @return VehicleResource|JsonResponse
      * @throws Exception
      */
-    public function update(UpdateVehicleRequest $request, Vehicle $vehicle): VehicleResource|JsonResponse
+    public function update(UpdateVehicleRequest $request, Vehicle $vehicle): VehicleResource
     {
-        if ($vehicle->company_id !== Auth::user()->company_id) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
+        $vehicle = VehicleUpdateService::update($request->validated(), $vehicle);
 
-        return new VehicleResource(VehicleUpdateService::update($request->validated(), $vehicle));
+        return new VehicleResource($vehicle);
     }
 
-    /**
-     * @param Vehicle $vehicle
-     * @return JsonResponse
-     */
     public function destroy(Vehicle $vehicle): JsonResponse
     {
         /** @var User $user */
         $user = Auth::user();
         VehicleDestroyService::destroyVehicle($vehicle, $user);
+
         return response()->json(null, 204);
     }
 }

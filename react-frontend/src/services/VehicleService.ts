@@ -21,12 +21,14 @@ export async function getVehicles(
     page = 1,
     perPage = 1000,
     search?: string,
+    customerUuId?: string
 ) {
     const { data } = await api.get<PaginatedResponse<Vehicle>>('/vehicles', {
         params: {
             page,
             per_page: perPage,
             search,
+            customer_uuid: customerUuId
         },
     });
     return data;

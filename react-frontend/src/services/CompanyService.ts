@@ -1,5 +1,5 @@
 // src/services/companyService.ts
-import {api} from './api'; // Axios
+import {api} from './api';
 import {Company} from '../interfaces/Company.ts';
 
 export type UpdateCompanyPayload = {

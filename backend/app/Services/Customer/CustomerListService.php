@@ -3,23 +3,27 @@
 namespace App\Services\Customer;
 
 use App\Models\Customer;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Database\Eloquent\Builder;
 
 class CustomerListService extends CustomerService
 {
-
-    public static function listCustomers(int $companyId, bool $showInactive = false, string $search = null, $perPage = 10): \Illuminate\Pagination\LengthAwarePaginator
+    /**
+     * @param int $companyId
+     * @param bool $showInactive
+     * @param string|null $search
+     * @return Builder
+     */
+    public static function listCustomers(int $companyId, bool $showInactive = false, ?string $search = null): Builder
     {
-        $customers = Customer::query()
-            ->where('company_id',$companyId)
-            ->orderBy('last_name');
+        $customersQuery = Customer::query()
+            ->where('company_id',$companyId);
 
         if (!$showInactive) {
-            $customers->where('status', '!=', 'Inactive');
+            $customersQuery->where('status', '!=', 'Inactive');
         }
 
         if ($search) {
-            $customers->where(function ($query) use ($search) {
+            $customersQuery->where(function ($query) use ($search) {
                 $query->where('first_name', 'like', "%$search%")
                     ->orWhere('last_name', 'like', "%$search%")
                     ->orWhere('email', 'like', "%$search%")
@@ -27,6 +31,8 @@ class CustomerListService extends CustomerService
             });
         }
 
-        return $customers->paginate($perPage);
+        $customersQuery->orderBy('first_name')->orderBy('last_name')->orderBy('email');
+
+        return $customersQuery;
     }
 }

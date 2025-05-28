@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, {useState, useEffect, useCallback} from "react";
 import {
     AppBar, Avatar, Badge, Box, Divider, IconButton,
     ListItemIcon, Menu, MenuItem, Toolbar, Typography, useTheme
@@ -11,9 +11,9 @@ import {
     Person
 } from "@mui/icons-material";
 import ThemeSwitcher from "./ThemeSwitcher";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import NotificationService, { Notification } from "../services/NotificationService";
+import {useNavigate} from "react-router-dom";
+import {useAuth} from "../context/AuthContext";
+import NotificationService, {Notification} from "../services/NotificationService";
 
 interface TopBarProps {
     handleDrawerToggle: () => void;
@@ -30,7 +30,7 @@ const TopBar: React.FC<TopBarProps> = ({
                                        }) => {
     const theme = useTheme();
     const navigate = useNavigate();
-    const { logout, token } = useAuth(); // Assuming token is available from useAuth for authenticated API calls
+    const {logout} = useAuth();
 
     // User menu states
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -44,8 +44,6 @@ const TopBar: React.FC<TopBarProps> = ({
     const [isLoadingNotifications, setIsLoadingNotifications] = useState(false);
 
     const fetchNotifications = useCallback(async () => {
-        console.log('Fetch!');
-        if (!token) return;
         setIsLoadingNotifications(true);
         try {
             // For now, fetching only the first page. Implement pagination or infinite scroll as needed.
@@ -56,12 +54,13 @@ const TopBar: React.FC<TopBarProps> = ({
             console.error("Failed to fetch notifications:", error);
         }
         setIsLoadingNotifications(false);
-    }, [token]);
+    }, []);
 
     useEffect(() => {
-        fetchNotifications();
+        fetchNotifications().then(() => {
+        });
         // Optional: Set up polling for new notifications
-        const intervalId = setInterval(fetchNotifications, 30000);
+        const intervalId = setInterval(fetchNotifications, 30000); // Fetch notifications every 30 seconds
         return () => clearInterval(intervalId);
     }, [fetchNotifications]);
 
@@ -75,8 +74,8 @@ const TopBar: React.FC<TopBarProps> = ({
 
     const handleNotifMenuClick = (event: React.MouseEvent<HTMLElement>) => {
         setNotifAnchorEl(event.currentTarget);
-        // Optionally, refresh notifications when menu is opened
-        // fetchNotifications();
+        fetchNotifications().then(() => {
+        });
     };
 
     const handleNotifMenuClose = () => {
@@ -107,7 +106,7 @@ const TopBar: React.FC<TopBarProps> = ({
             // Refresh notifications or update the specific notification in the local state
             setNotifications(prevNotifications =>
                 prevNotifications.map(n =>
-                    n.id === notificationId ? { ...n, read_at: new Date().toISOString() } : n
+                    n.id === notificationId ? {...n, read_at: new Date().toISOString()} : n
                 )
             );
             setUnreadCount(prevCount => (prevCount > 0 ? prevCount - 1 : 0));
@@ -120,7 +119,7 @@ const TopBar: React.FC<TopBarProps> = ({
         try {
             await NotificationService.markAllAsRead();
             setNotifications(prevNotifications =>
-                prevNotifications.map(n => ({ ...n, read_at: new Date().toISOString() }))
+                prevNotifications.map(n => ({...n, read_at: new Date().toISOString()}))
             );
             setUnreadCount(0);
             // Optionally close the menu
@@ -209,12 +208,14 @@ const TopBar: React.FC<TopBarProps> = ({
                 anchorEl={notifAnchorEl}
                 open={notifMenuOpen}
                 onClose={handleNotifMenuClose}
-                PaperProps={{
-                    elevation: 4,
-                    sx: {
-                        width: 320,
-                        maxHeight: 500,
-                        mt: 1.5
+                slotProps={{
+                    paper: {
+                        elevation: 4,
+                        sx: {
+                            width: 320,
+                            maxHeight: 500,
+                            mt: 1.5
+                        }
                     }
                 }}
                 transformOrigin={{horizontal: 'right', vertical: 'top'}}

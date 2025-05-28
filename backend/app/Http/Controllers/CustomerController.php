@@ -18,6 +18,10 @@ use Psr\Container\NotFoundExceptionInterface;
 
 class CustomerController extends Controller
 {
+    public function __construct()
+    {
+        $this->authorizeResource(Customer::class, 'customer');
+    }
     /**
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
@@ -32,9 +36,9 @@ class CustomerController extends Controller
             $showInactive = request()->get('show_inactive') === 'true';
         }
 
-        $customers = CustomerListService::listCustomers(Auth::user()->company_id, $showInactive, $search, $perPage);
+        $customers = CustomerListService::listCustomers(Auth::user()->company->id, $showInactive, $search);
 
-        return CustomerResource::collection($customers);
+        return CustomerResource::collection($customers->paginate($perPage));
     }
 
     /**
@@ -44,7 +48,7 @@ class CustomerController extends Controller
     {
         $validated = $request->validated();
         // Add the company_id to the validated data
-        $validated['company_id'] = Auth::user()->company_id;
+        $validated['company_id'] = Auth::user()->company->id;
 
         return new CustomerResource(CustomerStoreService::storeCustomer($validated));
     }
@@ -55,7 +59,7 @@ class CustomerController extends Controller
     public function show(Customer $customer): CustomerResource|JsonResponse
     {
         // Make sure the users company_id matches the customer's company_id
-        if ($customer->company_id !== Auth::user()->company_id) {
+        if ($customer->company_id !== Auth::user()->company->id) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -68,7 +72,7 @@ class CustomerController extends Controller
     public function update(UpdateCustomerRequest $request, Customer $customer): CustomerResource|JsonResponse
     {
         // Make sure the users company_id matches the customer's company_id
-        if ($customer->company_id !== Auth::user()->company_id) {
+        if ($customer->company_id !== Auth::user()->company->id) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
         $customer = CustomerUpdateService::updateCustomer($customer, $request->validated());
@@ -80,7 +84,7 @@ class CustomerController extends Controller
      */
     public function destroy(Customer $customer): JsonResponse
     {
-        if ($customer->company_id !== Auth::user()->company_id) {
+        if ($customer->company_id !== Auth::user()->company->id) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
         CustomerDestroyService::destroyCustomer($customer);

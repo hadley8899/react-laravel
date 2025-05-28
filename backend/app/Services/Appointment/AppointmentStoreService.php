@@ -4,9 +4,12 @@ namespace App\Services\Appointment;
 
 use App\Models\Appointment;
 use App\Models\Customer;
+use App\Models\User;
 use App\Models\Vehicle;
+use App\Notifications\AppointmentCreated;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use InvalidArgumentException;
 
 class AppointmentStoreService extends AppointmentService
@@ -24,7 +27,7 @@ class AppointmentStoreService extends AppointmentService
      * @return Appointment|Model
      */
     public static function storeAppointment(
-        int         $companyId,
+        User $user,
         string|null $customerUuId = null,
         string|null $vehicleUuId = null,
         string|null $serviceType = null,
@@ -47,13 +50,13 @@ class AppointmentStoreService extends AppointmentService
             DB::beginTransaction();
 
             $customer = Customer::whereUuid($customerUuId)
-                ->where('company_id', $companyId)->firstOrFail();
+                ->where('company_id', $user->company->id)->firstOrFail();
 
             $vehicle = Vehicle::whereUuid($vehicleUuId)
-                ->where('company_id', $companyId)->firstOrFail();
+                ->where('company_id', $user->company->id)->firstOrFail();
 
             $appointment = Appointment::query()->create([
-                'company_id' => $companyId,
+                'company_id' => $user->company->id,
                 'customer_id' => $customer->id,
                 'vehicle_id' => $vehicle->id,
                 'service_type' => $serviceType,
@@ -68,5 +71,21 @@ class AppointmentStoreService extends AppointmentService
 
             return $appointment;
         }
+    }
+
+    private static function notifyUsersAboutBooking(Appointment $appointment, User $loggedInUser): void
+    {
+        $companyId = $appointment->company_id;
+        $users = User::query()->where('company_id', $companyId)->get();
+
+        // Filter out the logged-in user
+        $usersToNotify = $users->filter(function (User $user) use ($loggedInUser) {
+            return $user->id !== $loggedInUser->id;
+        });
+
+        Notification::send(
+            $usersToNotify,
+            new AppointmentCreated($appointment)
+        );
     }
 }

@@ -4,22 +4,29 @@ namespace App\Services\Vehicle;
 
 use App\Models\Vehicle;
 use App\Services\Vehicle\VehicleService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 class VehicleListService extends VehicleService
 {
     /**
      * @param string|null $search
-     * @param int $perPage
      * @param int $companyId
-     * @return LengthAwarePaginator
+     * @param string|null $customerUuId
+     * @return Builder
      */
-    public static function listVehicles(string|null $search, int $perPage, int $companyId): LengthAwarePaginator
+    public static function listVehicles(string|null $search, int $companyId, ?string $customerUuId = null,): Builder
     {
         $query = Vehicle::query()
             ->with(['customer'])
             ->where('company_id', $companyId)
             ->orderBy('id', 'desc');
+
+        if ($customerUuId !== null) {
+            $query->whereHas('customer', function ($q) use ($customerUuId, $companyId) {
+                $q->where('uuid', $customerUuId)->where('company_id', $companyId);
+            });
+        }
 
         if ($search) {
             $query->where(function ($q) use ($search) {
@@ -33,6 +40,6 @@ class VehicleListService extends VehicleService
             });
         }
 
-        return $query->paginate($perPage);
+        return $query;
     }
 }
