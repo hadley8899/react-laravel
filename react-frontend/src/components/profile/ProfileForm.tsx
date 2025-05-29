@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import {
-    Box, Stack, TextField, InputAdornment, IconButton, Button, 
+    Box, Stack, TextField, InputAdornment, IconButton, Button,
     Tooltip, Avatar, Typography, Divider
 } from '@mui/material';
 import PersonIcon from '@mui/icons-material/Person';
@@ -20,12 +20,12 @@ interface ProfileFormProps {
     loading: boolean;
 }
 
-const ProfileForm: React.FC<ProfileFormProps> = ({ 
-    user, 
-    onSave, 
-    onLogout, 
+const ProfileForm: React.FC<ProfileFormProps> = ({
+    user,
+    onSave,
+    onLogout,
     onChangePassword,
-    loading 
+    loading
 }) => {
     const fileRef = useRef<HTMLInputElement>(null);
 
@@ -34,7 +34,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
     const [name, setName] = useState(user.name);
     const [email, setEmail] = useState(user.email);
     const [avatarFile, setAvatarFile] = useState<File | null>(null);
-    
+
     const avatarPreview = avatarFile
         ? URL.createObjectURL(avatarFile)
         : user?.avatar_url ?? '';
@@ -86,7 +86,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
             <Box flexGrow={1} width="100%">
                 {/* Header */}
                 <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
-                    <Typography variant="h5">Account Details</Typography>
+                    <Typography variant="h5">Profile Settings</Typography>
                     <Tooltip title={editing ? 'Cancel' : 'Edit'}>
                         <IconButton onClick={() => {
                             if (editing) {
@@ -148,16 +148,16 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
 
                 <Typography variant="h6" gutterBottom>Security & Actions</Typography>
                 <Stack direction="row" spacing={2} flexWrap="wrap">
-                    <Button 
-                        variant="outlined" 
+                    <Button
+                        variant="outlined"
                         startIcon={<LockResetIcon/>}
                         onClick={onChangePassword}
                     >
                         Change Password
                     </Button>
-                    <Button 
-                        variant="contained" 
-                        color="error" 
+                    <Button
+                        variant="contained"
+                        color="error"
                         startIcon={<LogoutIcon/>}
                         onClick={onLogout}
                     >

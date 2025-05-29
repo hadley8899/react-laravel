@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Resources\UserResource;
 use App\Models\User;
 use App\Notifications\PasswordUpdatedNotification;
 use Illuminate\Auth\Events\PasswordReset;
@@ -34,7 +35,7 @@ class AuthController
             $token = $user->createToken('auth-token')->plainTextToken;
 
             return response()->json([
-                'user' => $user,
+                'user' => new UserResource($user),
                 'token' => $token
             ]);
         }

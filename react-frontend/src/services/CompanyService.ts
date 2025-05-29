@@ -97,10 +97,10 @@ export const updateCompany = async (
             }
         });
 
-        form.append('logo', payload.logo); // Add the logo file
+        form.append('logo', payload.logo);
 
         const {data} = await api.post<{ data: Company }>(
-            `/companies/${uuid}?_method=PUT`, // Check if your backend handles this route for general updates
+            `/companies/${uuid}?_method=PUT`,
             form,
             {headers: {'Content-Type': 'multipart/form-data'}},
         );
@@ -120,15 +120,22 @@ export const updateCompany = async (
         try {
             const user = JSON.parse(userJson);
             // Only update if the company object exists
-            if (user.company && user.company.id === uuid) {
+            if (user.company && user.company.uuid === uuid) {
                 // Merge updated fields into existing company data in localStorage
                 // This preserves fields not returned by the specific update operation
                 user.company = {...user.company, ...updatedCompany};
                 localStorage.setItem('user', JSON.stringify(user));
+
+                // Dispatch event to notify components of the update
+                window.dispatchEvent(new Event('user-updated'));
+
             } else if (!user.company) {
                 // If no company existed before, set it (less likely case here)
                 user.company = updatedCompany;
                 localStorage.setItem('user', JSON.stringify(user));
+
+                // Dispatch event to notify components of the update
+                window.dispatchEvent(new Event('user-updated'));
             }
 
         } catch (e) {

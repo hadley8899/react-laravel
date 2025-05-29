@@ -71,3 +71,15 @@ export async function logout() {
         delete api.defaults.headers.common['Authorization'];
     }
 }
+
+export function getAuthUserLocal(): User | null {
+    const userJson = localStorage.getItem('user');
+    if (userJson) {
+        try {
+            return JSON.parse(userJson);
+        } catch (e) {
+            console.error('Error parsing user data from localStorage', e);
+        }
+    }
+    return null;
+}

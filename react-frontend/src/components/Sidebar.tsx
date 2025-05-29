@@ -1,4 +1,14 @@
-import {Box, Divider, Drawer, List, ListItemButton, ListItemIcon, ListItemText, Typography} from "@mui/material";
+import {
+    Avatar,
+    Box,
+    Divider,
+    Drawer,
+    List,
+    ListItemButton,
+    ListItemIcon,
+    ListItemText,
+    Typography
+} from "@mui/material";
 import {
     CalendarMonth,
     Dashboard as DashboardIcon,
@@ -7,9 +17,10 @@ import {
     ReceiptLong,
     Settings
 } from "@mui/icons-material";
-import React from "react";
+import React, {useEffect, useState} from "react";
 import {useLocation, useNavigate} from "react-router-dom";
 import PersonIcon from "@mui/icons-material/Person";
+import {getAuthUserLocal} from "../services/authService";
 
 interface SidebarProps {
     mobileOpen: boolean;
@@ -26,6 +37,27 @@ const Sidebar: React.FC<SidebarProps> = ({mobileOpen, handleDrawerToggle}) => {
     const drawerWidth = 240;
     const location = useLocation();
     const navigate = useNavigate();
+
+    const [authUser, setAuthUser] = useState(getAuthUserLocal());
+
+    useEffect(() => {
+        const handleUserUpdate = () => {
+            // Force re-render to update company logo and name
+            const authUser = getAuthUserLocal();
+            if (authUser) {
+                setAuthUser(authUser);
+            }
+        }
+
+        window.addEventListener('user-updated', handleUserUpdate);
+
+        return () => {
+            window.removeEventListener('user-updated', handleUserUpdate);
+        };
+    }, []);
+
+    const companyLogo = authUser?.company?.logo_url;
+    const companyName = authUser?.company?.name || "Company";
 
     // Define navigation items
     const mainNavItems: SidebarItem[] = [
@@ -51,9 +83,43 @@ const Sidebar: React.FC<SidebarProps> = ({mobileOpen, handleDrawerToggle}) => {
     // Sidebar items
     const drawer = (
         <Box sx={{height: '100%', display: 'flex', flexDirection: 'column'}}>
-            <Typography variant="h6" sx={{p: 2}}>
-                React Laravel Starter
-            </Typography>
+            <Box sx={{
+                p: 2,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                textAlign: 'center'
+            }}>
+                {companyLogo ? (
+                    <Box
+                        component="img"
+                        src={companyLogo}
+                        alt={companyName}
+                        sx={{
+                            maxWidth: '100%',
+                            maxHeight: 80,
+                            mb: 1,
+                            borderRadius: 1,
+                            objectFit: 'contain'
+                        }}
+                    />
+                ) : (
+                    <Avatar
+                        sx={{
+                            width: 80,
+                            height: 80,
+                            mb: 1,
+                            fontSize: '1.5rem'
+                        }}
+                    >
+                        {companyName.charAt(0)}
+                    </Avatar>
+                )}
+                <Typography variant="subtitle2" sx={{fontWeight: 'bold'}}>
+                    {companyName}
+                </Typography>
+            </Box>
+            <Divider/>
             <List>
                 {mainNavItems.map((item) => (
                     <ListItemButton
