@@ -105,14 +105,16 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({ appointment: a }) => 
                     {a.customer.first_name} {a.customer.last_name}
                 </Typography>
 
-                <Typography variant="body2" color="text.secondary"
-                            noWrap>
-                    <DirectionsCarIcon
-                        fontSize="inherit"
-                        sx={{mr: 0.5, verticalAlign: 'bottom'}}
-                    />
-                    {a.vehicle.make} {a.vehicle.model} ({a.vehicle.registration})
-                </Typography>
+                {a.vehicle && (
+                    <Typography variant="body2" color="text.secondary"
+                                noWrap>
+                        <DirectionsCarIcon
+                            fontSize="inherit"
+                            sx={{mr: 0.5, verticalAlign: 'bottom'}}
+                        />
+                        {a.vehicle.make} {a.vehicle.model} ({a.vehicle.registration})
+                    </Typography>
+                )}
             </CardContent>
         </Card>
     );

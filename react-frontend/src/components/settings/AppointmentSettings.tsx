@@ -19,17 +19,23 @@ import {
 import EventNoteIcon from '@mui/icons-material/EventNote';
 import SaveIcon from '@mui/icons-material/Save';
 
-import {getMyCompany, updateCompanySettings, UpdateCompanySettingsPayload} from "../../services/CompanyService.ts";
+import {updateCompanySettings, UpdateCompanySettingsPayload} from "../../services/CompanyService.ts";
 import {useNotifier} from "../../contexts/NotificationContext.tsx";
 import {getAuthUser, setAuthUser} from "../../services/authService.ts";
 import SettingsAccordionItem from "../layout/SettingsAccordionItem.tsx";
+import {Company} from "../../interfaces/Company.ts";
 
 // Define the type for reminder timing options used in the component state
 type ReminderTiming = '1h' | '3h' | '12h' | '24h' | '48h';
 // Type for the component's state, allowing empty string for Select initial state
 type ReminderTimingState = ReminderTiming | '';
 
-const AppointmentSettings: React.FC = () => {
+interface AppointmentSettingsProps {
+    company: Company | null;
+    setCompany: React.Dispatch<React.SetStateAction<Company | null>>;
+}
+
+const AppointmentSettings: React.FC<AppointmentSettingsProps> = ({company, setCompany}) => {
 
     const {showNotification} = useNotifier();
 
@@ -57,9 +63,16 @@ const AppointmentSettings: React.FC = () => {
         setIsLoading(true);
         setError(null);
         setValidationErrors({});
+
+        // If no company is provided yet, Just leave it loading
+        if (!company) {
+            return;
+        }
+
+
         try {
             // Use the service function
-            const companyData = await getMyCompany();
+            const companyData = company;
 
             setCompanyUuId(companyData.uuid);
 
@@ -80,11 +93,12 @@ const AppointmentSettings: React.FC = () => {
         } finally {
             setIsLoading(false);
         }
-    }, []); // Empty dependency array means this runs once on mount
+
+    }, [company])
 
     useEffect(() => {
         fetchSettings();
-    }, [fetchSettings]);
+    }, [company, fetchSettings]);
 
     // Handle saving the settings using the service
     const handleSaveSettings = async () => {
@@ -123,6 +137,8 @@ const AppointmentSettings: React.FC = () => {
                     setAuthUser(authUser);
                 }
             });
+
+            setCompany(updatedCompany);
 
         } catch (err: any) {
             console.error("Failed to save settings via service:", err);

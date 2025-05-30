@@ -12,16 +12,21 @@ import ReceiptIcon from '@mui/icons-material/Receipt';
 import SaveIcon from '@mui/icons-material/Save';
 
 import {
-    getMyCompany,
     updateCompanyBilling,
     UpdateCompanyBillingPayload,
 } from '../../services/CompanyService';
 import {useNotifier} from '../../contexts/NotificationContext';
 import SettingsAccordionItem from "../layout/SettingsAccordionItem.tsx";
+import {Company} from "../../interfaces/Company.ts";
 
 type PaymentTerms = 'DueOnReceipt' | 'Net7' | 'Net15' | 'Net30';
 
-const InvoiceAndPaymentSettings: React.FC = () => {
+interface InvoiceAndPaymentSettingsProps {
+    company: Company | null;
+    setCompany: React.Dispatch<React.SetStateAction<Company | null>>;
+}
+
+const InvoiceAndPaymentSettings: React.FC<InvoiceAndPaymentSettingsProps> = ({company, setCompany}) => {
     const {showNotification} = useNotifier();
 
     /* -------------------------------- state ------------------------------- */
@@ -38,25 +43,24 @@ const InvoiceAndPaymentSettings: React.FC = () => {
 
     /* ----------------------------- fetch current -------------------------- */
     useEffect(() => {
-        (async () => {
-            try {
-                const c = await getMyCompany();
-                setCompanyUuid(c.uuid);
-                setInvoicePrefix(c.invoice_prefix ?? 'INV-');
-                setNextInvoiceNumber(c.next_invoice_number ?? 1);
-                setPaymentTerms((c.default_payment_terms ?? 'Net15') as PaymentTerms);
-                setInvoiceNotes(c.invoice_footer_notes ?? '');
-            } catch (e: any) {
-                setError(e.message ?? 'Failed to load invoice settings.');
-            } finally {
-                setLoading(false);
-            }
-        })();
-    }, []);
+        if (!company) {
+            setLoading(true);
+            return;
+        }
+        setCompanyUuid(company.uuid);
+        setInvoicePrefix(company.invoice_prefix ?? 'INV-');
+        setNextInvoiceNumber(company.next_invoice_number ?? 1);
+        setPaymentTerms((company.default_payment_terms ?? 'Net15') as PaymentTerms);
+        setInvoiceNotes(company.invoice_footer_notes ?? '');
+        setLoading(false);
+    }, [company]);
 
     /* ----------------------------- save handler --------------------------- */
     const handleSave = async () => {
-        if (!companyUuid) return;
+        if (!companyUuid) {
+            setError('Company UUID is required to save settings.');
+            return;
+        }
         setSaving(true);
         setError(null);
         try {
@@ -65,7 +69,8 @@ const InvoiceAndPaymentSettings: React.FC = () => {
                 default_payment_terms: paymentTerms,
                 invoice_footer_notes: invoiceNotes.trim(),
             };
-            await updateCompanyBilling(companyUuid, payload);
+            const updatedCompany = await updateCompanyBilling(companyUuid, payload);
+            setCompany(updatedCompany);
             showNotification('Invoice & payment settings saved!', 'success');
         } catch (e: any) {
             setError(e.message ?? 'Save failed.');

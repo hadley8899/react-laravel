@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useEffect, useState} from "react";
 import MainLayout from "../components/layout/MainLayout";
 import {
     Typography,
@@ -11,9 +11,27 @@ import AppointmentSettings from "../components/settings/AppointmentSettings.tsx"
 import InvoiceAndPaymentSettings from "../components/settings/InvoiceAndPaymentSettings.tsx";
 import NotificationPreferences from "../components/settings/NotificationPreferences.tsx";
 import SettingsThemeSwitcher from "../components/settings/SettingsThemeSwitcher.tsx";
+import {Company} from "../interfaces/Company.ts";
+import {getMyCompany} from "../services/CompanyService.ts";
 // import Integrations from "../components/settings/Integrations.tsx";
 
 const Settings: React.FC = () => {
+
+    const [company, setCompany] = useState<Company | null>(null);
+
+    useEffect(() => {
+        (async () => {
+            try {
+                const c = await getMyCompany();
+                if (c) {
+                    setCompany(c);
+                }
+            } catch (e: any) {
+                console.error(e);
+            }
+        })();
+    }, []);
+
     return (
         <MainLayout>
             <Container maxWidth="lg" sx={{py: 4}}>
@@ -25,9 +43,9 @@ const Settings: React.FC = () => {
                 </Box>
 
                 {/* First accordion expanded by default */}
-                <CompanyInfo/>
-                <AppointmentSettings/>
-                <InvoiceAndPaymentSettings/>
+                <CompanyInfo company={company} setCompany={setCompany}/>
+                <AppointmentSettings company={company} setCompany={setCompany}/>
+                <InvoiceAndPaymentSettings company={company} setCompany={setCompany}/>
                 <NotificationPreferences/>
                 <SettingsThemeSwitcher/>
                 {/*<Integrations/>*/}

@@ -7,7 +7,6 @@ use App\Models\Customer;
 use App\Models\User;
 use App\Models\Vehicle;
 use App\Notifications\AppointmentCreated;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use InvalidArgumentException;
@@ -24,10 +23,10 @@ class AppointmentStoreService extends AppointmentService
      * @param string|null $status
      * @param string|null $mechanicAssigned
      * @param string|null $notes
-     * @return Appointment|Model
+     * @return Appointment
      */
     public static function storeAppointment(
-        User $user,
+        User        $user,
         string|null $customerUuId = null,
         string|null $vehicleUuId = null,
         string|null $serviceType = null,
@@ -36,41 +35,38 @@ class AppointmentStoreService extends AppointmentService
         string|null $status = null,
         string|null $mechanicAssigned = null,
         string|null $notes = null
-    )
+    ): Appointment
     {
         if (empty($customerUuId) || empty($vehicleUuId)) {
             throw new InvalidArgumentException('Customer UUID and Vehicle UUID are required.');
         }
 
-        // Validate the input data
-        if (empty($v['service_type']) || empty($dateTime) || empty($durationMinutes)) {
-            throw new InvalidArgumentException('Service type, date time, and duration minutes are required.');
-        }
-        {
-            DB::beginTransaction();
+        DB::beginTransaction();
 
-            $customer = Customer::whereUuid($customerUuId)
-                ->where('company_id', $user->company->id)->firstOrFail();
+        $customer = Customer::query()
+            ->where('uuid', $customerUuId)
+            ->where('company_id', $user->company->id)->firstOrFail();
 
-            $vehicle = Vehicle::whereUuid($vehicleUuId)
-                ->where('company_id', $user->company->id)->firstOrFail();
+        $vehicle = Vehicle::query()
+            ->where('uuid', $vehicleUuId)
+            ->where('company_id', $user->company->id)->firstOrFail();
 
-            $appointment = Appointment::query()->create([
-                'company_id' => $user->company->id,
-                'customer_id' => $customer->id,
-                'vehicle_id' => $vehicle->id,
-                'service_type' => $serviceType,
-                'date_time' => $dateTime,
-                'duration_minutes' => $durationMinutes,
-                'status' => $status,
-                'mechanic_assigned' => $mechanicAssigned ?? null,
-                'notes' => $notes ?? null,
-            ]);
+        $appointment = Appointment::query()->create([
+            'company_id' => $user->company->id,
+            'customer_id' => $customer->id,
+            'vehicle_id' => $vehicle->id,
+            'service_type' => $serviceType,
+            'date_time' => $dateTime,
+            'duration_minutes' => $durationMinutes,
+            'status' => $status,
+            'mechanic_assigned' => $mechanicAssigned ?? null,
+            'notes' => $notes ?? null,
+        ]);
 
-            DB::commit();
+        DB::commit();
 
-            return $appointment;
-        }
+        return $appointment;
+
     }
 
     private static function notifyUsersAboutBooking(Appointment $appointment, User $loggedInUser): void

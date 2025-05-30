@@ -17,17 +17,14 @@ import {
 } from '@mui/icons-material';
 import Autocomplete from '@mui/material/Autocomplete';
 import {Company} from '../../interfaces/Company';
-import {getMyCompany, updateCompany} from '../../services/CompanyService';
+import {updateCompany} from '../../services/CompanyService';
 import {LocalizationProvider} from "@mui/x-date-pickers/LocalizationProvider";
 import {AdapterDateFns} from "@mui/x-date-pickers/AdapterDateFns";
 import {DatePicker} from "@mui/x-date-pickers/DatePicker";
 import {DATE_FORMAT} from '../../services/dateService';
 import {format} from 'date-fns';
 import {useNotifier} from "../../contexts/NotificationContext.tsx";
-
-/* ------------------------------------------------------------------ */
-/* helpers                                                             */
-/* ------------------------------------------------------------------ */
+import {PickerValue} from "@mui/x-date-pickers/internals";
 
 const currencies = ['GBP', 'USD', 'EUR', 'AUD', 'CAD', 'NZD'];
 const units = ['metric', 'imperial'] as const;
@@ -36,22 +33,19 @@ const statuses = ['Active', 'Inactive', 'Pending'];
 
 type Units = typeof units[number];
 
-/* ------------------------------------------------------------------ */
-/* component                                                           */
-/* ------------------------------------------------------------------ */
+interface CompanyInfoProps {
+    company: Company | null;
+    setCompany: React.Dispatch<React.SetStateAction<Company | null>>;
+}
 
-const CompanyInfo: React.FC = () => {
+const CompanyInfo: React.FC<CompanyInfoProps> = ({company, setCompany}) => {
     const theme = useTheme();
     const fileRef = useRef<HTMLInputElement>(null);
     const [tab, setTab] = useState(0);
     const {showNotification} = useNotifier();
 
-    /* ---------- state ---------- */
-    const [company, setCompany] = useState<Company | null>(null);
     const [logoFile, setLogoFile] = useState<File | null>(null);
-    const [localFallback, setLocalFallback] = useState(false);
 
-    // core
     const [name, setName] = useState('');
     const [slug, setSlug] = useState('');
     const [email, setEmail] = useState('');
@@ -101,23 +95,13 @@ const CompanyInfo: React.FC = () => {
 
     /* ---------- fetch ---------- */
     useEffect(() => {
-        (async () => {
-            try {
-                const c = await getMyCompany();
-                initialise(c);
-            } catch (e: any) {
-                console.info(e);
-                /* fall back to localStorage copy if available */
-                const user = JSON.parse(localStorage.getItem('user') ?? 'null');
-                if (user?.company) {
-                    initialise(user.company);
-                    setLocalFallback(true);
-                } else setError('Could not load company');
-            } finally {
-                setLoad(false);
-            }
-        })();
-    }, []);
+        if (company) {
+            initialise(company);
+            setLoad(false);
+        } else {
+            setLoad(true);
+        }
+    }, [company]);
 
     const initialise = (c: Company) => {
         setCompany(c);
@@ -176,7 +160,7 @@ const CompanyInfo: React.FC = () => {
         }
     };
 
-    function handleTrialEndsChange(value: Date | null) {
+    function handleTrialEndsChange(value: Date|PickerValue | null) {
         if (value) {
             setTrialEnds(format(value, 'yyyy-MM-dd'));
         } else {
@@ -184,7 +168,7 @@ const CompanyInfo: React.FC = () => {
         }
     }
 
-    function handleActiveUntilChange(value: Date | null) {
+    function handleActiveUntilChange(value: Date|PickerValue | null) {
         if (value) {
             setActiveUntil(format(value, 'yyyy-MM-dd'));
         } else {
@@ -210,7 +194,6 @@ const CompanyInfo: React.FC = () => {
                 <BusinessIcon color="primary"/><Typography variant="h6">Company Information</Typography>
             </Stack>
             <Paper variant="outlined" sx={{borderRadius: 2, overflow: 'hidden'}}>
-                {localFallback && <Alert severity="info">Loaded cached data – will sync when online.</Alert>}
                 {error && <Alert severity="error">{error}</Alert>}
 
                 {/* --- header / logo --- */}

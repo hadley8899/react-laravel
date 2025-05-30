@@ -25,13 +25,15 @@ class AppointmentUpdateService extends AppointmentService
             DB::beginTransaction();
 
             if (isset($validated['customer_uuid'])) {
-                $appointment->customer_id = Customer::whereUuid($validated['customer_uuid'])
+                $appointment->customer_id = Customer::query()
+                    ->where('uuid', $validated['customer_uuid'])
                     ->where('company_id', Auth::user()->company->id)
                     ->value('id');
             }
 
             if (isset($validated['vehicle_uuid'])) {
-                $appointment->vehicle_id = Vehicle::whereUuid($validated['vehicle_uuid'])
+                $appointment->vehicle_id = Vehicle::query()
+                    ->where('uuid', $validated['vehicle_uuid'])
                     ->where('company_id', Auth::user()->company->id)
                     ->value('id');
             }

@@ -1,4 +1,3 @@
-// src/services/companyService.ts
 import {api} from './api';
 import {Company} from '../interfaces/Company.ts';
 
@@ -8,7 +7,7 @@ export type UpdateCompanyPayload = {
     phone?: string | null;
     email?: string;
     website?: string | null;
-    logo?: File | null; // Allow null for clearing
+    logo?: File | null;
     tax_id?: string | null;
     registration_number?: string | null;
     industry?: string | null;
@@ -57,7 +56,7 @@ export const getMyCompany = async (): Promise<Company> => {
         if (userJson) {
             try {
                 const user = JSON.parse(userJson);
-                user.company = data.data; // Replace entire company object
+                user.company = data.data; // Replace the entire company object
                 localStorage.setItem('user', JSON.stringify(user));
             } catch (e) {
                 console.error('Error updating localStorage', e);
@@ -183,7 +182,6 @@ export const updateCompanySettings = async (
     }
 };
 
-// src/services/companyService.ts
 export type UpdateCompanyBillingPayload = {
     invoice_prefix?: string;
     default_payment_terms?: 'DueOnReceipt' | 'Net7' | 'Net15' | 'Net30';
@@ -204,7 +202,7 @@ export const updateCompanyBilling = async (
         try {
             const user = JSON.parse(userJson);
             // Ensure user.company exists and IDs match before updating
-            if (user.company && user.company.id === uuid) {
+            if (user.company && user.company.uuid === uuid) {
                 // Merge the updated settings into the existing company data
                 user.company = {...user.company, ...data.data};
                 localStorage.setItem('user', JSON.stringify(user));
@@ -212,6 +210,8 @@ export const updateCompanyBilling = async (
                 user.company = data.data;
                 localStorage.setItem('user', JSON.stringify(user));
             }
+
+            return data.data;
         } catch (e) {
             console.error('Error updating localStorage after settings update', e);
         }
