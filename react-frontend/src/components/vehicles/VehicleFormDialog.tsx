@@ -374,7 +374,7 @@ const VehicleFormDialog: React.FC<VehicleFormDialogProps> = ({
                                 <DatePicker
                                     label="Last Service Date"
                                     value={new Date(formData.last_service)}
-                                    onChange={(date) => handleDateChange('last_service', date)}
+                                    onChange={(date) => handleDateChange('last_service', date as Date)}
                                     slotProps={{textField: {fullWidth: true}}}
                                 />
                             </LocalizationProvider>
@@ -384,7 +384,7 @@ const VehicleFormDialog: React.FC<VehicleFormDialogProps> = ({
                                 <DatePicker
                                     label="Next Service Due"
                                     value={new Date(formData.next_service_due)}
-                                    onChange={(date) => handleDateChange('next_service_due', date)}
+                                    onChange={(date) => handleDateChange('next_service_due', date as Date)}
                                     slotProps={{textField: {fullWidth: true}}}
                                 />
                             </LocalizationProvider>

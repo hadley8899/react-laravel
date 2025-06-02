@@ -29,7 +29,7 @@ const SettingsAccordionItem: React.FC<SettingsAccordionItemProps> = ({
                                                                      }) => {
     const [expanded, setExpanded] = useState<boolean>(defaultExpanded);
 
-    const handleChange = (event: React.SyntheticEvent, isExpanded: boolean) => {
+    const handleChange = (_: unknown, isExpanded: boolean) => {
         setExpanded(isExpanded);
     };
 

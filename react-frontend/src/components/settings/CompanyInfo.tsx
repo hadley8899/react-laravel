@@ -24,7 +24,6 @@ import {DatePicker} from "@mui/x-date-pickers/DatePicker";
 import {DATE_FORMAT} from '../../services/dateService';
 import {format} from 'date-fns';
 import {useNotifier} from "../../contexts/NotificationContext.tsx";
-import {PickerValue} from "@mui/x-date-pickers/internals";
 
 const currencies = ['GBP', 'USD', 'EUR', 'AUD', 'CAD', 'NZD'];
 const units = ['metric', 'imperial'] as const;
@@ -160,17 +159,17 @@ const CompanyInfo: React.FC<CompanyInfoProps> = ({company, setCompany}) => {
         }
     };
 
-    function handleTrialEndsChange(value: Date|PickerValue | null) {
+    function handleTrialEndsChange(value: Date | null): void {
         if (value) {
-            setTrialEnds(format(value, 'yyyy-MM-dd'));
+            setTrialEnds(format(value as Date, 'yyyy-MM-dd'));
         } else {
             setTrialEnds('');
         }
     }
 
-    function handleActiveUntilChange(value: Date|PickerValue | null) {
+    function handleActiveUntilChange(value: Date | null): void {
         if (value) {
-            setActiveUntil(format(value, 'yyyy-MM-dd'));
+            setActiveUntil(format(value as Date, 'yyyy-MM-dd'));
         } else {
             setActiveUntil('');
         }
@@ -348,7 +347,7 @@ const CompanyInfo: React.FC<CompanyInfoProps> = ({company, setCompany}) => {
                                         <DatePicker
                                             label="Trial Ends"
                                             value={new Date(trialEnds)}
-                                            onChange={(date) => handleTrialEndsChange(date)}
+                                            onChange={(date) => handleTrialEndsChange(date as Date | null)}
                                             slotProps={{textField: {fullWidth: true}}}
                                             format={DATE_FORMAT}
                                         />
@@ -360,7 +359,7 @@ const CompanyInfo: React.FC<CompanyInfoProps> = ({company, setCompany}) => {
                                         <DatePicker
                                             label="Active Until"
                                             value={new Date(activeUntil)}
-                                            onChange={(date) => handleActiveUntilChange(date)}
+                                            onChange={(date) => handleActiveUntilChange(date as Date)}
                                             slotProps={{textField: {fullWidth: true}}}
                                             format={DATE_FORMAT}
                                         />
