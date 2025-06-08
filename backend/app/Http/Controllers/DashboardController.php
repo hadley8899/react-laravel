@@ -117,7 +117,6 @@ class DashboardController extends Controller
         ]);
     }
 
-
     public function recentActivity(): JsonResponse
     {
         /*

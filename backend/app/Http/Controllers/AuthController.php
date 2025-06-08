@@ -40,10 +40,27 @@ class AuthController
             // Update last login timestamp
             $user->update(['last_login_at' => Carbon::now()->toDateTimeString()]);
 
+            // Record login activity
+            $user->loginActivity()->create([
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->header('User-Agent'),
+                'success' => 'success',
+            ]);
+
             return response()->json([
                 'user' => new UserResource($user),
                 'token' => $token
             ]);
+        } else {
+            $user = User::query()->where('email', $request->email)->first();
+            if ($user) {
+                // Record failed login attempt
+                $user->loginActivity()->create([
+                    'ip_address' => $request->ip(),
+                    'user_agent' => $request->header('User-Agent'),
+                    'success' => 'failed',
+                ]);
+            }
         }
 
         throw ValidationException::withMessages([

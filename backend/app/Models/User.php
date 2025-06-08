@@ -9,6 +9,7 @@ use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Storage;
@@ -55,6 +56,11 @@ class User extends Authenticatable implements MustVerifyEmail
         'remember_token',
         'id',
     ];
+
+    public function loginActivity(): HasMany
+    {
+        return $this->hasMany(UserLoginActivity::class, 'user_id', 'id');
+    }
 
     /**
      * Get the attributes that should be cast.

@@ -7,11 +7,13 @@ use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
+use Random\RandomException;
 
 class InvoiceSeeder extends Seeder
 {
     /**
      * Run the database seeds.
+     * @throws RandomException
      */
     public function run(): void
     {
@@ -42,13 +44,13 @@ class InvoiceSeeder extends Seeder
 
         // Ensure we have some of each status for testing
         foreach ($statuses as $status) {
-            $this->createInvoicesWithStatus($status, 3, $customers, $serviceItems);
+            $this->createInvoicesWithStatus($status, random_int(1, 25), $customers, $serviceItems);
         }
 
         // Create additional random invoices
-        $this->createInvoicesWithStatus(null, 35, $customers, $serviceItems);
+        $this->createInvoicesWithStatus(null, random_int(1, 50), $customers, $serviceItems);
 
-        $this->command->info('Created 50 sample invoices with items.');
+        $this->command->info('Created sample invoices with items.');
     }
 
     /**
@@ -87,7 +89,7 @@ class InvoiceSeeder extends Seeder
                 $subtotal += $amount;
 
                 // Create the invoice item
-                InvoiceItem::create([
+                InvoiceItem::query()->create([
                     'invoice_id' => $invoice->id,
                     'description' => $item['description'],
                     'quantity' => $quantity,

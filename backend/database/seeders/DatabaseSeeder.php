@@ -33,7 +33,7 @@ class DatabaseSeeder extends Seeder
         $this->command->info('Seeding the vehicles...');
         // 2) each customer gets 0‑3 vehicles
         Customer::all()->each(function ($customer) {
-            $vehicleCount = random_int(0, 3);
+            $vehicleCount = random_int(0, 10); // Random number of vehicles per customer
 
             for ($i = 0; $i < $vehicleCount; $i++) {
                 // Get a random make
