@@ -1,11 +1,13 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers;
 
+use App\Http\Requests\RegisterRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use App\Notifications\PasswordUpdatedNotification;
 use Illuminate\Auth\Events\PasswordReset;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -50,6 +52,45 @@ class AuthController
         $request->user()->currentAccessToken()->delete();
 
         return response()->json(['message' => 'Logged out successfully']);
+    }
+
+    public function register(RegisterRequest $request): JsonResponse
+    {
+        // TODO Plan for register user/company
+        // 1. User creates an user, With a company name
+        // 2. We create the company with the name and a bunch of default settings
+        // 3. We create the user with the company_id
+        // 4. User then gets a verification email
+        // 5. User clicks the link in the email to verify their email address
+        // 6. Now the user will be presented with a setup page to fill in their company details, They cannot use the app
+        // until they have completed the company setup
+        // 7. Once the company setup is complete, the user can start using the app
+
+        // Things to consider:
+        // If we are adding a user to a company, we need to make sure that the company exists
+        // We need a way to make sure the user is allowed to be a user on that company
+        // We need to make sure that the user is not already registered with that email address
+        // Maybe we create a company code (or something) if we are adding to an existing company
+        // Maybe users on an existing company can register themselves, but they need to be approved by an admin first
+        // Maybe we don't allow users to register themselves on an existing company, but they need to be invited by an admin first
+
+        $user = User::query()->create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'company_id' => 1, // Default company ID // TODO, This will need to be changed later
+        ]);
+
+        // Dispatch registered event to trigger verification email if needed
+        event(new Registered($user));
+
+        // Create token for the new user
+        $token = $user->createToken('auth-token')->plainTextToken;
+
+        return response()->json([
+            'user' => new UserResource($user),
+            'token' => $token
+        ], 201);
     }
 
     public function verifyEmail(Request $request): RedirectResponse

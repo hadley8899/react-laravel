@@ -42,6 +42,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'notify_new_booking',
         'notify_job_complete',
         'preferred_theme',
+        'company_id',
     ];
 
     /**

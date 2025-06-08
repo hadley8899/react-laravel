@@ -14,16 +14,21 @@ class UserResource extends JsonResource
             'email' => $this->email,
             'avatar_url' => $this->avatar_url,
             'phone' => $this->phone,
-            'role' => $this->role,
             'status' => $this->status,
             'company' => new CompanyResource($this->company),
+
             // Preferences
             'notify_new_booking' => $this->notify_new_booking,
             'notify_job_complete' => $this->notify_job_complete,
             'preferred_theme' => $this->preferred_theme,
 
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
+            // Permissions
+            'role' => $this->roles->pluck('name')->first(),
+            'permissions' => $this->getAllPermissions()->pluck('name'),
+
+            // Timestamps
+            'created_at' => $this->created_at->toDateTimeString(),
+            'updated_at' => $this->updated_at->toDateTimeString(),
         ];
     }
 }

@@ -59,10 +59,6 @@ export const updateUser = async (
     return storeUser(data.data);
 };
 
-/* ------------------------------------------------------------------ */
-/* localStorage helper                                                */
-
-/* ------------------------------------------------------------------ */
 function storeUser(u: User): User {
     localStorage.setItem('user', JSON.stringify(u));
     return u;

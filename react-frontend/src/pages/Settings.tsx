@@ -13,6 +13,7 @@ import NotificationPreferences from "../components/settings/NotificationPreferen
 import SettingsThemeSwitcher from "../components/settings/SettingsThemeSwitcher.tsx";
 import {Company} from "../interfaces/Company.ts";
 import {getMyCompany} from "../services/CompanyService.ts";
+import UserManagementLink from "../components/settings/UserManagementLink.tsx";
 // import Integrations from "../components/settings/Integrations.tsx";
 
 const Settings: React.FC = () => {
@@ -46,6 +47,7 @@ const Settings: React.FC = () => {
                 <CompanyInfo company={company} setCompany={setCompany}/>
                 <AppointmentSettings company={company} setCompany={setCompany}/>
                 <InvoiceAndPaymentSettings company={company} setCompany={setCompany}/>
+                <UserManagementLink/>
                 <NotificationPreferences/>
                 <SettingsThemeSwitcher/>
                 {/*<Integrations/>*/}

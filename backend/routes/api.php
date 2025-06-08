@@ -1,17 +1,19 @@
 <?php
 
-use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\AppointmentController;
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\CompanyUserManagementController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VehicleController;
 use App\Http\Controllers\VehicleMakeModelController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/register', [AuthController::class, 'register']);
 Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])->middleware(['throttle:6,1'])->name('verification.verify');
 Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.reset');
 Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->name('password.reset');
@@ -31,6 +33,22 @@ Route::middleware('auth:sanctum')->group(function () {
         // Route::delete('/{user:uuid}', [UserController::class, 'destroy']);
         Route::put('/{user:uuid}/preferences', [UserController::class, 'updatePreferences']);
     });
+
+    // Company User Management Routes
+    Route::prefix('/company/users')->group(function () {
+        Route::get('/', [CompanyUserManagementController::class, 'index']);
+        Route::post('/', [CompanyUserManagementController::class, 'store']);
+        Route::get('/{user:uuid}', [CompanyUserManagementController::class, 'show']);
+        Route::put('/{user:uuid}', [CompanyUserManagementController::class, 'update']);
+        Route::delete('/{user:uuid}', [CompanyUserManagementController::class, 'destroy']);
+        Route::put('/{user:uuid}/status', [CompanyUserManagementController::class, 'updateStatus']);
+        Route::put('/{user:uuid}/roles', [CompanyUserManagementController::class, 'assignRoles']);
+        Route::put('/{user:uuid}/permissions', [CompanyUserManagementController::class, 'assignPermissions']);
+    });
+
+    // Role and Permission Routes
+    Route::get('/company/roles', [CompanyUserManagementController::class, 'getAvailableRoles']);
+    Route::get('/company/permissions', [CompanyUserManagementController::class, 'getAvailablePermissions']);
 
     // Notification routes
     Route::prefix('notifications')->group(function () {

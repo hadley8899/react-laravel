@@ -24,6 +24,7 @@ import InvoiceEdit from '../pages/InvoiceEdit.tsx';
 import AppointmentCreate from "../pages/AppointmentCreate.tsx";
 import AppointmentDetails from "../pages/AppointmentDetails.tsx";
 import AppointmentEdit from "../pages/AppointmentEdit.tsx";
+import UserManagement from "../pages/UserManagement.tsx";
 
 const AppRoutes: React.FC = () => {
     return (
@@ -50,6 +51,7 @@ const AppRoutes: React.FC = () => {
                 <Route path="/appointments/:uuid/edit" element={<AppointmentEdit/>}/>
                 <Route path="/profile" element={<Profile/>}/>
                 <Route path="/settings" element={<Settings/>}/>
+                <Route path="/user-management" element={<UserManagement/>}/>
             </Route>
 
             <Route path="*" element={<Navigate to="/login" replace/>}/>
