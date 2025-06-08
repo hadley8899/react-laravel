@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\CompanyUserManagementController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\UserController;
@@ -44,6 +45,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/{user:uuid}/status', [CompanyUserManagementController::class, 'updateStatus']);
         Route::put('/{user:uuid}/roles', [CompanyUserManagementController::class, 'assignRoles']);
         Route::put('/{user:uuid}/permissions', [CompanyUserManagementController::class, 'assignPermissions']);
+    });
+
+    Route::middleware('auth:sanctum')->prefix('dashboard')->group(function () {
+        Route::get('/overview', [DashboardController::class, 'overview']);
+        Route::get('/charts',   [DashboardController::class, 'chartData']);
+        Route::get('/activity', [DashboardController::class, 'recentActivity']);
     });
 
     // Role and Permission Routes

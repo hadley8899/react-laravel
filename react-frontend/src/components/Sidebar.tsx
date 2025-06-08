@@ -20,7 +20,7 @@ import {
 import React, {useEffect, useState} from "react";
 import {useLocation, useNavigate} from "react-router-dom";
 import PersonIcon from "@mui/icons-material/Person";
-import {getAuthUserLocal} from "../services/authService";
+import {getAuthUserLocal, hasPermission} from "../services/authService";
 
 interface SidebarProps {
     mobileOpen: boolean;
@@ -31,6 +31,7 @@ interface SidebarItem {
     title: string;
     path: string;
     icon: React.ReactNode;
+    permissions?: string[];
 }
 
 const Sidebar: React.FC<SidebarProps> = ({mobileOpen, handleDrawerToggle}) => {
@@ -63,7 +64,7 @@ const Sidebar: React.FC<SidebarProps> = ({mobileOpen, handleDrawerToggle}) => {
     const mainNavItems: SidebarItem[] = [
         {title: "Dashboard", path: "/dashboard", icon: <DashboardIcon/>},
         {title: "Vehicles", path: "/vehicles", icon: <DirectionsCar/>},
-        {title: "Customers", path: "/customers", icon: <PersonIcon/>},
+        {title: "Customers", path: "/customers", icon: <PersonIcon/>, permissions: ['view_customers']},
         {title: "Invoices", path: "/invoices", icon: <ReceiptLong/>},
         {title: "Appointments", path: "/appointments", icon: <CalendarMonth/>}
     ];
@@ -121,18 +122,23 @@ const Sidebar: React.FC<SidebarProps> = ({mobileOpen, handleDrawerToggle}) => {
             </Box>
             <Divider/>
             <List>
-                {mainNavItems.map((item) => (
-                    <ListItemButton
-                        key={item.path}
-                        selected={location.pathname === item.path}
-                        onClick={() => handleNavigation(item.path)}
-                    >
-                        <ListItemIcon>
-                            {item.icon}
-                        </ListItemIcon>
-                        <ListItemText primary={item.title}/>
-                    </ListItemButton>
-                ))}
+                {mainNavItems.map((item) => {
+                    // If no permissions required or user has permission, show the item
+                    const showItem = !item.permissions || hasPermission(item.permissions);
+
+                    return showItem ? (
+                        <ListItemButton
+                            key={item.path}
+                            selected={location.pathname === item.path}
+                            onClick={() => handleNavigation(item.path)}
+                        >
+                            <ListItemIcon>
+                                {item.icon}
+                            </ListItemIcon>
+                            <ListItemText primary={item.title}/>
+                        </ListItemButton>
+                    ) : null;
+                })}
             </List>
             <Divider sx={{mt: 'auto'}}/>
             <List>

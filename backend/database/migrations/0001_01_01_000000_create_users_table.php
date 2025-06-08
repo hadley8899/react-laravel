@@ -25,6 +25,7 @@ return new class extends Migration {
             $table->enum('preferred_theme', ['light', 'dark', 'system'])->default('system');
 
             $table->rememberToken();
+            $table->timestamp('last_login_at')->nullable();
             $table->timestamps();
         });
 

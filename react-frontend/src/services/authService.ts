@@ -27,7 +27,7 @@ export async function registerUser(payload: RegisterPayload) {
 
 export async function loginUser(credentials: LoginPayload) {
     const res = await api.post('/login', credentials);
-    const { token, user } = res.data;
+    const {token, user} = res.data;
 
     if (token) {
         localStorage.setItem('token', token);
@@ -40,7 +40,7 @@ export async function loginUser(credentials: LoginPayload) {
 }
 
 export async function forgotPassword(email: string) {
-    const response = await api.post('/forgot-password', { email });
+    const response = await api.post('/forgot-password', {email});
     return response.data;
 }
 
@@ -60,6 +60,19 @@ export async function getAuthUser(): Promise<User> {
 
 export async function setAuthUser(user: User) {
     localStorage.setItem('user', JSON.stringify(user));
+}
+
+export function hasPermission(permission: string | string[]): boolean {
+    const user = getAuthUserLocal();
+    if (!user || !user.permissions) return false;
+
+    if (Array.isArray(permission)) {
+        // Check if user has any of the permissions in the array
+        return permission.some(perm => user.permissions.includes(perm));
+    }
+
+    // Handle single permission case
+    return user.permissions.includes(permission);
 }
 
 export async function logout() {

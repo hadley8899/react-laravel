@@ -6,6 +6,7 @@ use App\Http\Requests\RegisterRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use App\Notifications\PasswordUpdatedNotification;
+use Carbon\Carbon;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\JsonResponse;
@@ -35,6 +36,9 @@ class AuthController
             $user->tokens()->delete();
 
             $token = $user->createToken('auth-token')->plainTextToken;
+
+            // Update last login timestamp
+            $user->update(['last_login_at' => Carbon::now()->toDateTimeString()]);
 
             return response()->json([
                 'user' => new UserResource($user),
