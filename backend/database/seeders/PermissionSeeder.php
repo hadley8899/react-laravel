@@ -24,28 +24,37 @@ class PermissionSeeder extends Seeder
             'view_users',
 
             // Settings
-            'manage_settings',
+            'update_company',
+            'update_appointment_settings',
+            'update_invoice_settings',
             'view_settings',
 
-            // Reports
-            'manage_reports',
-            'view_reports',
-
             // Appointments
-            'manage_appointments',
             'view_appointments',
+            'update_appointments',
+            'create_appointments',
+            'delete_appointments',
 
             // Customers
-            'manage_customers',
             'view_customers',
+            'update_customers',
+            'create_customers',
+            'delete_customers',
 
             // Invoices
-            'manage_invoices',
             'view_invoices',
+            'update_invoices',
+            'create_invoices',
+            'delete_invoices',
 
             // Vehicles
-            'manage_vehicles',
             'view_vehicles',
+            'update_vehicles',
+            'create_vehicles',
+            'delete_vehicles',
+
+            // Reports
+            'view_reports',
         ];
 
         foreach ($permissions as $permission) {
@@ -63,21 +72,50 @@ class PermissionSeeder extends Seeder
         $role = Role::create(['name' => 'Manager']);
         $role->givePermissionTo([
             'view_users',
-            'manage_settings', 'view_settings',
-            'manage_reports', 'view_reports',
-            'manage_appointments', 'view_appointments',
-            'manage_customers', 'view_customers',
-            'manage_invoices', 'view_invoices',
-            'manage_vehicles', 'view_vehicles',
+            'view_settings',
+            'update_appointment_settings',
+            'update_invoice_settings',
+            'view_reports',
+
+            // Appointments
+            'view_appointments',
+            'create_appointments',
+            'update_appointments',
+            'delete_appointments',
+
+            // Customers
+            'view_customers',
+            'create_customers',
+            'update_customers',
+
+            // Invoices
+            'view_invoices',
+            'create_invoices',
+            'update_invoices',
+
+            // Vehicles
+            'view_vehicles',
+            'create_vehicles',
+            'update_vehicles',
         ]);
 
         $role = Role::create(['name' => 'User']);
         $role->givePermissionTo([
             'view_settings',
             'view_reports',
-            'view_appointments', 'manage_appointments',
+
+            // Appointments
+            'view_appointments',
+            'create_appointments',
+            'update_appointments',
+
+            // Customers
             'view_customers',
+
+            // Invoices
             'view_invoices',
+
+            // Vehicles
             'view_vehicles',
         ]);
     }
