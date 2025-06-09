@@ -29,3 +29,8 @@ npm run dev
 
 You can then access the frontend at the displayed local address, and the backend will be available via Docker on its mapped port.
 
+### Mailhog
+If you are using the docker-compose file provided, Mailhog is set up to capture outgoing emails. You can access it at:
+```
+localhost:8025
+```

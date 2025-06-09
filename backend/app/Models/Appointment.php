@@ -11,7 +11,10 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 /** @property-read Customer $customer */
 /** @property-read Vehicle  $vehicle */
-/** @property-read Company  $company */
+/** @property-read Company  $company
+ * @property int $customer_id
+ * @property int $vehicle_id
+ */
 class Appointment extends Model
 {
     /** @use HasFactory<AppointmentFactory> */
