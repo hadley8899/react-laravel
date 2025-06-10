@@ -4,7 +4,6 @@ namespace App\Policies;
 
 use App\Models\Customer;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class CustomerPolicy
 {
@@ -13,7 +12,7 @@ class CustomerPolicy
      */
     public function viewAny(User $user): bool
     {
-        return true;
+        return $user->hasPermissionTo('view_customers');
     }
 
     /**
@@ -21,7 +20,11 @@ class CustomerPolicy
      */
     public function view(User $user, Customer $customer): bool
     {
-        return true;
+        // Check that the customer belongs to the user's company
+        if ($customer->company_id !== $user->company_id) {
+            return false;
+        }
+        return $user->hasPermissionTo('view_customers');
     }
 
     /**
@@ -29,7 +32,7 @@ class CustomerPolicy
      */
     public function create(User $user): bool
     {
-        return true;
+        return $user->hasPermissionTo('create_customers');
     }
 
     /**
@@ -37,7 +40,11 @@ class CustomerPolicy
      */
     public function update(User $user, Customer $customer): bool
     {
-        return true;
+        // Check that the customer belongs to the user's company
+        if ($customer->company_id !== $user->company_id) {
+            return false;
+        }
+        return $user->hasPermissionTo('update_customers');
     }
 
     /**
@@ -45,7 +52,11 @@ class CustomerPolicy
      */
     public function delete(User $user, Customer $customer): bool
     {
-        return true;
+        // Check that the customer belongs to the user's company
+        if ($customer->company_id !== $user->company_id) {
+            return false;
+        }
+        return $user->hasPermissionTo('delete_customers');
     }
 
     /**
@@ -53,7 +64,11 @@ class CustomerPolicy
      */
     public function restore(User $user, Customer $customer): bool
     {
-        return true;
+        // Check that the customer belongs to the user's company
+        if ($customer->company_id !== $user->company_id) {
+            return false;
+        }
+        return $user->hasPermissionTo('update_customers');
     }
 
     /**
@@ -61,6 +76,11 @@ class CustomerPolicy
      */
     public function forceDelete(User $user, Customer $customer): bool
     {
-        return true;
+        // Check that the customer belongs to the user's company
+        if ($customer->company_id !== $user->company_id) {
+            return false;
+        }
+        return $user->hasPermissionTo('delete_customers');
     }
 }
+

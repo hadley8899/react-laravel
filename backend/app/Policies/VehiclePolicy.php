@@ -4,7 +4,6 @@ namespace App\Policies;
 
 use App\Models\User;
 use App\Models\Vehicle;
-use Illuminate\Auth\Access\Response;
 
 class VehiclePolicy
 {
@@ -21,7 +20,13 @@ class VehiclePolicy
      */
     public function view(User $user, Vehicle $vehicle): bool
     {
-        return true;
+        // Check that the vehicle belongs to the user's company
+        if ($vehicle->company_id !== $user->company_id) {
+            return false;
+        }
+
+
+        return $user->hasPermissionTo('view_vehicles');
     }
 
     /**
@@ -29,7 +34,7 @@ class VehiclePolicy
      */
     public function create(User $user): bool
     {
-        return true;
+        return $user->hasPermissionTo('create_vehicles');
     }
 
     /**
@@ -37,7 +42,11 @@ class VehiclePolicy
      */
     public function update(User $user, Vehicle $vehicle): bool
     {
-        return true;
+        // Check that the vehicle belongs to the user's company
+        if ($vehicle->company_id !== $user->company_id) {
+            return false;
+        }
+        return $user->hasPermissionTo('update_vehicles');
     }
 
     /**
@@ -45,7 +54,11 @@ class VehiclePolicy
      */
     public function delete(User $user, Vehicle $vehicle): bool
     {
-        return true;
+        // Check that the vehicle belongs to the user's company
+        if ($vehicle->company_id !== $user->company_id) {
+            return false;
+        }
+        return $user->hasPermissionTo('delete_vehicles');
     }
 
     /**
@@ -53,7 +66,12 @@ class VehiclePolicy
      */
     public function restore(User $user, Vehicle $vehicle): bool
     {
-        return true;
+        // Check that the vehicle belongs to the user's company
+        if ($vehicle->company_id !== $user->company_id) {
+            return false;
+        }
+
+        return $user->hasPermissionTo('update_vehicles');
     }
 
     /**
@@ -61,6 +79,11 @@ class VehiclePolicy
      */
     public function forceDelete(User $user, Vehicle $vehicle): bool
     {
-        return true;
+        // Check that the vehicle belongs to the user's company
+        if ($vehicle->company_id !== $user->company_id) {
+            return false;
+        }
+        return $user->hasPermissionTo('delete_vehicles');
     }
 }
+

@@ -4,7 +4,6 @@ namespace App\Policies;
 
 use App\Models\Company;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class CompanyPolicy
 {
@@ -13,7 +12,7 @@ class CompanyPolicy
      */
     public function viewAny(User $user): bool
     {
-        return true;
+        return $user->hasPermissionTo('view_settings');
     }
 
     /**
@@ -21,7 +20,8 @@ class CompanyPolicy
      */
     public function view(User $user, Company $company): bool
     {
-        return true;
+        // User can only view their own company
+        return $user->hasPermissionTo('view_settings') && $user->company_id === $company->id;
     }
 
     /**
@@ -29,7 +29,8 @@ class CompanyPolicy
      */
     public function create(User $user): bool
     {
-        return true;
+        // Only allow if user has permission (usually only admins)
+        return $user->hasPermissionTo('update_company');
     }
 
     /**
@@ -37,7 +38,8 @@ class CompanyPolicy
      */
     public function update(User $user, Company $company): bool
     {
-        return true;
+        // Only allow if user has permission and company matches
+        return $user->hasPermissionTo('update_company') && $user->company_id === $company->id;
     }
 
     /**
@@ -45,7 +47,8 @@ class CompanyPolicy
      */
     public function delete(User $user, Company $company): bool
     {
-        return true;
+        // Only allow if user has permission and company matches
+        return $user->hasPermissionTo('update_company') && $user->company_id === $company->id;
     }
 
     /**
@@ -53,7 +56,7 @@ class CompanyPolicy
      */
     public function restore(User $user, Company $company): bool
     {
-        return true;
+        return $user->hasPermissionTo('update_company') && $user->company_id === $company->id;
     }
 
     /**
@@ -61,6 +64,7 @@ class CompanyPolicy
      */
     public function forceDelete(User $user, Company $company): bool
     {
-        return true;
+        return $user->hasPermissionTo('update_company') && $user->company_id === $company->id;
     }
 }
+
