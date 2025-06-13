@@ -169,7 +169,10 @@ const TopBar: React.FC<TopBarProps> = ({
                 </Box>
 
                 <Box sx={{display: 'flex', alignItems: 'center', gap: 1}}>
-                    <ThemeSwitcher/>
+                    {/* Only show ThemeSwitcher on desktop */}
+                    <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
+                        <ThemeSwitcher/>
+                    </Box>
 
                     {/* Notifications */}
                     <IconButton
@@ -194,9 +197,10 @@ const TopBar: React.FC<TopBarProps> = ({
                     >
                         <Avatar
                             alt={user?.name || 'User'}
+                            src={user?.avatar_url || undefined}
                             sx={{bgcolor: theme.palette.primary.main}}
                         >
-                            {(user?.name || 'U').charAt(0)}
+                            {!user?.avatar_url && (user?.name || 'U').charAt(0)}
                         </Avatar>
                     </IconButton>
                 </Box>
@@ -275,6 +279,10 @@ const TopBar: React.FC<TopBarProps> = ({
                 transformOrigin={{horizontal: 'right', vertical: 'top'}}
                 anchorOrigin={{horizontal: 'right', vertical: 'bottom'}}
             >
+                {/* ThemeSwitcher in menu for mobile only */}
+                <Box sx={{ display: { xs: 'flex', sm: 'none' }, px: 2, py: 1, justifyContent: 'center' }}>
+                    <ThemeSwitcher />
+                </Box>
                 <MenuItem onClick={handleProfileClick}>
                     <ListItemIcon>
                         <Person fontSize="small"/>
@@ -288,7 +296,13 @@ const TopBar: React.FC<TopBarProps> = ({
                     Settings
                 </MenuItem>
                 <Divider/>
-                <MenuItem onClick={handleLogout}>
+                <MenuItem
+                    onClick={handleLogout}
+                    sx={{
+                        color: (theme) => theme.palette.error.main,
+                        '& svg': { color: (theme) => theme.palette.error.main }
+                    }}
+                >
                     <ListItemIcon>
                         <Logout fontSize="small"/>
                     </ListItemIcon>
@@ -300,4 +314,3 @@ const TopBar: React.FC<TopBarProps> = ({
 };
 
 export default TopBar;
-

@@ -21,7 +21,6 @@ import {Invoice} from "../interfaces/Invoice";
 import {getInvoices, downloadInvoicePdf} from "../services/invoiceService";
 import InvoicesTable from "../components/invoices/InvoicesTable.tsx";
 
-// Helper type for sorting
 type Order = 'asc' | 'desc';
 
 const Invoices: React.FC = () => {
@@ -141,14 +140,26 @@ const Invoices: React.FC = () => {
                             Invoices
                         </Typography>
 
-                        <Box sx={{display: 'flex', gap: 1, flexWrap: 'nowrap'}}>
+                        <Box
+                            sx={{
+                                display: 'flex',
+                                flexDirection: { xs: 'column', sm: 'row' },
+                                gap: 1,
+                                width: { xs: '100%', sm: 'auto' },
+                                flex: 1,
+                                maxWidth: { xs: '100%', sm: 'unset' },
+                            }}
+                        >
                             <TextField
                                 variant="outlined"
                                 placeholder="Search invoices..."
                                 size="small"
                                 value={searchTerm}
                                 onChange={handleSearchChange}
-                                sx={{minWidth: '280px'}}
+                                sx={{
+                                    minWidth: { xs: 0, sm: '280px' },
+                                    width: { xs: '100%', sm: 'auto' },
+                                }}
                                 slotProps={{
                                     input: {
                                         startAdornment: (
@@ -164,6 +175,10 @@ const Invoices: React.FC = () => {
                                 startIcon={<AddIcon/>}
                                 size="medium"
                                 onClick={handleCreateInvoice}
+                                sx={{
+                                    width: { xs: '100%', sm: 'auto' },
+                                    whiteSpace: 'nowrap',
+                                }}
                             >
                                 Create Invoice
                             </Button>

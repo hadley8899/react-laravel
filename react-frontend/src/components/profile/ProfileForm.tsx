@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, {useRef, useState} from 'react';
 import {
     Box, Stack, TextField, InputAdornment, IconButton, Button,
     Tooltip, Avatar, Typography, Divider
@@ -147,11 +147,21 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
                 <Divider sx={{my: 4}}/>
 
                 <Typography variant="h6" gutterBottom>Security & Actions</Typography>
-                <Stack direction="row" spacing={2} flexWrap="wrap">
+                <Stack
+                    direction={{xs: 'column', sm: 'row'}}
+                    spacing={2}
+                    flexWrap="wrap"
+                    alignItems="stretch"
+                >
                     <Button
                         variant="outlined"
                         startIcon={<LockResetIcon/>}
                         onClick={onChangePassword}
+                        fullWidth
+                        sx={{
+                            maxWidth: {sm: 200},
+                            width: {xs: '100%', sm: 'auto'}
+                        }}
                     >
                         Change Password
                     </Button>
@@ -160,6 +170,11 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
                         color="error"
                         startIcon={<LogoutIcon/>}
                         onClick={onLogout}
+                        fullWidth
+                        sx={{
+                            maxWidth: {sm: 200},
+                            width: {xs: '100%', sm: 'auto'}
+                        }}
                     >
                         Logout
                     </Button>

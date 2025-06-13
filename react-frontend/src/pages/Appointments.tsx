@@ -15,13 +15,11 @@ import AppointmentList from '../components/appointments/AppointmentList';
 
 dayjs.extend(isBetween);
 
-/* ---------- helpers ---------- */
 const weekStart = (d = dayjs()) => d.startOf('week').add(1, 'day'); // Monday
 const weekDates = (start: dayjs.Dayjs) =>
     Array.from({length: 7}, (_, i) => start.add(i, 'day'));
 const toIsoDate = (d: dayjs.Dayjs) => d.format('YYYY-MM-DD');
 
-/* ---------- component ---------- */
 const Appointments: React.FC = () => {
     const nav = useNavigate();
     const [start, setStart] = useState(() => weekStart());

@@ -79,7 +79,8 @@ const Profile: React.FC = () => {
             </MainLayout>
         );
 
-    if (error)
+    // Only show full-page error if user/profile cannot be loaded at all
+    if (error && !user)
         return (
             <MainLayout>
                 <Container maxWidth="sm" sx={{py: 6}}>
@@ -95,6 +96,12 @@ const Profile: React.FC = () => {
         <MainLayout>
             <Container maxWidth="md" sx={{py: 4}}>
                 <Paper sx={{p: {xs: 2, sm: 4}, borderRadius: 2}}>
+                    {/* Show error inline if present and user is loaded */}
+                    {error && (
+                        <Alert severity="error" sx={{mb: 3}} onClose={() => setErr(null)}>
+                            {error}
+                        </Alert>
+                    )}
                     {showPasswordForm ? (
                         <ProfileChangePassword 
                             userUuid={user.uuid}

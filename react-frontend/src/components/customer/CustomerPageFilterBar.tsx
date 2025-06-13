@@ -35,12 +35,42 @@ const CustomerPageFilterBar: React.FC<CustomerPageFilerBarProps> = ({
                 <PeopleIcon sx={{mr: 1.5, color: 'primary.main'}}/>
                 Customers
             </Typography>
-            <Box sx={{display: 'flex', gap: 1.5, flexWrap: 'nowrap'}}>
-                <FormControlLabel control={<Checkbox
-                    name={'showInactive'}
-                    checked={showInactive}
-                    onChange={(e) => handleShowInactiveChange(e.target.checked)}
-                />} label={'Show inactive customers'}/>
+            <Box
+                sx={{
+                    display: 'flex',
+                    flexDirection: { xs: 'column', sm: 'row' },
+                    gap: 1.5,
+                    alignItems: { xs: 'stretch', sm: 'center' },
+                    width: { xs: '100%', sm: 'auto' },
+                    flex: 1,
+                    maxWidth: { xs: '100%', sm: 'unset' },
+                }}
+            >
+                <FormControlLabel
+                    control={
+                        <Checkbox
+                            name={'showInactive'}
+                            checked={showInactive}
+                            onChange={(e) => handleShowInactiveChange(e.target.checked)}
+                            sx={{
+                                p: { xs: 0.5, sm: 1 },
+                                mr: { xs: 1, sm: 0.5 },
+                            }}
+                        />
+                    }
+                    label={'Show inactive customers'}
+                    sx={{
+                        m: 0,
+                        width: { xs: '100%', sm: 'auto' },
+                        alignItems: 'center',
+                        flexDirection: { xs: 'row', sm: 'row' },
+                        '.MuiFormControlLabel-label': {
+                            fontSize: { xs: '1rem', sm: '1rem' },
+                            lineHeight: 1.2,
+                        },
+                        mb: { xs: 0.5, sm: 0 },
+                    }}
+                />
 
                 <TextField
                     variant="outlined"
@@ -48,7 +78,11 @@ const CustomerPageFilterBar: React.FC<CustomerPageFilerBarProps> = ({
                     size="small"
                     value={searchTermInput}
                     onChange={handleSearchChange}
-                    sx={{minWidth: '250px', '& .MuiOutlinedInput-root': {borderRadius: 2}}}
+                    sx={{
+                        minWidth: { xs: 0, sm: '250px' },
+                        width: { xs: '100%', sm: 'auto' },
+                        '& .MuiOutlinedInput-root': {borderRadius: 2}
+                    }}
                     slotProps={{
                         input: {
                             startAdornment: (<InputAdornment position="start"><SearchIcon/></InputAdornment>),
@@ -60,7 +94,11 @@ const CustomerPageFilterBar: React.FC<CustomerPageFilerBarProps> = ({
                     startIcon={<AddIcon/>}
                     size="medium"
                     onClick={handleOpenAddModal}
-                    sx={{whiteSpace: 'nowrap', borderRadius: 2}}
+                    sx={{
+                        whiteSpace: 'nowrap',
+                        borderRadius: 2,
+                        width: { xs: '100%', sm: 'auto' }
+                    }}
                 >
                     Add Customer
                 </Button>

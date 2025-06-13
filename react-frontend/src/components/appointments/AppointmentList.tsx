@@ -26,7 +26,8 @@ const AppointmentList: React.FC<Props> = ({
         <Box
             sx={{
                 display: 'flex',
-                overflowX: 'auto',
+                flexDirection: { xs: 'column', sm: 'row' },
+                overflowX: { xs: 'unset', sm: 'auto' },
                 gap: 1,
                 pb: 1,
             }}
@@ -40,7 +41,8 @@ const AppointmentList: React.FC<Props> = ({
                     <Box
                         key={key}
                         sx={{
-                            minWidth: 260,        // wider cards → single line on desktop
+                            minWidth: { xs: 'unset', sm: 260 },
+                            width: { xs: '100%', sm: 'auto' },
                             flexShrink: 0,
                         }}
                     >
@@ -61,7 +63,7 @@ const AppointmentList: React.FC<Props> = ({
                             >
                                 {heading(d)}
                             </Typography>
-                            <Divider sx={{ mb: 1 }} />
+                            <Divider sx={{mb: 1}}/>
 
                             {loading ? (
                                 <Typography variant="body2" align="center">
@@ -70,8 +72,8 @@ const AppointmentList: React.FC<Props> = ({
                             ) : dayApps.length ? (
                                 <List dense disablePadding>
                                     {dayApps.map((a) => (
-                                        <ListItem key={a.uuid} disableGutters sx={{ p: 0, mb: 1 }}>
-                                            <AppointmentCard appointment={a} />
+                                        <ListItem key={a.uuid} disableGutters sx={{p: 0, mb: 1}}>
+                                            <AppointmentCard appointment={a}/>
                                         </ListItem>
                                     ))}
                                 </List>
@@ -80,7 +82,7 @@ const AppointmentList: React.FC<Props> = ({
                                     variant="body2"
                                     color="text.secondary"
                                     align="center"
-                                    sx={{ mt: 2 }}
+                                    sx={{mt: 2}}
                                 >
                                     No appointments
                                 </Typography>

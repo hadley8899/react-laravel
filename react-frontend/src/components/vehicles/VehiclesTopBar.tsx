@@ -16,13 +16,13 @@ interface Props {
 }
 
 const VehiclesTopBar: React.FC<Props> = ({
-                                             searchInput,
-                                             onSearchChange,
-                                             selectedCount,
-                                             onAdd,
-                                             onDeleteSelected,
-                                             onRefresh
-                                         }) => (
+    searchInput,
+    onSearchChange,
+    selectedCount,
+    onAdd,
+    onDeleteSelected,
+    onRefresh
+}) => (
     <Box
         sx={{
             display: 'flex',
@@ -38,13 +38,27 @@ const VehiclesTopBar: React.FC<Props> = ({
             Vehicles
         </Typography>
 
-        <Box sx={{display: 'flex', gap: 1.5, flexWrap: 'nowrap'}}>
+        <Box
+            sx={{
+                display: 'flex',
+                flexDirection: { xs: 'column', sm: 'row' },
+                gap: 1.5,
+                alignItems: { xs: 'stretch', sm: 'center' },
+                width: { xs: '100%', sm: 'auto' },
+                flex: 1,
+                maxWidth: { xs: '100%', sm: 'unset' },
+            }}
+        >
             <TextField
                 size="small"
                 placeholder="Search..."
                 value={searchInput}
                 onChange={onSearchChange}
-                sx={{minWidth: 250, '& .MuiOutlinedInput-root': {borderRadius: 2}}}
+                sx={{
+                    minWidth: { xs: 0, sm: 250 },
+                    width: { xs: '100%', sm: 'auto' },
+                    '& .MuiOutlinedInput-root': {borderRadius: 2}
+                }}
                 slotProps={{
                     input: {
                         startAdornment: (
@@ -61,7 +75,11 @@ const VehiclesTopBar: React.FC<Props> = ({
                 size="medium"
                 startIcon={<AddIcon/>}
                 onClick={onAdd}
-                sx={{borderRadius: 2, whiteSpace: 'nowrap'}}
+                sx={{
+                    borderRadius: 2,
+                    whiteSpace: 'nowrap',
+                    width: { xs: '100%', sm: 'auto' }
+                }}
             >
                 Add Vehicle
             </Button>
@@ -73,7 +91,11 @@ const VehiclesTopBar: React.FC<Props> = ({
                 startIcon={<DeleteIcon/>}
                 disabled={selectedCount === 0}
                 onClick={onDeleteSelected}
-                sx={{borderRadius: 2, whiteSpace: 'nowrap'}}
+                sx={{
+                    borderRadius: 2,
+                    whiteSpace: 'nowrap',
+                    width: { xs: '100%', sm: 'auto' }
+                }}
             >
                 Delete&nbsp;({selectedCount})
             </Button>
@@ -83,7 +105,10 @@ const VehiclesTopBar: React.FC<Props> = ({
                 size="medium"
                 startIcon={<RefreshIcon/>}
                 onClick={onRefresh}
-                sx={{borderRadius: 2}}
+                sx={{
+                    borderRadius: 2,
+                    width: { xs: '100%', sm: 'auto' }
+                }}
             >
                 Refresh
             </Button>

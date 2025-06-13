@@ -85,14 +85,27 @@ const AppointmentsHeader: React.FC<AppointmentsHeaderProps> = ({
                 </Box>
 
                 {/* filters */}
-                <Box sx={{display: 'flex', gap: 1, alignItems: 'center'}}>
+                <Box
+                    sx={{
+                        display: 'flex',
+                        flexDirection: { xs: 'column', sm: 'row' },
+                        gap: 1,
+                        alignItems: { xs: 'stretch', sm: 'center' },
+                        width: { xs: '100%', sm: 'auto' },
+                        flex: 1,
+                        maxWidth: { xs: '100%', sm: 'unset' },
+                    }}
+                >
                     <TextField
                         select
                         size="small"
                         label="Type"
                         value={type}
                         onChange={(e) => setType(e.target.value as any)}
-                        sx={{minWidth: 130}}
+                        sx={{
+                            minWidth: { xs: 0, sm: 130 },
+                            width: { xs: '100%', sm: 'auto' },
+                        }}
                     >
                         <MenuItem value="All">All Types</MenuItem>
                         {([
@@ -115,7 +128,10 @@ const AppointmentsHeader: React.FC<AppointmentsHeaderProps> = ({
                         label="Status"
                         value={status}
                         onChange={(e) => setStatus(e.target.value as any)}
-                        sx={{minWidth: 130}}
+                        sx={{
+                            minWidth: { xs: 0, sm: 130 },
+                            width: { xs: '100%', sm: 'auto' },
+                        }}
                     >
                         <MenuItem value="All">All Statuses</MenuItem>
                         {([
@@ -137,6 +153,10 @@ const AppointmentsHeader: React.FC<AppointmentsHeaderProps> = ({
                         variant="contained"
                         startIcon={<AddIcon/>}
                         onClick={onAddClick}
+                        sx={{
+                            width: { xs: '100%', sm: 'auto' },
+                            whiteSpace: 'nowrap',
+                        }}
                     >
                         Add
                     </Button>

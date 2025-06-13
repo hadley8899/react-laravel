@@ -2,7 +2,7 @@ import React from 'react';
 import {
     Table, TableBody, TableCell, TableContainer, TableHead, 
     TableRow, Checkbox, CircularProgress, Alert, TablePagination,
-    Box, IconButton, Tooltip
+    Box, IconButton, Tooltip, Paper, Typography
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import { Vehicle } from '../../interfaces/Vehicle';
@@ -52,7 +52,8 @@ const VehiclesTable: React.FC<VehiclesTableProps> = ({
 
     return (
         <>
-            <TableContainer>
+            {/* Desktop Table */}
+            <TableContainer sx={{ display: { xs: 'none', md: 'block' } }}>
                 <Table>
                     <TableHead sx={{backgroundColor: t => t.palette.action.hover}}>
                         <TableRow>
@@ -122,15 +123,84 @@ const VehiclesTable: React.FC<VehiclesTableProps> = ({
                 </Table>
             </TableContainer>
 
-            <TablePagination
-                rowsPerPageOptions={[10, 25, 50]}
-                component="div"
-                count={total}
-                rowsPerPage={rowsPerPage}
-                page={page}
-                onPageChange={onPageChange}
-                onRowsPerPageChange={onRowsPerPageChange}
-            />
+            {/* Mobile Cards */}
+            <Box sx={{ display: { xs: 'block', md: 'none' } }}>
+                {vehicles.length === 0 ? (
+                    <Box sx={{ py: 4, textAlign: 'center' }}>
+                        <Typography color="text.secondary">
+                            No vehicles found.
+                        </Typography>
+                    </Box>
+                ) : (
+                    vehicles.map(vehicle => {
+                        const isItemSelected = isSelected(vehicle.uuid);
+                        return (
+                            <Paper
+                                key={vehicle.uuid}
+                                variant="outlined"
+                                sx={{
+                                    mb: 2,
+                                    p: 2,
+                                    borderLeft: t => isItemSelected ? `4px solid ${t.palette.primary.main}` : `4px solid transparent`,
+                                    bgcolor: isItemSelected ? t => t.palette.action.selected : 'background.paper',
+                                    boxShadow: 0,
+                                    cursor: 'pointer',
+                                }}
+                                onClick={() => onRowClick(vehicle.uuid)}
+                            >
+                                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                                    <Checkbox
+                                        checked={isItemSelected}
+                                        onChange={() => onRowClick(vehicle.uuid)}
+                                        sx={{ mr: 1 }}
+                                    />
+                                    <Typography variant="subtitle1" fontWeight="bold">
+                                        {vehicle.make} {vehicle.model} ({vehicle.year})
+                                    </Typography>
+                                </Box>
+                                <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                                    <strong>Registration:</strong> {vehicle.registration}
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                                    <strong>Owner:</strong> {vehicle.customer?.first_name} {vehicle.customer?.last_name}
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                                    <strong>Last Service:</strong> {vehicle.last_service}
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                                    <strong>Next Due:</strong> {vehicle.next_service_due}
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                                    <strong>Type:</strong> {vehicle.type}
+                                </Typography>
+                                <Box sx={{ display: 'flex', gap: 1 }}>
+                                    <Tooltip title="Edit">
+                                        <IconButton
+                                            color="primary"
+                                            onClick={e => {
+                                                e.stopPropagation();
+                                                onEdit(vehicle);
+                                            }}
+                                            size="small"
+                                        >
+                                            <EditIcon />
+                                        </IconButton>
+                                    </Tooltip>
+                                </Box>
+                            </Paper>
+                        );
+                    })
+                )}
+                <TablePagination
+                    rowsPerPageOptions={[10, 25, 50]}
+                    component="div"
+                    count={total}
+                    rowsPerPage={rowsPerPage}
+                    page={page}
+                    onPageChange={onPageChange}
+                    onRowsPerPageChange={onRowsPerPageChange}
+                />
+            </Box>
         </>
     );
 };
