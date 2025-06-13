@@ -14,10 +14,11 @@ import ThemeSwitcher from "./ThemeSwitcher";
 import {useNavigate} from "react-router-dom";
 import {useAuth} from "../context/AuthContext";
 import NotificationService, {Notification} from "../services/NotificationService";
+import User from "../interfaces/User.ts";
 
 interface TopBarProps {
     handleDrawerToggle: () => void;
-    user: { name: string } | null;
+    user: User | null;
     drawerWidth: number | null;
     pageName?: string;
 }
@@ -170,7 +171,7 @@ const TopBar: React.FC<TopBarProps> = ({
 
                 <Box sx={{display: 'flex', alignItems: 'center', gap: 1}}>
                     {/* Only show ThemeSwitcher on desktop */}
-                    <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
+                    <Box sx={{display: {xs: 'none', sm: 'block'}}}>
                         <ThemeSwitcher/>
                     </Box>
 
@@ -280,8 +281,8 @@ const TopBar: React.FC<TopBarProps> = ({
                 anchorOrigin={{horizontal: 'right', vertical: 'bottom'}}
             >
                 {/* ThemeSwitcher in menu for mobile only */}
-                <Box sx={{ display: { xs: 'flex', sm: 'none' }, px: 2, py: 1, justifyContent: 'center' }}>
-                    <ThemeSwitcher />
+                <Box sx={{display: {xs: 'flex', sm: 'none'}, px: 2, py: 1, justifyContent: 'center'}}>
+                    <ThemeSwitcher/>
                 </Box>
                 <MenuItem onClick={handleProfileClick}>
                     <ListItemIcon>
@@ -300,7 +301,7 @@ const TopBar: React.FC<TopBarProps> = ({
                     onClick={handleLogout}
                     sx={{
                         color: (theme) => theme.palette.error.main,
-                        '& svg': { color: (theme) => theme.palette.error.main }
+                        '& svg': {color: (theme) => theme.palette.error.main}
                     }}
                 >
                     <ListItemIcon>
