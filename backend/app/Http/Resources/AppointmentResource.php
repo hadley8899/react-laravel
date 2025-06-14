@@ -18,8 +18,8 @@ class AppointmentResource extends JsonResource
             'mechanic_assigned' => $this->mechanic_assigned,
             'notes'             => $this->notes,
 
-            'customer' => new CustomerResource($this->whenLoaded('customer')),
-            'vehicle'  => new VehicleResource($this->whenLoaded('vehicle')),
+            'customer' => new CustomerResource($this->customer),
+            'vehicle'  => new VehicleResource($this->vehicle),
         ];
     }
 }

@@ -21,6 +21,7 @@ import PeopleIcon from "@mui/icons-material/People";
 import {useNavigate} from "react-router-dom";
 import {Customer} from "../../interfaces/Customer";
 import DeleteIcon from "@mui/icons-material/Delete";
+import {hasPermission} from "../../services/authService.ts";
 
 interface CustomerTableProps {
     customers: Customer[];
@@ -140,22 +141,26 @@ const CustomerTable: React.FC<CustomerTableProps> = ({
                                             <VisibilityIcon fontSize="small"/>
                                         </IconButton>
                                     </Tooltip>
-                                    <Tooltip title="Edit Customer">
-                                        <IconButton
-                                            size="small"
-                                            onClick={() => onEditCustomer(customer)}
-                                        >
-                                            <EditIcon fontSize="small"/>
-                                        </IconButton>
-                                    </Tooltip>
-                                    <Tooltip title="Delete Customer">
-                                        <IconButton
-                                            size="small"
-                                            onClick={() => onDeleteCustomer(customer)}
-                                        >
-                                            <DeleteIcon fontSize="small"/>
-                                        </IconButton>
-                                    </Tooltip>
+                                    {hasPermission('edit_customers') && (
+                                        <Tooltip title="Edit Customer">
+                                            <IconButton
+                                                size="small"
+                                                onClick={() => onEditCustomer(customer)}
+                                            >
+                                                <EditIcon fontSize="small"/>
+                                            </IconButton>
+                                        </Tooltip>
+                                    )}
+                                    {hasPermission('delete_customers') && (
+                                        <Tooltip title="Delete Customer">
+                                            <IconButton
+                                                size="small"
+                                                onClick={() => onDeleteCustomer(customer)}
+                                            >
+                                                <DeleteIcon fontSize="small"/>
+                                            </IconButton>
+                                        </Tooltip>
+                                    )}
                                 </CardActions>
                             </Card>
                         </Grid>

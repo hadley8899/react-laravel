@@ -45,9 +45,15 @@ const Settings: React.FC = () => {
                 </Box>
 
                 {/* First accordion expanded by default */}
-                <CompanyInfo company={company} setCompany={setCompany}/>
-                <AppointmentSettings company={company} setCompany={setCompany}/>
-                <InvoiceAndPaymentSettings company={company} setCompany={setCompany}/>
+                {hasPermission('update_company') && (
+                    <CompanyInfo company={company} setCompany={setCompany}/>
+                )}
+                {hasPermission('update_appointment_settings') && (
+                    <AppointmentSettings company={company} setCompany={setCompany}/>
+                )}
+                {hasPermission('update_invoice_settings') && (
+                    <InvoiceAndPaymentSettings company={company} setCompany={setCompany}/>
+                )}
                 {hasPermission('manage_users') && (<UserManagementLink/>)}
                 <NotificationPreferences/>
                 <SettingsThemeSwitcher/>

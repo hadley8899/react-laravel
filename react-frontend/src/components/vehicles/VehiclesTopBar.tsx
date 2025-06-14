@@ -5,6 +5,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import {hasPermission} from "../../services/authService.ts";
 
 interface Props {
     searchInput: string;
@@ -16,13 +17,13 @@ interface Props {
 }
 
 const VehiclesTopBar: React.FC<Props> = ({
-    searchInput,
-    onSearchChange,
-    selectedCount,
-    onAdd,
-    onDeleteSelected,
-    onRefresh
-}) => (
+                                             searchInput,
+                                             onSearchChange,
+                                             selectedCount,
+                                             onAdd,
+                                             onDeleteSelected,
+                                             onRefresh
+                                         }) => (
     <Box
         sx={{
             display: 'flex',
@@ -70,35 +71,39 @@ const VehiclesTopBar: React.FC<Props> = ({
                 }}
             />
 
-            <Button
-                variant="contained"
-                size="medium"
-                startIcon={<AddIcon/>}
-                onClick={onAdd}
-                sx={{
-                    borderRadius: 2,
-                    whiteSpace: 'nowrap',
-                    width: { xs: '100%', sm: 'auto' }
-                }}
-            >
-                Add Vehicle
-            </Button>
+            {hasPermission('create_vehicles') &&
+                <Button
+                    variant="contained"
+                    size="medium"
+                    startIcon={<AddIcon/>}
+                    onClick={onAdd}
+                    sx={{
+                        borderRadius: 2,
+                        whiteSpace: 'nowrap',
+                        width: {xs: '100%', sm: 'auto'}
+                    }}
+                >
+                    Add Vehicle
+                </Button>
+            }
 
-            <Button
-                variant="outlined"
-                size="medium"
-                color="error"
-                startIcon={<DeleteIcon/>}
-                disabled={selectedCount === 0}
-                onClick={onDeleteSelected}
-                sx={{
-                    borderRadius: 2,
-                    whiteSpace: 'nowrap',
-                    width: { xs: '100%', sm: 'auto' }
-                }}
-            >
-                Delete&nbsp;({selectedCount})
-            </Button>
+            {hasPermission('delete_vehicles') &&
+                <Button
+                    variant="outlined"
+                    size="medium"
+                    color="error"
+                    startIcon={<DeleteIcon/>}
+                    disabled={selectedCount === 0 || !hasPermission('delete_vehicles')}
+                    onClick={onDeleteSelected}
+                    sx={{
+                        borderRadius: 2,
+                        whiteSpace: 'nowrap',
+                        width: {xs: '100%', sm: 'auto'}
+                    }}
+                >
+                    Delete&nbsp;({selectedCount})
+                </Button>
+            }
 
             <Button
                 variant="outlined"

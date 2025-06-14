@@ -8,6 +8,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import {Link as RouterLink} from 'react-router-dom';
 import {Vehicle} from '../../interfaces/Vehicle';
+import {hasPermission} from "../../services/authService.ts";
 
 interface VehiclesTableProps {
     vehicles: Vehicle[];
@@ -124,7 +125,7 @@ const VehiclesTable: React.FC<VehiclesTableProps> = ({
                                         onClick={() => onRowClick(vehicle.uuid)}>{vehicle.next_service_due}</TableCell>
                                     <TableCell onClick={() => onRowClick(vehicle.uuid)}>{vehicle.type}</TableCell>
                                     <TableCell>
-                                        {showEditIcon && (
+                                        {showEditIcon && hasPermission('update_vehicles') && (
                                             <Tooltip title="Edit">
                                                 <IconButton
                                                     color="primary"

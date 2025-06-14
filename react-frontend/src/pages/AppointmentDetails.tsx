@@ -26,8 +26,8 @@ import {useNavigate, useParams} from 'react-router-dom';
 import {Appointment} from "../interfaces/Appointment.ts";
 import {deleteAppointment, getAppointment} from "../services/appointmentService.ts";
 import MainLayout from '../components/layout/MainLayout.tsx';
+import {hasPermission} from "../services/authService.ts";
 
-/* ---------- helpers ---------- */
 const statusChip = (s: Appointment['status']) => {
     const map = {
         Completed: 'success',
@@ -37,7 +37,7 @@ const statusChip = (s: Appointment['status']) => {
         Cancelled: 'error',
         'No Show': 'error',
     } as const;
-    return <Chip label={s} size="small" color={map[s] ?? 'default'}/>;
+    return <Chip label={s} size="small" color={map[s] ?? 'default'} onClick={() => {}}/>;
 };
 
 const AppointmentDetails: React.FC = () => {
@@ -111,13 +111,15 @@ const AppointmentDetails: React.FC = () => {
                         <EditIcon fontSize="small"/>
                     </IconButton>
 
-                    <IconButton
-                        size="small"
-                        color="error"
-                        onClick={() => setConfirmOpen(true)}
-                    >
-                        <DeleteIcon fontSize="small"/>
-                    </IconButton>
+                    {hasPermission('delete_appointment') &&
+                        <IconButton
+                            size="small"
+                            color="error"
+                            onClick={() => setConfirmOpen(true)}
+                        >
+                            <DeleteIcon fontSize="small"/>
+                        </IconButton>
+                    }
                 </Box>
 
                 <Paper sx={{p: 3}}>
