@@ -31,9 +31,9 @@ class DatabaseSeeder extends Seeder
         $this->call([VehicleMakeModelSeeder::class]);
 
         $this->command->info('Seeding the vehicles...');
-        // 2) each customer gets 0‑3 vehicles
+        // 2) each customer gets 0‑20 vehicles
         Customer::all()->each(function ($customer) {
-            $vehicleCount = random_int(0, 10); // Random number of vehicles per customer
+            $vehicleCount = random_int(0, 20);
 
             for ($i = 0; $i < $vehicleCount; $i++) {
                 // Get a random make
@@ -60,9 +60,9 @@ class DatabaseSeeder extends Seeder
 
         $this->command->info('Seeding the users table...');
         // 3) users
-        $roles = ['Admin', 'Manager', 'User'];
+        $roles = ['Admin', 'Manager', 'User']; // Super admin is excluded from random assignment
         $this->command->info('Roles available: ' . implode(', ', $roles));
-        User::factory(12)->create()->each(function ($user) use ($roles) {
+        User::factory(100)->create()->each(function ($user) use ($roles) {
             $user->company_id = Company::query()->inRandomOrder()->value('id');
             $user->save();
 
@@ -71,6 +71,7 @@ class DatabaseSeeder extends Seeder
         });
 
         $this->command->info('creating the test super admin user...');
+
         // Create a fixed test user on company 1
         $testUser = User::factory()->create([
             'name' => 'Test User',
@@ -78,6 +79,32 @@ class DatabaseSeeder extends Seeder
             'company_id' => 1,
         ]);
         $testUser->assignRole('Super Admin');
+
+        // Create a test admin user on company 1
+        $testAdmin = User::factory()->create([
+            'name' => 'Test Admin',
+            'email' => 'test-admin@example.com',
+            'company_id' => 1,
+        ]);
+        $testAdmin->assignRole('Admin');
+
+        // Create a test manager user on company 1
+        $testManager = User::factory()->create([
+            'name' => 'Test Manager',
+            'email' => 'test-manager@example.com',
+            'company_id' => 1,
+        ]);
+        $testManager->assignRole('Manager');
+
+        // Create a test user on company 1
+        $testUser2 = User::factory()->create([
+            'name' => 'Test User 2',
+            'email' => 'test-user@example.com',
+            'company_id' => 1,
+        ]);
+        $testUser2->assignRole('User');
+
+        $this->command->info('Created test users: ' . $testUser->email . ', ' . $testAdmin->email . ', ' . $testManager->email . ', ' . $testUser2->email);
 
         $this->command->info('Seeding the appointments and invoices...');
         $this->call([InvoiceSeeder::class, AppointmentSeeder::class]);

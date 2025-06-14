@@ -22,16 +22,22 @@ return new class extends Migration {
             $table->uuid()->unique();
             $table->foreignId('vehicle_make_id')->constrained('vehicle_makes')->onDelete('cascade');
             $table->string('name');
+            $table->string('fuel_type')->nullable();
+            $table->string('fuel_type_1')->nullable();
+            $table->string('engine_description')->nullable();
+            $table->string('drive')->nullable();
+            $table->string('engine_displacement')->nullable();
+            $table->integer('cylinders')->nullable();
+            $table->decimal('combined_mpg', 5, 2)->nullable();
+            $table->boolean('base_model')->nullable();
+            $table->boolean('start_stop')->nullable();
+            $table->integer('year')->nullable();
+            $table->string('transmission')->nullable();
             $table->timestamps();
-
-            // Each model name should be unique within a make
             $table->unique(['vehicle_make_id', 'name']);
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('vehicle_makes');
