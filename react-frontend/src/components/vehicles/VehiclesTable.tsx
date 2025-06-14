@@ -22,7 +22,7 @@ interface VehiclesTableProps {
     onSelectAll?: (event: React.ChangeEvent<HTMLInputElement>) => void;
     onPageChange?: (event: unknown, newPage: number) => void;
     onRowsPerPageChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
-    showSelectBoxes: boolean;
+    showSelectBoxes?: boolean | null;
 }
 
 const VehiclesTable: React.FC<VehiclesTableProps> = ({
