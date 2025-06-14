@@ -5,14 +5,13 @@ import {
     Alert, Autocomplete, Stack, Box
 } from '@mui/material';
 import {DatePicker} from '@mui/x-date-pickers/DatePicker';
-import {AdapterDateFns} from '@mui/x-date-pickers/AdapterDateFns';
-import {LocalizationProvider} from '@mui/x-date-pickers/LocalizationProvider';
 import {Vehicle} from '../../interfaces/Vehicle';
 import {Customer} from '../../interfaces/Customer';
 import {getCustomers} from '../../services/CustomerService';
 import {createVehicle, updateVehicle} from '../../services/VehicleService';
 import {VehicleMake, VehicleModel, getVehicleMakes, getVehicleModels} from '../../services/VehicleMakeModelService';
-import {format} from "date-fns";
+import {useTheme, useMediaQuery} from '@mui/material';
+import dayjs from 'dayjs';
 
 interface VehicleFormDialogProps {
     open: boolean;
@@ -36,8 +35,8 @@ const VehicleFormDialog: React.FC<VehicleFormDialogProps> = ({
         year: new Date().getFullYear().toString(),
         registration: '',
         customer_id: '',
-        last_service: format(new Date(), 'yyyy-MM-dd'),
-        next_service_due: format(new Date(new Date().setMonth(new Date().getMonth() + 12)), 'yyyy-MM-dd'),
+        last_service: dayjs().format('YYYY-MM-DD'),
+        next_service_due: dayjs().add(12, 'month').format('YYYY-MM-DD'),
         type: 'Car',
     });
 
@@ -60,7 +59,7 @@ const VehicleFormDialog: React.FC<VehicleFormDialogProps> = ({
     useEffect(() => {
         const loadCustomers = async () => {
             try {
-                const data = await getCustomers();
+                const data = await getCustomers(1, 5000);
                 setCustomers(data.data);
             } catch (err) {
                 console.error('Failed to load customers:', err);
@@ -119,7 +118,8 @@ const VehicleFormDialog: React.FC<VehicleFormDialogProps> = ({
         };
 
         const timer = setTimeout(() => {
-            fetchModels().then(() => {});
+            fetchModels().then(() => {
+            });
         }, 500);
 
         return () => clearTimeout(timer);
@@ -134,8 +134,8 @@ const VehicleFormDialog: React.FC<VehicleFormDialogProps> = ({
                 year: vehicleToEdit.year?.toString() || new Date().getFullYear().toString(),
                 registration: vehicleToEdit.registration || '',
                 customer_id: vehicleToEdit?.customer?.uuid ? vehicleToEdit?.customer?.uuid : '',
-                last_service: vehicleToEdit.last_service || format(new Date(), 'yyyy-MM-dd'),
-                next_service_due: vehicleToEdit.next_service_due || format(new Date(new Date().setMonth(new Date().getMonth() + 12)), 'yyyy-MM-dd'),
+                last_service: vehicleToEdit.last_service || dayjs().format('YYYY-MM-DD'),
+                next_service_due: vehicleToEdit.next_service_due || dayjs().add(12, 'month').format('YYYY-MM-DD'),
                 type: vehicleToEdit.type || 'Car',
             });
 
@@ -156,7 +156,8 @@ const VehicleFormDialog: React.FC<VehicleFormDialogProps> = ({
                 }
             };
 
-            findMake().then(() => {});
+            findMake().then(() => {
+            });
         } else if (open) {
             // Reset form when adding new
             setFormData({
@@ -165,8 +166,8 @@ const VehicleFormDialog: React.FC<VehicleFormDialogProps> = ({
                 year: new Date().getFullYear().toString(),
                 registration: '',
                 customer_id: '',
-                last_service: format(new Date(), 'yyyy-MM-dd'),
-                next_service_due: format(new Date(new Date().setMonth(new Date().getMonth() + 12)), 'yyyy-MM-dd'),
+                last_service: dayjs().format('YYYY-MM-DD'),
+                next_service_due: dayjs().add(12, 'month').format('YYYY-MM-DD'),
                 type: 'Car',
             });
             setSelectedMake(null);
@@ -178,11 +179,16 @@ const VehicleFormDialog: React.FC<VehicleFormDialogProps> = ({
         setFormData(prev => ({...prev, [name]: value}));
     };
 
-    const handleDateChange = (name: string, date: Date | null) => {
+    const handleDateChange = (name: string, date: dayjs.Dayjs | null) => {
         if (date) {
             setFormData(prev => ({
                 ...prev,
-                [name]: format(date, 'yyyy-MM-dd')
+                [name]: date.format('YYYY-MM-DD')
+            }));
+        } else {
+            setFormData(prev => ({
+                ...prev,
+                [name]: ''
             }));
         }
     };
@@ -214,6 +220,9 @@ const VehicleFormDialog: React.FC<VehicleFormDialogProps> = ({
         }
     };
 
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
     return (
         <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
             <DialogTitle>{isEditMode ? 'Edit Vehicle' : 'Add New Vehicle'}</DialogTitle>
@@ -222,7 +231,7 @@ const VehicleFormDialog: React.FC<VehicleFormDialogProps> = ({
 
                 <Box sx={{mt: 2}}>
                     {/* Make and Model row */}
-                    <Stack direction="row" spacing={2} sx={{mb: 2}}>
+                    <Stack direction={isMobile ? "column" : "row"} spacing={2} sx={{mb: 2}}>
                         <Box sx={{flex: 1}}>
                             <Autocomplete
                                 fullWidth
@@ -303,7 +312,7 @@ const VehicleFormDialog: React.FC<VehicleFormDialogProps> = ({
                     </Stack>
 
                     {/* Year and Registration row */}
-                    <Stack direction="row" spacing={2} sx={{mb: 2}}>
+                    <Stack direction={isMobile ? "column" : "row"} spacing={2} sx={{mb: 2}}>
                         <Box sx={{flex: 1}}>
                             <TextField
                                 name="year"
@@ -331,24 +340,32 @@ const VehicleFormDialog: React.FC<VehicleFormDialogProps> = ({
                     </Stack>
 
                     {/* Customer and Vehicle Type row */}
-                    <Stack direction="row" spacing={2} sx={{mb: 2}}>
+                    <Stack direction={isMobile ? "column" : "row"} spacing={2} sx={{mb: 2}}>
                         <Box sx={{flex: 1}}>
-                            <TextField
-                                name="customer_id"
-                                label="Customer"
-                                select
-                                value={formData.customer_id || ""}
-                                onChange={handleInputChange}
+                            <Autocomplete
                                 fullWidth
-                                required
-                            >
-                                <MenuItem value="" disabled>Select Customer</MenuItem>
-                                {customers.map(customer => (
-                                    <MenuItem key={customer.uuid} value={customer.uuid}>
-                                        {customer.first_name} {customer.last_name}
-                                    </MenuItem>
-                                ))}
-                            </TextField>
+                                options={customers}
+                                getOptionLabel={(option) =>
+                                    option ? `${option.first_name} ${option.last_name}` : ''
+                                }
+                                value={
+                                    customers.find(c => c.uuid === formData.customer_id) || null
+                                }
+                                onChange={(_, newValue) => {
+                                    setFormData(prev => ({
+                                        ...prev,
+                                        customer_id: newValue?.uuid || ''
+                                    }));
+                                }}
+                                isOptionEqualToValue={(option, value) => option.uuid === value.uuid}
+                                renderInput={(params) => (
+                                    <TextField
+                                        {...params}
+                                        label="Customer"
+                                        required
+                                    />
+                                )}
+                            />
                         </Box>
                         <Box sx={{flex: 1}}>
                             <TextField
@@ -368,26 +385,34 @@ const VehicleFormDialog: React.FC<VehicleFormDialogProps> = ({
                     </Stack>
 
                     {/* Service Dates row */}
-                    <Stack direction="row" spacing={2}>
-                        <Box sx={{flex: 1}}>
-                            <LocalizationProvider dateAdapter={AdapterDateFns}>
-                                <DatePicker
-                                    label="Last Service Date"
-                                    value={new Date(formData.last_service)}
-                                    onChange={(date) => handleDateChange('last_service', date as Date)}
-                                    slotProps={{textField: {fullWidth: true}}}
-                                />
-                            </LocalizationProvider>
+                    <Stack direction={isMobile ? "column" : "row"} spacing={2}>
+                        <Box sx={{flex: 1, mb: isMobile ? 2 : 0}}>
+                            <DatePicker
+                                label="Last Service Date"
+                                value={dayjs(formData.last_service)}
+                                onChange={(value) => {
+                                    if (dayjs.isDayjs(value)) {
+                                        handleDateChange('last_service', value);
+                                    } else if (value === null) {
+                                        handleDateChange('last_service', null);
+                                    }
+                                }}
+                                slotProps={{textField: {fullWidth: true}}}
+                            />
                         </Box>
                         <Box sx={{flex: 1}}>
-                            <LocalizationProvider dateAdapter={AdapterDateFns}>
-                                <DatePicker
-                                    label="Next Service Due"
-                                    value={new Date(formData.next_service_due)}
-                                    onChange={(date) => handleDateChange('next_service_due', date as Date)}
-                                    slotProps={{textField: {fullWidth: true}}}
-                                />
-                            </LocalizationProvider>
+                            <DatePicker
+                                label="Next Service Due"
+                                value={dayjs(formData.next_service_due)}
+                                onChange={(value,) => {
+                                    if (dayjs.isDayjs(value)) {
+                                        handleDateChange('next_service_due', value);
+                                    } else if (value === null) {
+                                        handleDateChange('next_service_due', null);
+                                    }
+                                }}
+                                slotProps={{textField: {fullWidth: true}}}
+                            />
                         </Box>
                     </Stack>
                 </Box>

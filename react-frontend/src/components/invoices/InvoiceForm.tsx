@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import dayjs from 'dayjs';
 import {
     Box, Button, Grid, IconButton, MenuItem, Paper, TextField, Typography,
@@ -9,8 +9,9 @@ import {
     CreateInvoicePayload,
     InvoiceItemInput,
 } from '../../services/invoiceService';
-import { getCustomers } from '../../services/CustomerService';
-import { Customer } from '../../interfaces/Customer';
+import {getCustomers} from '../../services/CustomerService';
+import {Customer} from '../../interfaces/Customer';
+import {DatePicker} from '@mui/x-date-pickers/DatePicker';
 
 type Mode = 'create' | 'edit';
 
@@ -57,11 +58,11 @@ const InvoiceForm: React.FC<Props> = ({
         const subtotal = items.reduce((s, i) => s + i.amount, 0);
         const tax_amount = +(subtotal * (rate / 100)).toFixed(2);
         const total = subtotal + tax_amount;
-        return { subtotal, tax_amount, total };
+        return {subtotal, tax_amount, total};
     };
     const patch = (p: Partial<CreateInvoicePayload>) => {
-        const next = { ...form, ...p };
-        setForm({ ...next, ...recalcTotals(next.items, next.tax_rate) });
+        const next = {...form, ...p};
+        setForm({...next, ...recalcTotals(next.items, next.tax_rate)});
     };
 
     /* customers */
@@ -73,15 +74,24 @@ const InvoiceForm: React.FC<Props> = ({
     }, []);
 
     /* handlers */
-    const txt =
-        (field: keyof CreateInvoicePayload) =>
-            (e: React.ChangeEvent<HTMLInputElement>) =>
-                patch({ [field]: e.target.value } as Partial<CreateInvoicePayload>);
+    const txt = (field: keyof CreateInvoicePayload) =>
+        (e: React.ChangeEvent<HTMLInputElement>) =>
+            patch({[field]: e.target.value} as Partial<CreateInvoicePayload>);
 
-    const num =
-        (field: keyof CreateInvoicePayload) =>
-            (e: React.ChangeEvent<HTMLInputElement>) =>
-                patch({ [field]: e.target.value === '' ? 0 : +e.target.value } as Partial<CreateInvoicePayload>);
+    // Update dateChange to accept both value and context
+    const dateChange = (field: keyof CreateInvoicePayload) =>
+        (value: unknown,) => {
+            // Only update if value is a Dayjs instance
+            if (dayjs.isDayjs(value)) {
+                patch({[field]: value.format('YYYY-MM-DD')} as Partial<CreateInvoicePayload>);
+            } else if (value === null) {
+                patch({[field]: ''} as Partial<CreateInvoicePayload>);
+            }
+        };
+
+    const num = (field: keyof CreateInvoicePayload) =>
+        (e: React.ChangeEvent<HTMLInputElement>) =>
+            patch({[field]: e.target.value === '' ? 0 : +e.target.value} as Partial<CreateInvoicePayload>);
 
     const itemChange = (
         idx: number,
@@ -103,10 +113,10 @@ const InvoiceForm: React.FC<Props> = ({
             return updatedItem;
         });
 
-        patch({ items: updatedItems });
+        patch({items: updatedItems});
     };
 
-    const addItem = () => patch({ items: [...form.items, makeEmptyItem()] });
+    const addItem = () => patch({items: [...form.items, makeEmptyItem()]});
     const delItem = (i: number) =>
         patch({
             items: form.items.length > 1 ? form.items.filter((_, idx) => idx !== i) : [makeEmptyItem()],
@@ -120,14 +130,14 @@ const InvoiceForm: React.FC<Props> = ({
 
     /* UI */
     return (
-        <Paper sx={{ p: 3 }}>
+        <Paper sx={{p: 3}}>
             <Typography variant="h6" mb={2}>
                 {mode === 'edit' ? 'Edit Invoice' : 'New Invoice'}
             </Typography>
             <Box component="form" onSubmit={handleSubmit}>
                 <Grid container spacing={2}>
                     {/* customer / invoice # */}
-                    <Grid size={{ xs: 12, md: 8 }}>
+                    <Grid size={{xs: 12, md: 8}}>
                         <TextField
                             select
                             fullWidth
@@ -143,7 +153,7 @@ const InvoiceForm: React.FC<Props> = ({
                             ))}
                         </TextField>
                     </Grid>
-                    <Grid size={{ xs: 12, md: 4 }}>
+                    <Grid size={{xs: 12, md: 4}}>
                         <TextField
                             fullWidth
                             required
@@ -154,31 +164,23 @@ const InvoiceForm: React.FC<Props> = ({
                     </Grid>
 
                     {/* dates / tax / status */}
-                    <Grid size={{ xs: 6, md: 3 }}>
-                        <TextField
-                            fullWidth
-                            type="date"
+                    <Grid size={{xs: 6, md: 3}}>
+                        <DatePicker
                             label="Issue Date"
-                            value={form.issue_date}
-                            onChange={txt('issue_date')}
-                            slotProps={{
-                                inputLabel: { shrink: true }
-                            }}
+                            value={dayjs(form.issue_date)}
+                            onChange={dateChange('issue_date')}
+                            slotProps={{textField: {fullWidth: true}}}
                         />
                     </Grid>
-                    <Grid size={{ xs: 6, md: 3 }}>
-                        <TextField
-                            fullWidth
-                            type="date"
+                    <Grid size={{xs: 6, md: 3}}>
+                        <DatePicker
                             label="Due Date"
-                            value={form.due_date}
-                            onChange={txt('due_date')}
-                            slotProps={{
-                                inputLabel: { shrink: true }
-                            }}
+                            value={dayjs(form.due_date)}
+                            onChange={dateChange('due_date')}
+                            slotProps={{textField: {fullWidth: true}}}
                         />
                     </Grid>
-                    <Grid size={{ xs: 6, md: 3 }}>
+                    <Grid size={{xs: 6, md: 3}}>
                         <TextField
                             fullWidth
                             label="Tax Rate %"
@@ -186,11 +188,11 @@ const InvoiceForm: React.FC<Props> = ({
                             value={form.tax_rate || ''}
                             onChange={num('tax_rate')}
                             slotProps={{
-                                htmlInput: { step: 0.01 }
+                                htmlInput: {step: 0.01}
                             }}
                         />
                     </Grid>
-                    <Grid size={{ xs: 6, md: 3 }}>
+                    <Grid size={{xs: 6, md: 3}}>
                         <TextField
                             select
                             fullWidth
@@ -207,14 +209,14 @@ const InvoiceForm: React.FC<Props> = ({
                     </Grid>
 
                     {/* items */}
-                    <Grid size={{ xs: 12 }}>
+                    <Grid size={{xs: 12}}>
                         <Typography variant="subtitle1" mt={2} mb={1}>
                             Items
                         </Typography>
 
                         {form.items.map((it, idx) => (
-                            <Grid container spacing={1} key={idx} sx={{ mb: 1 }}>
-                                <Grid size={{ xs: 12, md: 4 }}>
+                            <Grid container spacing={1} key={idx} sx={{mb: 1}}>
+                                <Grid size={{xs: 12, md: 4}}>
                                     <TextField
                                         fullWidth
                                         label="Description"
@@ -222,7 +224,7 @@ const InvoiceForm: React.FC<Props> = ({
                                         onChange={(e) => itemChange(idx, 'description', e.target.value)}
                                     />
                                 </Grid>
-                                <Grid size={{ xs: 4, md: 2 }}>
+                                <Grid size={{xs: 4, md: 2}}>
                                     <TextField
                                         fullWidth
                                         type="number"
@@ -230,11 +232,11 @@ const InvoiceForm: React.FC<Props> = ({
                                         value={it.quantity || ''}
                                         onChange={(e) => itemChange(idx, 'quantity', +e.target.value)}
                                         slotProps={{
-                                            htmlInput: { step: 0.01 }
+                                            htmlInput: {step: 0.01}
                                         }}
                                     />
                                 </Grid>
-                                <Grid size={{ xs: 4, md: 2 }}>
+                                <Grid size={{xs: 4, md: 2}}>
                                     <TextField
                                         fullWidth
                                         label="Unit"
@@ -242,7 +244,7 @@ const InvoiceForm: React.FC<Props> = ({
                                         onChange={(e) => itemChange(idx, 'unit', e.target.value)}
                                     />
                                 </Grid>
-                                <Grid size={{ xs: 4, md: 2 }}>
+                                <Grid size={{xs: 4, md: 2}}>
                                     <TextField
                                         fullWidth
                                         type="number"
@@ -250,28 +252,28 @@ const InvoiceForm: React.FC<Props> = ({
                                         value={it.unit_price || ''}
                                         onChange={(e) => itemChange(idx, 'unit_price', +e.target.value)}
                                         slotProps={{
-                                            htmlInput: { step: 0.01 }
+                                            htmlInput: {step: 0.01}
                                         }}
                                     />
                                 </Grid>
-                                <Grid size={{ xs: 6, md: 1 }}>
-                                    <TextField disabled fullWidth label="Amount" value={it.amount.toFixed(2)} />
+                                <Grid size={{xs: 6, md: 1}}>
+                                    <TextField disabled fullWidth label="Amount" value={it.amount.toFixed(2)}/>
                                 </Grid>
-                                <Grid size={{ xs: 6, md: 1 }} sx={{ display: 'flex', alignItems: 'center' }}>
+                                <Grid size={{xs: 6, md: 1}} sx={{display: 'flex', alignItems: 'center'}}>
                                     <IconButton onClick={() => delItem(idx)}>
-                                        <DeleteIcon />
+                                        <DeleteIcon/>
                                     </IconButton>
                                 </Grid>
                             </Grid>
                         ))}
 
-                        <Button startIcon={<AddIcon />} variant="outlined" size="small" onClick={addItem} sx={{ mt: 1 }}>
+                        <Button startIcon={<AddIcon/>} variant="outlined" size="small" onClick={addItem} sx={{mt: 1}}>
                             Add Item
                         </Button>
                     </Grid>
 
                     {/* notes / totals */}
-                    <Grid size={{ xs: 12, md: 8 }}>
+                    <Grid size={{xs: 12, md: 8}}>
                         <TextField
                             fullWidth
                             multiline
@@ -281,8 +283,8 @@ const InvoiceForm: React.FC<Props> = ({
                             onChange={txt('notes')}
                         />
                     </Grid>
-                    <Grid size={{ xs: 12, md: 4 }}>
-                        <Box sx={{ p: 2, border: 1, borderColor: 'divider', borderRadius: 1, height: '100%' }}>
+                    <Grid size={{xs: 12, md: 4}}>
+                        <Box sx={{p: 2, border: 1, borderColor: 'divider', borderRadius: 1, height: '100%'}}>
                             <Typography variant="body2">Subtotal: £{form.subtotal.toFixed(2)}</Typography>
                             <Typography variant="body2">Tax: £{form.tax_amount.toFixed(2)}</Typography>
                             <Typography variant="h6" fontWeight="bold">
@@ -292,7 +294,7 @@ const InvoiceForm: React.FC<Props> = ({
                     </Grid>
 
                     {/* submit */}
-                    <Grid size={{ xs: 12 }} sx={{ textAlign: 'right', mt: 2 }}>
+                    <Grid size={{xs: 12}} sx={{textAlign: 'right', mt: 2}}>
                         <Button type="submit" variant="contained" disabled={loading}>
                             {loading ? 'Saving…' : mode === 'edit' ? 'Update Invoice' : 'Create Invoice'}
                         </Button>

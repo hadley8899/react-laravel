@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
     Box,
     Card,
@@ -19,15 +19,15 @@ import {
     Title,
     Tooltip,
     Legend,
+    Filler
 } from 'chart.js';
-import { Line, Pie } from 'react-chartjs-2';
+import {Line, Pie} from 'react-chartjs-2';
 
 import {
     getDashboardCharts,
     type DashboardChartData,
 } from '../../services/dashboardService';
 
-/* ---- one-time Chart.js registration (safe to repeat) ---- */
 ChartJS.register(
     CategoryScale,
     LinearScale,
@@ -37,6 +37,7 @@ ChartJS.register(
     Title,
     Tooltip,
     Legend,
+    Filler
 );
 
 const DashboardCharts: React.FC = () => {
@@ -65,16 +66,17 @@ const DashboardCharts: React.FC = () => {
         return (
             <Grid container spacing={3}>
                 {[0, 1].map((i) => (
-                    <Grid key={i} size={{ xs: 12, md: 6 }}>
-                        <Skeleton variant="rectangular" height={320} />
+                    <Grid key={i} size={{xs: 12, md: 6}}>
+                        <Skeleton variant="rectangular" height={320}/>
                     </Grid>
                 ))}
             </Grid>
         );
     }
-    if (!data) return null;
+    if (!data) {
+        return null;
+    }
 
-    /* ─── datasets ─── */
     const lineChartData = {
         labels: data.labels,
         datasets: [
@@ -117,33 +119,33 @@ const DashboardCharts: React.FC = () => {
     return (
         <Box mb={4}>
             <Grid container spacing={3}>
-                <Grid size={{ xs: 12, md: 6 }}>
+                <Grid size={{xs: 12, md: 6}}>
                     <Card>
-                        <CardHeader title="User Growth Trends" />
-                        <Divider />
+                        <CardHeader title="User Growth Trends"/>
+                        <Divider/>
                         <CardContent>
                             <Box height={300}>
                                 {/* unique id avoids double-mount canvas clash */}
                                 <Line
                                     id="user-growth-chart"
                                     data={lineChartData}
-                                    options={{ responsive: true, maintainAspectRatio: false }}
+                                    options={{responsive: true, maintainAspectRatio: false}}
                                 />
                             </Box>
                         </CardContent>
                     </Card>
                 </Grid>
 
-                <Grid size={{ xs: 12, md: 6 }}>
+                <Grid size={{xs: 12, md: 6}}>
                     <Card>
-                        <CardHeader title="Revenue (Paid)" />
-                        <Divider />
+                        <CardHeader title="Revenue (Paid)"/>
+                        <Divider/>
                         <CardContent>
                             <Box height={300} display="flex" alignItems="center">
                                 <Pie
                                     id="revenue-pie-chart"
                                     data={pieChartData}
-                                    options={{ responsive: true, maintainAspectRatio: false }}
+                                    options={{responsive: true, maintainAspectRatio: false}}
                                 />
                             </Box>
                         </CardContent>
