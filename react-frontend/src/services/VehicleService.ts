@@ -49,6 +49,11 @@ export const updateVehicle = async (
     return data.data;
 };
 
+export const getVehicle = async (uuid: string): Promise<Vehicle> => {
+    const { data } = await api.get<{ data: Vehicle }>(`/vehicles/${uuid}`);
+    return data.data;
+}
+
 export const deleteVehicle = async (uuid: string): Promise<void> => {
     await api.delete(`/vehicles/${uuid}`);
 };

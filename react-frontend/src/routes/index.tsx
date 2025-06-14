@@ -25,6 +25,7 @@ import AppointmentCreate from "../pages/AppointmentCreate.tsx";
 import AppointmentDetails from "../pages/AppointmentDetails.tsx";
 import AppointmentEdit from "../pages/AppointmentEdit.tsx";
 import UserManagement from "../pages/UserManagement.tsx";
+import VehicleDetails from "../pages/VehicleDetails.tsx";
 
 const AppRoutes: React.FC = () => {
     return (
@@ -39,6 +40,7 @@ const AppRoutes: React.FC = () => {
             <Route element={<ProtectedRoute/>}>
                 <Route path="/dashboard" element={<Dashboard/>}/>
                 <Route path="/vehicles" element={<Vehicles/>}/>
+                <Route path="/vehicles/:uuid" element={<VehicleDetails/>}/>
                 <Route path="/customers" element={<Customers/>}/>
                 <Route path="/customers/:uuid" element={<CustomerDetails/>}/>
                 <Route path="/invoices" element={<Invoices/>}/>

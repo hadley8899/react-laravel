@@ -20,7 +20,12 @@ class UserController extends Controller
         return new UserResource($user);
     }
 
-    public function update(UpdateUserRequest $request, User $user): JsonResponse
+    /**
+     * @param UpdateUserRequest $request
+     * @param User $user
+     * @return UserResource
+     */
+    public function update(UpdateUserRequest $request, User $user): UserResource
     {
         $validated = $request->validated();
 
@@ -36,7 +41,7 @@ class UserController extends Controller
 
         $user->update($validated);
 
-        return response()->json(['data' => $user->fresh()]);
+        return new UserResource($user->fresh());
     }
 
     /**

@@ -1,33 +1,35 @@
-import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, {useEffect, useState} from 'react';
+import {useParams, useNavigate} from 'react-router-dom';
 import {
     Container,
     Paper,
     Box,
-    Typography,
     CircularProgress,
     Alert,
     Button,
-    Grid,
-    Chip
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import EmailIcon from '@mui/icons-material/Email';
-import PhoneIcon from '@mui/icons-material/Phone';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
-import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
-
 import MainLayout from '../components/layout/MainLayout';
-import { Customer } from '../interfaces/Customer';
-import { getCustomer } from '../services/CustomerService';
+import {Customer} from '../interfaces/Customer';
+import {getCustomer} from '../services/CustomerService';
+import CustomerDetailsCard from '../components/customer/CustomerDetailsCard.tsx';
+import {getVehicles} from '../services/VehicleService';
+import VehiclesTable from '../components/vehicles/VehiclesTable';
+import {Vehicle} from "../interfaces/Vehicle.ts";
+
 
 const CustomerDetails: React.FC = () => {
-    const { uuid } = useParams();
+    const {uuid} = useParams();
     const navigate = useNavigate();
 
     const [customer, setCustomer] = useState<Customer | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
+    // Vehicles state for this customer
+    const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+    const [vehiclesLoading, setVehiclesLoading] = useState(false);
+    const [vehiclesError, setVehiclesError] = useState<string | null>(null);
 
     useEffect(() => {
         if (!uuid) return;
@@ -44,26 +46,18 @@ const CustomerDetails: React.FC = () => {
                 setLoading(false);
             }
         };
-        fetchCustomer();
+        fetchCustomer().then();
     }, [uuid]);
 
-    const getStatusChip = (status: Customer['status']) => {
-        let color: "success" | "error" = "error";
-        let variant: "filled" | "outlined" = "outlined";
-        if (status === 'Active') {
-            color = 'success';
-            variant = 'filled';
-        }
-        return <Chip label={status} color={color} size="small" variant={variant} />;
-    };
-
-    const formatCurrency = (value: number, currencyCode = 'GBP') => {
-        const formatter = new Intl.NumberFormat('en-GB', {
-            style: 'currency',
-            currency: currencyCode,
-        });
-        return formatter.format(value);
-    };
+    useEffect(() => {
+        if (!uuid) return;
+        setVehiclesLoading(true);
+        setVehiclesError(null);
+        getVehicles(1, 1000, '', uuid)
+            .then(res => setVehicles(res.data))
+            .catch(err => setVehiclesError(err.message || 'Failed to load vehicles for this customer.'))
+            .finally(() => setVehiclesLoading(false));
+    }, [uuid]);
 
     const handleBackToList = () => {
         navigate('/customers');
@@ -71,16 +65,16 @@ const CustomerDetails: React.FC = () => {
 
     return (
         <MainLayout>
-            <Container maxWidth="md" sx={{ py: 4 }}>
+            <Container>
                 <Button
-                    startIcon={<ArrowBackIcon />}
+                    startIcon={<ArrowBackIcon/>}
                     onClick={handleBackToList}
-                    sx={{ mb: 2 }}
+                    sx={{mb: 2}}
                 >
                     Back to Customers
                 </Button>
 
-                <Paper elevation={3} sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3 }}>
+                <Paper elevation={3} sx={{p: {xs: 2, sm: 3}, borderRadius: 3, mb: 4}}>
                     {loading && (
                         <Box
                             sx={{
@@ -90,82 +84,29 @@ const CustomerDetails: React.FC = () => {
                                 minHeight: '300px'
                             }}
                         >
-                            <CircularProgress />
+                            <CircularProgress/>
                         </Box>
                     )}
                     {error && !loading && (
                         <Alert severity="error">{error}</Alert>
                     )}
                     {customer && !loading && !error && (
-                        <Grid container spacing={3}>
-                            <Grid size={{ xs: 12, md: 4 }}>
-                                <Box
-                                    sx={{
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        alignItems: 'center',
-                                        textAlign: 'center'
-                                    }}
-                                >
-                                    {getStatusChip(customer.status)}
-                                </Box>
-                            </Grid>
-
-                            {/* Right Column: Customer Info */}
-                            <Grid size={{ xs: 12, md: 8 }}>
-                                <Box sx={{ mb: 2 }}>
-                                    <Typography variant="h5" component="div" fontWeight="500">
-                                        {customer.first_name} {customer.last_name}
-                                    </Typography>
-                                    <Typography variant="body2" color="text.secondary">
-                                        Joined on {new Date(customer.created_at).toLocaleDateString('en-GB')}
-                                    </Typography>
-                                </Box>
-                                <Grid container spacing={2}>
-                                    {/* Email */}
-                                    <Grid size={{ xs: 12, md: 6 }}>
-                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                            <EmailIcon color="action" />
-                                            <Typography variant="body1" sx={{ wordBreak: 'break-all' }}>
-                                                {customer.email}
-                                            </Typography>
-                                        </Box>
-                                    </Grid>
-                                    {/* Phone */}
-                                    {customer.phone && (
-                                        <Grid size={{ xs: 12, md: 6 }}>
-                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                <PhoneIcon color="action" />
-                                                <Typography variant="body1">
-                                                    {customer.phone}
-                                                </Typography>
-                                            </Box>
-                                        </Grid>
-                                    )}
-                                    {/* Address */}
-                                    {customer.address && (
-                                        <Grid size={12}>
-                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
-                                                <LocationOnIcon color="action" />
-                                                <Typography variant="body1" sx={{ whiteSpace: 'pre-line' }}>
-                                                    {customer.address}
-                                                </Typography>
-                                            </Box>
-                                        </Grid>
-                                    )}
-                                    {/* Total Spent */}
-                                    <Grid size={12}>
-                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 2 }}>
-                                            <MonetizationOnIcon color="action" />
-                                            <Typography variant="body1" fontWeight="500">
-                                                Total Spent: {formatCurrency(customer.total_spent)}
-                                            </Typography>
-                                        </Box>
-                                    </Grid>
-                                </Grid>
-                            </Grid>
-                        </Grid>
+                        <CustomerDetailsCard customer={customer}/>
                     )}
+                </Paper>
+
+                <Paper elevation={3} sx={{p: {xs: 2, sm: 3}, borderRadius: 3}}>
+                    <Box sx={{mb: 2}}>
+                        <strong>Vehicles</strong>
+                    </Box>
+                    <VehiclesTable
+                        vehicles={vehicles}
+                        selected={[]}
+                        loading={vehiclesLoading}
+                        error={vehiclesError}
+                        showSelectBoxes={false}
+                        onRowClick={() => {}}
+                    />
                 </Paper>
             </Container>
         </MainLayout>
