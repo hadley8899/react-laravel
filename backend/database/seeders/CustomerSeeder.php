@@ -13,13 +13,6 @@ class CustomerSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create 100 companies with 10 customers each (original functionality)
-        Company::factory()
-            ->count(100)
-            ->has(Customer::factory()->count(10), 'customers')
-            ->create();
-
-        // Add a few thousand customers to company ID 66
         $targetCompany = Company::query()->find(1);
 
         if ($targetCompany) {

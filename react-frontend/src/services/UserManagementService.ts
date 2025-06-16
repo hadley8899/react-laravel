@@ -8,6 +8,7 @@ export interface CompanyUser extends User {
     email: string;
     role: string;
     permissions: string[];
+    status: 'active' | 'inactive' | 'pending' | 'invited' | 'rejected';
     created_at: string;
 }
 
@@ -17,7 +18,6 @@ export type CreateUserPayload = {
     password: string;
     password_confirmation: string;
     role?: string;
-    permissions?: string[];
     status?: 'active' | 'inactive';
 };
 
@@ -26,7 +26,7 @@ export type UpdateCompanyUserPayload = {
     email?: string;
     role?: string;
     permissions?: string[];
-    status?: 'active' | 'inactive';
+    status: 'active' | 'inactive' | 'pending' | 'invited' | 'rejected';
 };
 
 // Get all users in the company

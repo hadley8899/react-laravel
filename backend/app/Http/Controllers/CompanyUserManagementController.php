@@ -9,12 +9,15 @@ use App\Http\Requests\UpdateCompanyUserRequest;
 use App\Http\Requests\UpdateCompanyUserStatusRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
+use App\Notifications\NewUserInvite;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Random\RandomException;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -29,7 +32,7 @@ class CompanyUserManagementController extends Controller
         $this->authorize('viewAny', User::class);
 
         $users = User::query()
-            ->where('company_id', auth()->user()->company_id)
+            ->where('company_id', Auth::user()->company->id)
             ->where('id', '!=', Auth::user()->id)
             ->with(['roles', 'permissions'])
             ->get();
@@ -39,24 +42,31 @@ class CompanyUserManagementController extends Controller
 
     /**
      * Store a newly created user in storage.
+     * @throws RandomException
      */
     public function store(StoreCompanyUserRequest $request): UserResource
     {
+        // Generate a random 32 character string for the password
+        $password = bin2hex(random_bytes(16));
+
+        $invitationCode = User::createInvitationToken();
+        $companyId = Auth::user()->company->id;
+
         $user = new User();
         $user->name = $request->name;
         $user->email = $request->email;
-        $user->password = Hash::make($request->password);
-        $user->company_id = auth()->user()->company_id;
-        $user->status = $request->status ?? 'active';
+        $user->password = Hash::make($password);
+        $user->company_id = $companyId;
+        $user->status = 'invited'; // Default status for new users that have been created by a company admin/manager
+        $user->invition_token = $invitationCode; // Store the invitation token
         $user->save();
 
         if ($request->has('role')) {
             $user->assignRole($request->role);
         }
 
-        if ($request->has('permissions')) {
-            $user->syncPermissions($request->permissions);
-        }
+        // Send the invitation email to the user
+        Notification::send($user, new NewUserInvite($user, Auth::user()->company));
 
         return new UserResource($user);
     }
@@ -69,7 +79,7 @@ class CompanyUserManagementController extends Controller
     {
         $this->authorize('view', $user);
 
-        if ($user->company_id !== auth()->user()->company_id) {
+        if ($user->company_id !== Auth::user()->company->id) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
@@ -104,7 +114,7 @@ class CompanyUserManagementController extends Controller
     {
         $this->authorize('delete', $user);
 
-        if ($user->company_id !== auth()->user()->company_id) {
+        if ($user->company_id !== Auth::user()->company->id) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 

@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests;
 
-use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -31,7 +30,7 @@ class UpdateCompanyUserRequest extends FormRequest
             'role' => 'sometimes|string|exists:roles,name',
             'permissions' => 'sometimes|array',
             'permissions.*' => 'exists:permissions,name',
-            'status' => ['sometimes', Rule::in(['active', 'inactive'])],
+            'status' => ['sometimes', Rule::in(['active', 'inactive', 'invited', 'rejected', 'pending'])],
         ];
     }
 }

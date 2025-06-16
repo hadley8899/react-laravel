@@ -25,6 +25,21 @@ class UserFactory extends Factory
      */
     public function definition(): array
     {
+        $emailVerifiedAt = now();
+        if (fake()->boolean(20)) {
+            // 20% chance of having an unverified email
+            $emailVerifiedAt = null;
+        }
+
+        // Random status
+        $status = fake()->randomElement(['active', 'pending', 'invited', 'rejected']);
+
+        if ($status === 'invited') {
+            // If the status is 'invited', set email_verified_at to null
+            $emailVerifiedAt = null;
+            $inviteToken = User::createInvitationToken();
+        }
+
         return [
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
@@ -33,6 +48,8 @@ class UserFactory extends Factory
             'remember_token' => Str::random(10),
             'company_id' => Company::factory(),
             'avatar_path' => null,
+            'status' => $status,
+            'invitation_token' => $inviteToken ?? null,
         ];
     }
 
@@ -41,7 +58,7 @@ class UserFactory extends Factory
      */
     public function unverified(): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn(array $attributes) => [
             'email_verified_at' => null,
         ]);
     }

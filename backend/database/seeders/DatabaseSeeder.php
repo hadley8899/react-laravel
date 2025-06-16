@@ -7,7 +7,7 @@ use App\Models\Customer;
 use App\Models\User;
 use App\Models\Vehicle;
 use App\Models\VehicleMake;
-use App\Models\VehicleModel;
+use Exception;
 use Illuminate\Database\Seeder;
 use Random\RandomException;
 
@@ -23,55 +23,14 @@ class DatabaseSeeder extends Seeder
         // Create permissions and roles first
         $this->call(PermissionSeeder::class);
 
-        $this->command->info('Seeding the customers table...');
-        // 1) companies + customers
-        $this->call(CustomerSeeder::class);
-
-        $this->command->info('Seeding the make and model data...');
-        $this->call([VehicleMakeModelSeeder::class]);
-
-        $this->command->info('Seeding the vehicles...');
-        // 2) each customer gets 0‑20 vehicles
-        Customer::all()->each(function ($customer) {
-            $vehicleCount = random_int(0, 20);
-
-            for ($i = 0; $i < $vehicleCount; $i++) {
-                // Get a random make
-                $make = VehicleMake::query()->inRandomOrder()->first();
-
-                if ($make) {
-                    // Get a random model belonging to this make
-                    $model = VehicleModel::query()
-                        ->where('vehicle_make_id', $make->id)
-                        ->inRandomOrder()
-                        ->first();
-
-                    if ($model) {
-                        Vehicle::factory()->create([
-                            'company_id' => $customer->company_id,
-                            'customer_id' => $customer->id,
-                            'make' => $make->name,
-                            'model' => $model->name,
-                        ]);
-                    }
-                }
-            }
-        });
-
-        $this->command->info('Seeding the users table...');
-        // 3) users
-        $roles = ['Admin', 'Manager', 'User']; // Super admin is excluded from random assignment
-        $this->command->info('Roles available: ' . implode(', ', $roles));
-        User::factory(100)->create()->each(function ($user) use ($roles) {
-            $user->company_id = Company::query()->inRandomOrder()->value('id');
-            $user->save();
-
-            $randomRole = $roles[array_rand($roles)];
-            $user->assignRole($randomRole);
-        });
+        // Create a bunch of companies
+        $this->command->info('Seeding the companies');
+        Company::factory()
+            ->count(10)
+            ->has(Customer::factory()->count(10), 'customers')
+            ->create();
 
         $this->command->info('creating the test super admin user...');
-
         // Create a fixed test user on company 1
         $testUser = User::factory()->create([
             'name' => 'Test User',
@@ -105,6 +64,52 @@ class DatabaseSeeder extends Seeder
         $testUser2->assignRole('User');
 
         $this->command->info('Created test users: ' . $testUser->email . ', ' . $testAdmin->email . ', ' . $testManager->email . ', ' . $testUser2->email);
+
+        $this->command->info('Seeding the make and model data...');
+        $this->call([VehicleMakeModelSeeder::class]);
+
+        // Makes and models
+        $makesWithModels = VehicleMake::query()->with('models')->get();
+
+        Company::all()->each(function ($company) use ($makesWithModels) {
+            User::factory(random_int(5, 100))->create()->each(function ($user) use ($company) {
+                $roles = ['Admin', 'Manager', 'User'];
+                $user->company_id = $company->id;
+                $user->save();
+
+                $randomRole = $roles[array_rand($roles)];
+                $this->command->info('Assigning role ' . $randomRole . ' to user ' . $user->email . ' in company ' . $company->name);
+                $user->assignRole($randomRole);
+            });
+
+            Customer::factory(random_int(100, 1000))->create()->each(function ($customer) use ($company, $makesWithModels) {
+                $customer->company_id = $company->id;
+                $this->command->info('Creating customer ' . $customer->name . ' for company ' . $company->name);
+                $customer->save();
+
+                $vehicleCount = random_int(1, 25);
+                for ($i = 0; $i < $vehicleCount; $i++) {
+                    // Get a random make from the preloaded makes
+                    $make = $makesWithModels->random();
+                    // Get a random model from the make
+                    $model = $make->models->random();
+
+                    $this->command->info('Creating vehicle ' . $model->name . ' for company ' . $company->name);
+
+                    // Sometimes this can hit a unique constraint error if the same make and model is chosen
+                    try {
+                        Vehicle::factory()->create([
+                            'company_id' => $customer->company_id,
+                            'customer_id' => $customer->id,
+                            'make' => $make->name,
+                            'model' => $model->name,
+                        ]);
+                    } catch (Exception $e) {
+                        $this->command->error('Error creating vehicle: ' . $e->getMessage());
+                    }
+                }
+            });
+        });
 
         $this->command->info('Seeding the appointments and invoices...');
         $this->call([InvoiceSeeder::class, AppointmentSeeder::class]);

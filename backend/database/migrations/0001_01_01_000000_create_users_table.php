@@ -23,7 +23,7 @@ return new class extends Migration {
             $table->boolean('notify_new_booking')->default(true);
             $table->boolean('notify_job_complete')->default(false);
             $table->enum('preferred_theme', ['light', 'dark', 'system'])->default('system');
-
+            $table->string('invitation_token')->nullable()->unique();
             $table->rememberToken();
             $table->timestamp('last_login_at')->nullable();
             $table->timestamps();

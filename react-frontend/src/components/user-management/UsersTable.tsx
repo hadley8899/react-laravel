@@ -136,8 +136,10 @@ const UsersTable: React.FC<UsersTableProps> = ({
                             <Typography variant="body2" color="text.secondary" sx={{mb: 0.5}}>
                                 <strong>Email:</strong> {user.email}
                             </Typography>
-                            <Typography variant="body2" color="text.secondary" sx={{mb: 0.5}}>
-                                <strong>Status:</strong>{' '}
+                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+                                <Typography variant="body2" color="text.secondary" sx={{mr: 1}}>
+                                    <strong>Status:</strong>
+                                </Typography>
                                 <Chip
                                     label={ucfirst(user.status)}
                                     {...statusChipProps(user.status)}
@@ -145,7 +147,7 @@ const UsersTable: React.FC<UsersTableProps> = ({
                                     onClick={() => {
                                     }}
                                 />
-                            </Typography>
+                            </Box>
                             <Typography variant="body2" color="text.secondary" sx={{mb: 0.5}}>
                                 <strong>Role:</strong> {user.role}
                             </Typography>

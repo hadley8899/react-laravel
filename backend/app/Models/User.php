@@ -103,4 +103,14 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->belongsTo(Company::class);
     }
+
+    public static function createInvitationToken(): string
+    {
+        // As the invide code is unique, We need to make sure it doesnt already exist in the database
+        do {
+            $invitationCode = bin2hex(random_bytes(16)); // Generate a unique invitation code
+        } while (self::query()->where('invitation_token', $invitationCode)->exists());
+
+        return $invitationCode;
+    }
 }
