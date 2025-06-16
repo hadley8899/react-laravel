@@ -11,6 +11,7 @@ const Register: React.FC = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [companyCode, setCompanyCode] = useState('');
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [loading, setLoading] = useState(false);
 
@@ -24,6 +25,10 @@ const Register: React.FC = () => {
             newErrors.name = 'Name is required';
         } else if (name.length > 255) {
             newErrors.name = 'Name cannot exceed 255 characters';
+        }
+
+        if (!companyCode) {
+            newErrors.companyCode = 'Company code is required';
         }
 
         // Email validation
@@ -61,9 +66,10 @@ const Register: React.FC = () => {
                 email,
                 password,
                 password_confirmation: confirmPassword,
+                company_code: companyCode,
             });
 
-            showNotification('Registration successful!', 'success');
+            showNotification('Registration submitted! Awaiting admin approval.', 'info');
 
             clearForm();
 
@@ -136,6 +142,16 @@ const Register: React.FC = () => {
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     error={Boolean(errors.confirmPassword)}
                     helperText={errors.confirmPassword}
+                />
+
+                <TextField
+                    label="Company Code"
+                    fullWidth
+                    margin="normal"
+                    value={companyCode}
+                    onChange={(e) => setCompanyCode(e.target.value)}
+                    error={Boolean(errors.companyCode)}
+                    helperText={errors.companyCode}
                 />
 
                 <Button variant="contained" type="submit" fullWidth sx={{mt: 2}} disabled={loading}>

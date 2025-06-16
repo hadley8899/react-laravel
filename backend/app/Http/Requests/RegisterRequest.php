@@ -36,6 +36,7 @@ class RegisterRequest extends FormRequest
                 Rule::unique(User::class),
             ],
             'password' => $this->passwordRules(),
+            'company_code' => ['required', 'string', 'exists:companies,company_code'],
         ];
     }
 }

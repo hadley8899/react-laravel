@@ -6,7 +6,7 @@ export default interface User {
     email: string;
     avatar_url: string;
     phone: string | null;
-    status: 'active' | 'inactive';
+    status: 'active' | 'inactive' | 'pending' | 'invited' | 'rejected';
     company: Company;
     notify_new_booking: boolean;
     notify_job_complete: boolean;

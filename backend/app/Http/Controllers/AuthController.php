@@ -4,18 +4,24 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\RegisterRequest;
 use App\Http\Resources\UserResource;
+use App\Models\Company;
 use App\Models\User;
+use App\Notifications\NewUserRegistered;
 use App\Notifications\PasswordUpdatedNotification;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Validation\ValidationException;
+use RuntimeException;
 
 class AuthController
 {
@@ -49,18 +55,18 @@ class AuthController
 
             return response()->json([
                 'user' => new UserResource($user),
-                'token' => $token
+                'token' => $token,
             ]);
-        } else {
-            $user = User::query()->where('email', $request->email)->first();
-            if ($user) {
-                // Record failed login attempt
-                $user->loginActivity()->create([
-                    'ip_address' => $request->ip(),
-                    'user_agent' => $request->header('User-Agent'),
-                    'success' => 'failed',
-                ]);
-            }
+        }
+
+        $user = User::query()->where('email', $request->email)->first();
+        if ($user) {
+            // Record failed login attempt
+            $user->loginActivity()->create([
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->header('User-Agent'),
+                'success' => 'failed',
+            ]);
         }
 
         throw ValidationException::withMessages([
@@ -77,41 +83,40 @@ class AuthController
 
     public function register(RegisterRequest $request): JsonResponse
     {
-        // TODO Plan for register user/company
-        // 1. User creates an user, With a company name
-        // 2. We create the company with the name and a bunch of default settings
-        // 3. We create the user with the company_id
-        // 4. User then gets a verification email
-        // 5. User clicks the link in the email to verify their email address
-        // 6. Now the user will be presented with a setup page to fill in their company details, They cannot use the app
-        // until they have completed the company setup
-        // 7. Once the company setup is complete, the user can start using the app
+        DB::beginTransaction();
+        try {
+            $company = Company::query()->where('company_code', $request->company_code)->firstOrFail();
+            $user = User::query()->create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+                'company_id' => $company->id,
+                'status' => 'pending', // Default status for new users
+            ]);
 
-        // Things to consider:
-        // If we are adding a user to a company, we need to make sure that the company exists
-        // We need a way to make sure the user is allowed to be a user on that company
-        // We need to make sure that the user is not already registered with that email address
-        // Maybe we create a company code (or something) if we are adding to an existing company
-        // Maybe users on an existing company can register themselves, but they need to be approved by an admin first
-        // Maybe we don't allow users to register themselves on an existing company, but they need to be invited by an admin first
+            $adminsAndManagers = $company->users()->role(['Admin', 'Manager'])->get();
 
-        $user = User::query()->create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'company_id' => 1, // Default company ID // TODO, This will need to be changed later
-        ]);
+            // Send a notification to all found admins and managers.
+            if ($adminsAndManagers->isNotEmpty()) {
+                Notification::send($adminsAndManagers, new NewUserRegistered($user, $company));
+            }
 
-        // Dispatch registered event to trigger verification email if needed
-        event(new Registered($user));
+            // Dispatch registered event to trigger verification email if needed
+            event(new Registered($user));
 
-        // Create token for the new user
-        $token = $user->createToken('auth-token')->plainTextToken;
+            // Create token for the new user
+            // Response to the newly registered user
 
-        return response()->json([
-            'user' => new UserResource($user),
-            'token' => $token
-        ], 201);
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Registration successful. An administrator has been notified to approve your account. You will receive an email once your account is active.',
+            ], 201);
+        } catch (Exception $e) {
+            DB::rollBack();
+            throw new RuntimeException($e->getMessage());
+        }
     }
 
     public function verifyEmail(Request $request): RedirectResponse
@@ -121,6 +126,10 @@ class AuthController
         $hash = $request->route('hash');
 
         $user = User::query()->findOrFail($id);
+
+        if ($user === null) {
+            return redirect(env('FRONTEND_URL') . '?verified=0');
+        }
 
         if ($user->hasVerifiedEmail()) {
             return redirect(env('FRONTEND_URL') . '?verified=1');
@@ -133,9 +142,9 @@ class AuthController
 
         if ($user->markEmailAsVerified()) {
             return redirect(env('FRONTEND_URL') . '?verified=1');
-        } else {
-            return redirect(env('FRONTEND_URL') . '?verified=0');
         }
+
+        return redirect(env('FRONTEND_URL') . '?verified=0');
     }
 
     /**
@@ -175,7 +184,7 @@ class AuthController
             $request->only('email', 'password', 'password_confirmation', 'token'),
             function (User $user, string $password) {
                 $user->forceFill([
-                    'password' => Hash::make($password)
+                    'password' => Hash::make($password),
                 ])->save();
 
                 // Send password updated notification

@@ -44,6 +44,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'notify_job_complete',
         'preferred_theme',
         'company_id',
+        'status',
     ];
 
     /**

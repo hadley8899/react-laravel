@@ -6,16 +6,16 @@ use Illuminate\Support\Str;
 
 trait HasUuid
 {
-    protected static function bootHasUuid()
+    protected static function bootHasUuid(): void
     {
-        static::creating(function ($model) {
+        static::creating(static function ($model) {
             if (empty($model->uuid)) {
-                $model->uuid = (string) Str::uuid();
+                $model->uuid = (string)Str::uuid();
             }
         });
     }
 
-    public function getRouteKeyName()
+    public function getRouteKeyName(): string
     {
         return 'uuid';
     }

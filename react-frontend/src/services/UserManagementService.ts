@@ -6,7 +6,6 @@ export interface CompanyUser extends User {
     id: number;
     name: string;
     email: string;
-    status: 'active' | 'inactive';
     role: string;
     permissions: string[];
     created_at: string;

@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
+use Random\RandomException;
 
 class Company extends Model
 {
@@ -22,6 +23,7 @@ class Company extends Model
     protected $fillable = [
         'uuid',
         'name',
+        'company_code',
         'slug',
         'address',
         'phone',
@@ -55,13 +57,64 @@ class Company extends Model
     ];
 
     protected $casts = [
-        // Add casts for boolean and potentially integer values
         'enable_online_booking' => 'boolean',
         'send_appointment_reminders' => 'boolean',
         'default_appointment_duration' => 'integer',
         'appointment_buffer_time' => 'integer',
         'min_booking_notice_hours' => 'integer',
     ];
+
+    /**
+     * The "booted" method of the model.
+     *
+     * This method is called when the model is booting, and it's a great
+     * place to register model event listeners.
+     *
+     * @return void
+     */
+    protected static function booted(): void
+    {
+        /**
+         * Listen for the "creating" event on the Company model.
+         * This event fires when a new model instance is being saved for the first time.
+         * We use this to generate a unique company code if one hasn't been provided.
+         */
+        static::creating(static function (self $company) {
+            if (empty($company->company_code)) {
+                // Generate a unique code and assign it to the model.
+                $company->company_code = self::generateUniqueCompanyCode($company->name);
+            }
+        });
+    }
+
+    /**
+     * Generates a unique company code.
+     *
+     * It creates a code based on the company name and a random number,
+     * ensuring the generated code does not already exist in the database.
+     *
+     * @param string $name The name of the company.
+     * @return string
+     * @throws RandomException
+     */
+    private static function generateUniqueCompanyCode(string $name): string
+    {
+        // Take the first 3 characters of the name, make them uppercase.
+        // Fallback to 'CMP' if the name is empty.
+        $prefix = strtoupper(substr($name, 0, 3));
+        if (empty($prefix)) {
+            $prefix = 'CMP';
+        }
+
+        // Loop until we find a code that is not already in use.
+        do {
+            // Generate a random 6-digit number.
+            $randomNumber = random_int(100000, 999999);
+            $code = $prefix . '-' . $randomNumber;
+        } while (self::query()->where('company_code', $code)->exists());
+
+        return $code;
+    }
 
     public function getLogoUrlAttribute(): ?string
     {
