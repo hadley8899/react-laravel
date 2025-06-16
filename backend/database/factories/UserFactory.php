@@ -40,6 +40,8 @@ class UserFactory extends Factory
             $inviteToken = User::createInvitationToken();
         }
 
+        $preferredTheme = fake()->randomElement(['light', 'dark', 'system']);
+
         return [
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
@@ -50,6 +52,7 @@ class UserFactory extends Factory
             'avatar_path' => null,
             'status' => $status,
             'invitation_token' => $inviteToken ?? null,
+            'preferred_theme' => $preferredTheme,
         ];
     }
 
