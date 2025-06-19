@@ -26,10 +26,7 @@ class DatabaseSeeder extends Seeder
 
         // Create a bunch of companies
         $this->command->info('Seeding the companies');
-        Company::factory()
-            ->count(10)
-            ->has(Customer::factory()->count(10), 'customers')
-            ->create();
+        Company::factory()->count(10)->create();
 
         $this->command->info('creating the test super admin user...');
         // Create a fixed test user on company 1
@@ -77,21 +74,22 @@ class DatabaseSeeder extends Seeder
         $makesWithModels = VehicleMake::query()->with('models')->get();
 
         Company::all()->each(function ($company) use ($makesWithModels) {
-            User::factory(random_int(5, 100))->create()->each(function ($user) use ($company) {
+            User::factory(random_int(5, 100))->create([
+                'company_id' => $company->id
+            ])->each(function ($user) use ($company) {
                 $roles = ['Admin', 'Manager', 'User'];
-                $user->company_id = $company->id;
-                $user->save();
+                // $user->company_id = $company->id; // No longer needed
+                // $user->save(); // No longer needed
 
                 $randomRole = $roles[array_rand($roles)];
                 $this->command->info('Assigning role ' . $randomRole . ' to user ' . $user->email . ' in company ' . $company->name);
                 $user->assignRole($randomRole);
             });
 
-            Customer::factory(random_int(100, 1000))->create()->each(function ($customer) use ($company, $makesWithModels) {
-                $customer->company_id = $company->id;
+            Customer::factory(random_int(100, 1000))->create([
+                'company_id' => $company->id
+            ])->each(function ($customer) use ($company, $makesWithModels) {
                 $this->command->info('Creating customer ' . $customer->name . ' for company ' . $company->name);
-                $customer->save();
-
                 $vehicleCount = random_int(1, 25);
                 for ($i = 0; $i < $vehicleCount; $i++) {
                     // Get a random make from the preloaded makes

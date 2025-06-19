@@ -103,6 +103,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/companies/{company:uuid}/settings', [CompanyController::class, 'updateSettings'])->name('companies.updateSettings');
     Route::put('/companies/{company:uuid}/billing', [CompanyController::class, 'updateBilling'])->name('companies.updateBilling');
     Route::put('/companies/{company:uuid}', [CompanyController::class, 'update']);
+    Route::get('/companies', [CompanyController::class, 'index']);
+    Route::post('/companies/switch-company', [CompanyController::class, 'switchCompany']);
 
     // Appointments routes
     Route::prefix('/appointments')->group(function () {

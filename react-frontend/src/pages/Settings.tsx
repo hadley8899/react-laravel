@@ -15,6 +15,7 @@ import {Company} from "../interfaces/Company.ts";
 import {getMyCompany} from "../services/CompanyService.ts";
 import UserManagementLink from "../components/settings/UserManagementLink.tsx";
 import {hasPermission} from "../services/authService.ts";
+// import SwitchCompany from "../components/settings/SwitchCompany";
 // import Integrations from "../components/settings/Integrations.tsx";
 
 const Settings: React.FC = () => {

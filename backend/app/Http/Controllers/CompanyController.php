@@ -7,12 +7,15 @@ use App\Http\Requests\Company\UpdateCompanyBillingRequest;
 use App\Http\Requests\Company\UpdateCompanyRequest;
 use App\Http\Requests\Company\UpdateCompanySettingsRequest;
 use App\Http\Resources\CompanyResource;
+use App\Http\Resources\UserResource;
 use App\Models\Company;
+use App\Models\User;
 use App\Services\Company\CompanyDestroyService;
 use App\Services\Company\CompanyListService;
 use App\Services\Company\CompanyStoreService;
 use App\Services\Company\CompanyUpdateService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Auth;
@@ -23,6 +26,7 @@ class CompanyController extends Controller
     {
         $this->authorizeResource(Company::class, 'company');
     }
+
     /**
      * Display a listing of the resource.
      */
@@ -115,5 +119,25 @@ class CompanyController extends Controller
     {
         CompanyDestroyService::destroyCompany($company);
         return response()->json(null, 204);
+    }
+
+    public function switchCompany(Request $request): UserResource|JsonResponse
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        if (!$user->can('switch_companies')) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $companyUuId = $request->input('company_id');
+
+        $company = Company::query()->where('uuid', $companyUuId)->firstOrFail();
+
+        $user->company_id = $company->id;
+        $user->save();
+
+        $user->refresh();
+
+        return new UserResource($user);
     }
 }

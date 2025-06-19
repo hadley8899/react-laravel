@@ -105,3 +105,4 @@ export const acceptInvitation = (token: string, password: string, password_confi
         password_confirmation
     });
 }
+

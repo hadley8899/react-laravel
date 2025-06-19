@@ -20,7 +20,9 @@ class CompanyPolicy
      */
     public function view(User $user, Company $company): bool
     {
-        // User can only view their own company
+        if ($user->hasRole('Super Admin')) {
+            return true;
+        }
         return $user->hasPermissionTo('view_settings') && $user->company_id === $company->id;
     }
 
@@ -38,7 +40,9 @@ class CompanyPolicy
      */
     public function update(User $user, Company $company): bool
     {
-        // Only allow if user has permission and company matches
+        if ($user->hasRole('Super Admin')) {
+            return true;
+        }
         return $user->hasPermissionTo('update_company') && $user->company_id === $company->id;
     }
 
@@ -47,7 +51,9 @@ class CompanyPolicy
      */
     public function delete(User $user, Company $company): bool
     {
-        // Only allow if user has permission and company matches
+        if ($user->hasRole('Super Admin')) {
+            return true;
+        }
         return $user->hasPermissionTo('update_company') && $user->company_id === $company->id;
     }
 
@@ -56,6 +62,9 @@ class CompanyPolicy
      */
     public function restore(User $user, Company $company): bool
     {
+        if ($user->hasRole('Super Admin')) {
+            return true;
+        }
         return $user->hasPermissionTo('update_company') && $user->company_id === $company->id;
     }
 
@@ -64,7 +73,9 @@ class CompanyPolicy
      */
     public function forceDelete(User $user, Company $company): bool
     {
+        if ($user->hasRole('Super Admin')) {
+            return true;
+        }
         return $user->hasPermissionTo('update_company') && $user->company_id === $company->id;
     }
 }
-

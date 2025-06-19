@@ -20,7 +20,9 @@ import {
 import React, {useEffect, useState} from "react";
 import {useLocation, useNavigate} from "react-router-dom";
 import PersonIcon from "@mui/icons-material/Person";
+import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
 import {getAuthUserLocal, hasPermission} from "../services/authService";
+import SwitchCompanyModal from "./settings/SwitchCompany";
 
 interface SidebarProps {
     mobileOpen: boolean;
@@ -40,6 +42,7 @@ const Sidebar: React.FC<SidebarProps> = ({mobileOpen, handleDrawerToggle}) => {
     const navigate = useNavigate();
 
     const [authUser, setAuthUser] = useState(getAuthUserLocal());
+    const [switchCompanyOpen, setSwitchCompanyOpen] = useState(false);
 
     useEffect(() => {
         const handleUserUpdate = () => {
@@ -154,7 +157,18 @@ const Sidebar: React.FC<SidebarProps> = ({mobileOpen, handleDrawerToggle}) => {
                         <ListItemText primary={item.title}/>
                     </ListItemButton>
                 ))}
+                {hasPermission("switch_companies") && (
+                    <ListItemButton
+                        onClick={() => setSwitchCompanyOpen(true)}
+                    >
+                        <ListItemIcon>
+                            <SwapHorizIcon />
+                        </ListItemIcon>
+                        <ListItemText primary="Switch Company"/>
+                    </ListItemButton>
+                )}
             </List>
+            <SwitchCompanyModal open={switchCompanyOpen} onClose={() => setSwitchCompanyOpen(false)} />
         </Box>
     );
 
