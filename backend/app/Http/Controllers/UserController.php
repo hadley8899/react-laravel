@@ -70,9 +70,14 @@ class UserController extends Controller
         return response()->json(['message' => 'Password changed successfully']);
     }
 
-    public function updatePreferences(UpdateUserPreferencesRequest $req, User $user): JsonResponse
+    /**
+     * @param UpdateUserPreferencesRequest $req
+     * @param User $user
+     * @return UserResource
+     */
+    public function updatePreferences(UpdateUserPreferencesRequest $req, User $user): UserResource
     {
         $user->update($req->validated());
-        return response()->json(['data' => $user->fresh()]);
+        return new UserResource($user->fresh());
     }
 }

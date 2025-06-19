@@ -8,6 +8,7 @@ import Login from '../pages/Login';
 import Register from "../pages/Register";
 import ForgotPassword from "../pages/ForgotPassword.tsx";
 import ResetPassword from "../pages/ResetPassword";
+import AcceptInvitation from "../pages/AcceptInvitation.tsx";
 
 //Protected pages
 import Dashboard from "../pages/Dashboard";
@@ -35,6 +36,7 @@ const AppRoutes: React.FC = () => {
             <Route path="/register" element={<Register/>}/>
             <Route path="/forgot-password" element={<ForgotPassword/>}/>
             <Route path="/reset-password" element={<ResetPassword/>}/>
+            <Route path="/accept-invitation" element={<AcceptInvitation/>}/>
 
             {/* Protected routes */}
             <Route element={<ProtectedRoute/>}>
@@ -54,6 +56,7 @@ const AppRoutes: React.FC = () => {
                 <Route path="/profile" element={<Profile/>}/>
                 <Route path="/settings" element={<Settings/>}/>
                 <Route path="/user-management" element={<UserManagement/>}/>
+
             </Route>
 
             <Route path="*" element={<Navigate to="/login" replace/>}/>

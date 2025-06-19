@@ -49,7 +49,7 @@ class CompanyUserManagementController extends Controller
         // Generate a random 32 character string for the password
         $password = bin2hex(random_bytes(16));
 
-        $invitationCode = User::createInvitationToken();
+        $invitationToken = User::createInvitationToken();
         $companyId = Auth::user()->company->id;
 
         $user = new User();
@@ -58,7 +58,7 @@ class CompanyUserManagementController extends Controller
         $user->password = Hash::make($password);
         $user->company_id = $companyId;
         $user->status = 'invited'; // Default status for new users that have been created by a company admin/manager
-        $user->invition_token = $invitationCode; // Store the invitation token
+        $user->invitation_token = $invitationToken; // Store the invitation token
         $user->save();
 
         if ($request->has('role')) {

@@ -14,7 +14,7 @@ class AppointmentFactory extends Factory
 
     public function definition(): array
     {
-        $company = Company::query()->inRandomOrder()->first() ?? Company::factory();
+        $company = Company::query()->inRandomOrder()->first();
         $customer = Customer::factory()->for($company);
         $vehicle = Vehicle::factory()->for($company)->for($customer);
 
@@ -22,7 +22,6 @@ class AppointmentFactory extends Factory
         $statuses = ['Scheduled', 'Confirmed', 'In Progress', 'Completed', 'Cancelled', 'No Show'];
 
         return [
-            'uuid' => $this->faker->uuid,
             'company_id' => $company,
             'customer_id' => $customer,
             'vehicle_id' => $vehicle,

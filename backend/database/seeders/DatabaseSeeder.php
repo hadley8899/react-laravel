@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Appointment;
 use App\Models\Company;
 use App\Models\Customer;
 use App\Models\User;
@@ -36,6 +37,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'Test User',
             'email' => 'test@example.com',
             'company_id' => 1,
+            'status' => 'active',
         ]);
         $testUser->assignRole('Super Admin');
 
@@ -44,6 +46,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'Test Admin',
             'email' => 'test-admin@example.com',
             'company_id' => 1,
+            'status' => 'active',
         ]);
         $testAdmin->assignRole('Admin');
 
@@ -52,6 +55,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'Test Manager',
             'email' => 'test-manager@example.com',
             'company_id' => 1,
+            'status' => 'active',
         ]);
         $testManager->assignRole('Manager');
 
@@ -60,6 +64,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'Test User 2',
             'email' => 'test-user@example.com',
             'company_id' => 1,
+            'status' => 'active',
         ]);
         $testUser2->assignRole('User');
 
@@ -104,6 +109,13 @@ class DatabaseSeeder extends Seeder
                             'make' => $make->name,
                             'model' => $model->name,
                         ]);
+
+                        Appointment::factory()->create([
+                            'company_id' => $customer->company_id,
+                            'customer_id' => $customer->id,
+                            'vehicle_id' => Vehicle::latest()->first()->id, // Get the last created vehicle
+                        ]);
+
                     } catch (Exception $e) {
                         $this->command->error('Error creating vehicle: ' . $e->getMessage());
                     }
@@ -112,6 +124,6 @@ class DatabaseSeeder extends Seeder
         });
 
         $this->command->info('Seeding the appointments and invoices...');
-        $this->call([InvoiceSeeder::class, AppointmentSeeder::class]);
+        $this->call([InvoiceSeeder::class]);
     }
 }

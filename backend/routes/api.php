@@ -18,7 +18,7 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])->middleware(['throttle:6,1'])->name('verification.verify');
 Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.reset');
 Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->name('password.reset');
-
+Route::post('/accept-invitation', [AuthController::class, 'acceptInvitation'])->name('invitations.accept');
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);

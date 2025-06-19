@@ -61,13 +61,14 @@ class NewUserRegistered extends Notification implements ShouldQueue
      */
     public function toMail(object $notifiable): MailMessage
     {
+        $frontendURL = env('FRONTEND_URL', 'http://localhost:5173');
         return (new MailMessage)
             ->subject('New User Registration Requires Approval')
             ->greeting('Hello ' . $notifiable->name . ',')
             ->line('A new user has registered for your company, ' . $this->company->name . ', and requires your approval.')
             ->line('User Name: ' . $this->newUser->name)
             ->line('User Email: ' . $this->newUser->email)
-            ->action('View Users', url('/admin/users'))
+            ->action('View Users', url($frontendURL . 'user-management'))
             ->line('Please review their registration and approve or deny their account.');
     }
 
@@ -81,7 +82,6 @@ class NewUserRegistered extends Notification implements ShouldQueue
      */
     public function toArray(object $notifiable): array
     {
-        // Get the frontend url from .env FRONTEND_URL
         $frontendUrl = env('FRONTEND_URL', 'http://localhost:5173');
         return [
             'new_user_id' => $this->newUser->id,

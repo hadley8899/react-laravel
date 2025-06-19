@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\AcceptInvitationRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Http\Resources\UserResource;
 use App\Models\Company;
@@ -182,7 +183,7 @@ class AuthController
 
         $status = Password::reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),
-            function (User $user, string $password) {
+            static function (User $user, string $password) {
                 $user->forceFill([
                     'password' => Hash::make($password),
                 ])->save();
@@ -197,5 +198,28 @@ class AuthController
         return $status === Password::PASSWORD_RESET
             ? response()->json(['message' => 'Password has been reset successfully'])
             : response()->json(['message' => __($status)], 400);
+    }
+
+    public function acceptInvitation(AcceptInvitationRequest $request): JsonResponse
+    {
+        $user = User::query()
+            ->where('invitation_token', $request->token)
+            ->where('status', 'invited')
+            ->firstOrFail();
+
+        $user->forceFill([
+            'password'         => Hash::make($request->password),
+            'invitation_token' => null,
+            'status'           => 'active',
+            'email_verified_at'=> now(),              // save a click
+        ])->save();
+
+        // If you’d like to auto-login on success, just create a token here:
+        // $token = $user->createToken('auth')->plainTextToken;
+
+        return response()->json([
+            'message' => 'Invitation accepted – you can sign in now.',
+            // 'token' => $token,           // uncomment if auto-logging-in
+        ]);
     }
 }

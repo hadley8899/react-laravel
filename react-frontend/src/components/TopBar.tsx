@@ -101,16 +101,31 @@ const TopBar: React.FC<TopBarProps> = ({
         handleUserMenuClose();
     };
 
-    const handleMarkOneAsRead = async (notificationId: string) => {
+    const handleMarkOneAsRead = async (notification: Notification) => {
         try {
-            await NotificationService.markAsRead(notificationId);
-            // Refresh notifications or update the specific notification in the local state
-            setNotifications(prevNotifications =>
-                prevNotifications.map(n =>
-                    n.id === notificationId ? {...n, read_at: new Date().toISOString()} : n
-                )
-            );
-            setUnreadCount(prevCount => (prevCount > 0 ? prevCount - 1 : 0));
+            if (!notification.read_at) {
+                await NotificationService.markAsRead(notification.id);
+                // Refresh notifications or update the specific notification in the local state
+                setNotifications(prevNotifications =>
+                    prevNotifications.map(n =>
+                        n.id === notification.id ? {...n, read_at: new Date().toISOString()} : n
+                    )
+                );
+                setUnreadCount(prevCount => (prevCount > 0 ? prevCount - 1 : 0));
+            }
+
+            if (notification.data.link) {
+                // Navigate to the link if it exists
+
+                let link = notification.data.link;
+                // If the link has the full domain, Then strip it to just the path
+                if (link.startsWith(window.location.origin)) {
+                    link = link.replace(window.location.origin, '');
+                }
+
+                navigate(link);
+            }
+
         } catch (error) {
             console.error("Failed to mark notification as read:", error);
         }
@@ -123,8 +138,6 @@ const TopBar: React.FC<TopBarProps> = ({
                 prevNotifications.map(n => ({...n, read_at: new Date().toISOString()}))
             );
             setUnreadCount(0);
-            // Optionally close the menu
-            // handleNotifMenuClose();
         } catch (error) {
             console.error("Failed to mark all notifications as read:", error);
         }
@@ -236,7 +249,7 @@ const TopBar: React.FC<TopBarProps> = ({
                     notifications.map((notif) => (
                         <MenuItem
                             key={notif.id}
-                            onClick={() => !notif.read_at && handleMarkOneAsRead(notif.id)}
+                            onClick={() => handleMarkOneAsRead(notif)}
                             sx={{
                                 py: 1.5,
                                 px: 2,

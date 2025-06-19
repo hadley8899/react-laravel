@@ -1,10 +1,12 @@
 import React from "react";
 import {
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-    Paper, Chip, IconButton, Tooltip, Box, CircularProgress, Typography
+    Paper, Chip, IconButton, Tooltip, Box, CircularProgress, Typography,
+    TextField, InputAdornment, MenuItem, FormControl, Select, InputLabel
 } from "@mui/material";
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import SearchIcon from '@mui/icons-material/Search';
 import {CompanyUser} from "../../services/UserManagementService";
 
 interface UsersTableProps {
@@ -13,6 +15,11 @@ interface UsersTableProps {
     onEdit: (user: CompanyUser) => void;
     onDelete: (user: CompanyUser) => void;
     onToggleStatus: (user: CompanyUser) => void;
+    search: string;
+    onSearchChange: (value: string) => void;
+    roleFilter: string;
+    onRoleFilterChange: (value: string) => void;
+    availableRoles: string[];
 }
 
 const statusChipProps = (status: string) => {
@@ -37,10 +44,65 @@ const UsersTable: React.FC<UsersTableProps> = ({
                                                    loading,
                                                    onEdit,
                                                    onDelete,
+                                                   search,
+                                                   onSearchChange,
+                                                   roleFilter,
+                                                   onRoleFilterChange,
+                                                   availableRoles,
                                                }) => {
     const ucfirst = (str: string) => {
         return str.charAt(0).toUpperCase() + str.slice(1);
     };
+
+    // Filter Bar
+    const FilterBar = (
+        <Box
+            sx={{
+                display: 'flex',
+                flexDirection: { xs: 'column', sm: 'row' },
+                gap: 2,
+                mb: 2,
+                alignItems: { xs: 'stretch', sm: 'center' },
+                justifyContent: 'space-between',
+                background: theme => theme.palette.background.paper,
+                p: 2,
+                borderRadius: 2,
+                boxShadow: 1,
+            }}
+        >
+            <TextField
+                variant="outlined"
+                size="small"
+                placeholder="Search name or email"
+                value={search}
+                onChange={e => onSearchChange(e.target.value)}
+                sx={{ flex: 2, minWidth: 180 }}
+                slotProps={{
+                    input: {
+                        startAdornment: (
+                            <InputAdornment position="start">
+                                <SearchIcon color="action" />
+                            </InputAdornment>
+                        ),
+                    }
+                }}
+            />
+            <FormControl size="small" sx={{ minWidth: 140, flex: 1 }}>
+                <InputLabel id="role-filter-label">Role</InputLabel>
+                <Select
+                    labelId="role-filter-label"
+                    value={roleFilter}
+                    label="Role"
+                    onChange={e => onRoleFilterChange(e.target.value)}
+                >
+                    <MenuItem value="">All Roles</MenuItem>
+                    {availableRoles.map(role => (
+                        <MenuItem key={role} value={role}>{role}</MenuItem>
+                    ))}
+                </Select>
+            </FormControl>
+        </Box>
+    );
 
     if (loading) {
         return (
@@ -52,6 +114,7 @@ const UsersTable: React.FC<UsersTableProps> = ({
 
     return (
         <>
+            {FilterBar}
             {/* Desktop Table */}
             <Paper sx={{display: {xs: 'none', md: 'block'}}}>
                 <TableContainer>

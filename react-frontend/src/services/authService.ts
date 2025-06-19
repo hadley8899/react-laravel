@@ -97,3 +97,11 @@ export function getAuthUserLocal(): User | null {
     }
     return null;
 }
+
+export const acceptInvitation = (token: string, password: string, password_confirmation: string) => {
+    return api.post('/accept-invitation', {
+        token,
+        password,
+        password_confirmation
+    });
+}
