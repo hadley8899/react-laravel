@@ -87,6 +87,14 @@ class CompanyController extends Controller
         $validated = $request->validated();
         $file = $request->file('logo');
 
+        // Restrict plan fields to users with permission
+        $planFields = ['plan', 'status', 'trial_ends_at', 'active_until'];
+        if (!Auth::user()->can('update_company_plan_settings')) {
+            foreach ($planFields as $field) {
+                unset($validated[$field]);
+            }
+        }
+
         $company = CompanyUpdateService::updateCompany($company, $validated, $file);
 
         return new CompanyResource($company->fresh());

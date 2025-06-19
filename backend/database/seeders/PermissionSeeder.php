@@ -55,6 +55,10 @@ class PermissionSeeder extends Seeder
 
             // Reports
             'view_reports',
+
+            // Super Admin only
+            'update_company_plan_settings', // can update plan, status, trial dates
+            'switch_companies',
         ];
 
         foreach ($permissions as $permission) {
@@ -67,7 +71,10 @@ class PermissionSeeder extends Seeder
 
         // Create roles and assign permissions
         $role = Role::create(['name' => 'Admin']);
-        $role->givePermissionTo(Permission::all());
+        $role->givePermissionTo(array_diff($permissions, [
+            'update_company_plan_settings', // Exclude plan settings for Admin
+            'switch_companies', // Exclude switching companies for Admin
+        ]));
 
         $role = Role::create(['name' => 'Manager']);
         $role->givePermissionTo([

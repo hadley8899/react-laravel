@@ -24,6 +24,7 @@ import {DatePicker} from "@mui/x-date-pickers/DatePicker";
 import {DATE_FORMAT} from '../../services/dateService';
 import {format} from 'date-fns';
 import {useNotifier} from "../../contexts/NotificationContext.tsx";
+import {hasPermission} from "../../services/authService";
 
 const currencies = ['GBP', 'USD', 'EUR', 'AUD', 'CAD', 'NZD'];
 const units = ['metric', 'imperial'] as const;
@@ -91,6 +92,9 @@ const CompanyInfo: React.FC<CompanyInfoProps> = ({company, setCompany}) => {
         {code: 'it-IT', label: 'Italiano (Italia)'},
         {code: 'nl-NL', label: 'Nederlands (Nederland)'},
     ];
+
+    // Add permission check
+    const canEditPlanSettings = hasPermission('update_company_plan_settings');
 
     /* ---------- fetch ---------- */
     useEffect(() => {
@@ -304,7 +308,7 @@ const CompanyInfo: React.FC<CompanyInfoProps> = ({company, setCompany}) => {
                     {/* ---- BUSINESS ---- */}
                     {tab === 1 && (
                         <Box pt={3}>
-                            <Grid container spacing={3}>
+                            <Grid container spacing={3} sx={{mb: 3}}>
                                 <Grid size={{xs: 12, md: 6}}>
                                     <TextField label="Tax ID" fullWidth value={taxId}
                                                onChange={e => setTaxId(e.target.value)}/>
@@ -329,6 +333,7 @@ const CompanyInfo: React.FC<CompanyInfoProps> = ({company, setCompany}) => {
                                     <TextField
                                         select label="Status" fullWidth value={status}
                                         onChange={e => setStatus(e.target.value as any)}
+                                        disabled={!canEditPlanSettings}
                                     >
                                         {statuses.map(s => <MenuItem key={s} value={s}>{s}</MenuItem>)}
                                     </TextField>
@@ -337,30 +342,29 @@ const CompanyInfo: React.FC<CompanyInfoProps> = ({company, setCompany}) => {
                                     <TextField
                                         select label="Plan" fullWidth value={plan}
                                         onChange={e => setPlan(e.target.value)}
+                                        disabled={!canEditPlanSettings}
                                     >
                                         {plans.map(p => <MenuItem key={p} value={p}>{p}</MenuItem>)}
                                     </TextField>
                                 </Grid>
                                 <Grid size={{xs: 12, md: 6}}>
-
                                     <LocalizationProvider dateAdapter={AdapterDateFns}>
                                         <DatePicker
                                             label="Trial Ends"
                                             value={new Date(trialEnds)}
                                             onChange={(date) => handleTrialEndsChange(date as Date | null)}
-                                            slotProps={{textField: {fullWidth: true}}}
+                                            slotProps={{textField: {fullWidth: true, disabled: !canEditPlanSettings}}}
                                             format={DATE_FORMAT}
                                         />
                                     </LocalizationProvider>
                                 </Grid>
                                 <Grid size={{xs: 12, md: 6}}>
-
                                     <LocalizationProvider dateAdapter={AdapterDateFns}>
                                         <DatePicker
                                             label="Active Until"
                                             value={new Date(activeUntil)}
                                             onChange={(date) => handleActiveUntilChange(date as Date)}
-                                            slotProps={{textField: {fullWidth: true}}}
+                                            slotProps={{textField: {fullWidth: true, disabled: !canEditPlanSettings}}}
                                             format={DATE_FORMAT}
                                         />
                                     </LocalizationProvider>
@@ -419,7 +423,7 @@ const CompanyInfo: React.FC<CompanyInfoProps> = ({company, setCompany}) => {
                                     />
                                 </Grid>
 
-                                <Grid size={{xs: 12}}>
+                                <Grid size={{xs: 12}} sx={{mb: 3}}>
                                     <Alert severity="info" icon={<InfoIcon/>}>
                                         These preferences control how dates, currency and measurements are formatted
                                         throughout the app.

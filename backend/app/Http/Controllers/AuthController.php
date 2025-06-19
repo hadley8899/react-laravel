@@ -36,8 +36,20 @@ class AuthController
             'password' => 'required',
         ]);
 
+        // If the user
         if (Auth::attempt($request->only('email', 'password'))) {
-            $user = User::query()->where('email', $request->email)->first();
+            // User must be verified
+            $user = User::query()
+                ->where('email', $request->email)
+                ->whereNotNull('email_verified_at')
+                ->where('status', 'active')
+                ->first();
+
+            if (!$user) {
+                throw ValidationException::withMessages([
+                    'email' => ['Your account is not active or not verified.'],
+                ]);
+            }
 
             // Revoke previous tokens if you want
             $user->tokens()->delete();
@@ -208,10 +220,10 @@ class AuthController
             ->firstOrFail();
 
         $user->forceFill([
-            'password'         => Hash::make($request->password),
+            'password' => Hash::make($request->password),
             'invitation_token' => null,
-            'status'           => 'active',
-            'email_verified_at'=> now(),              // save a click
+            'status' => 'active',
+            'email_verified_at' => now(),              // save a click
         ])->save();
 
         // If you’d like to auto-login on success, just create a token here:

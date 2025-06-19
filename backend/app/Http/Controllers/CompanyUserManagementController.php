@@ -14,6 +14,7 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -34,6 +35,9 @@ class CompanyUserManagementController extends Controller
         $users = User::query()
             ->where('company_id', Auth::user()->company->id)
             ->where('id', '!=', Auth::user()->id)
+            ->whereDoesntHave('roles', function ($query) {
+                $query->where('name', 'super-admin');
+            })
             ->with(['roles', 'permissions'])
             ->get();
 
