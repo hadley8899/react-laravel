@@ -27,12 +27,12 @@ import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 
 const USER_STATUSES = [
-    { label: "Active", value: "active" },
-    { label: "Pending", value: "pending" },
-    { label: "Invited", value: "invited" },
-    { label: "Rejected", value: "rejected" },
-    { label: "Inactive", value: "inactive" },
-    { label: "All", value: "all" }
+    {label: "Active", value: "active"},
+    {label: "Pending", value: "pending"},
+    {label: "Invited", value: "invited"},
+    {label: "Rejected", value: "rejected"},
+    {label: "Inactive", value: "inactive"},
+    {label: "All", value: "all"}
 ];
 
 const STATUS_HELPER = [
@@ -297,20 +297,20 @@ const UserManagement: React.FC = () => {
                 </Box>
 
                 {/* Status Helper */}
-                <Box sx={{ mb: 3 }}>
+                <Box sx={{mb: 3}}>
                     {showStatusHelper ? (
                         <Box
                             sx={{
                                 backgroundColor: 'background.paper',
                                 borderRadius: 2,
                                 boxShadow: 1,
-                                p: { xs: 1.5, sm: 2 },
+                                p: {xs: 1.5, sm: 2},
                                 borderLeft: 4,
                                 borderColor: 'primary.main',
                                 display: 'flex',
-                                alignItems: { xs: 'stretch', sm: 'flex-start' },
+                                alignItems: {xs: 'stretch', sm: 'flex-start'},
                                 gap: 2,
-                                flexDirection: { xs: 'column', sm: 'row' },
+                                flexDirection: {xs: 'column', sm: 'row'},
                                 position: 'relative'
                             }}
                         >
@@ -328,34 +328,34 @@ const UserManagement: React.FC = () => {
                                 }}
                                 aria-label="Hide status helper"
                             >
-                                <KeyboardArrowUpIcon />
+                                <KeyboardArrowUpIcon/>
                             </Button>
                             <InfoOutlinedIcon
                                 color="primary"
                                 sx={{
-                                    mt: { xs: 0, sm: 0.5 },
-                                    alignSelf: { xs: 'center', sm: 'flex-start' },
-                                    fontSize: { xs: 32, sm: 24 }
+                                    mt: {xs: 0, sm: 0.5},
+                                    alignSelf: {xs: 'center', sm: 'flex-start'},
+                                    fontSize: {xs: 32, sm: 24}
                                 }}
                             />
-                            <Box sx={{ width: '100%' }}>
+                            <Box sx={{width: '100%'}}>
                                 <Typography
                                     variant="subtitle1"
                                     fontWeight="bold"
                                     gutterBottom
-                                    sx={{ textAlign: { xs: 'center', sm: 'left' } }}
+                                    sx={{textAlign: {xs: 'center', sm: 'left'}}}
                                 >
                                     What do user statuses mean?
                                 </Typography>
                                 <Box
                                     component="ul"
                                     sx={{
-                                        pl: { xs: 0, sm: 3 },
+                                        pl: {xs: 0, sm: 3},
                                         mb: 0,
                                         display: 'flex',
-                                        flexDirection: { xs: 'row', sm: 'column' },
-                                        overflowX: { xs: 'auto', sm: 'visible' },
-                                        gap: { xs: 2, sm: 0 },
+                                        flexDirection: {xs: 'row', sm: 'column'},
+                                        overflowX: {xs: 'auto', sm: 'visible'},
+                                        gap: {xs: 2, sm: 0},
                                         listStyle: 'none'
                                     }}
                                 >
@@ -369,7 +369,7 @@ const UserManagement: React.FC = () => {
                                                 alignItems: 'center'
                                             }}
                                         >
-                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                            <Box sx={{display: 'flex', alignItems: 'center', gap: 1}}>
                                                 <Box
                                                     component="span"
                                                     sx={{
@@ -381,15 +381,16 @@ const UserManagement: React.FC = () => {
                                                         mr: 1
                                                     }}
                                                 />
-                                                <Typography component="span" fontWeight="bold" sx={{ mr: 1, fontSize: { xs: 13, sm: 14 } }}>
+                                                <Typography component="span" fontWeight="bold"
+                                                            sx={{mr: 1, fontSize: {xs: 13, sm: 14}}}>
                                                     {status.label}
                                                 </Typography>
                                                 <Typography
                                                     component="span"
                                                     color="text.secondary"
                                                     sx={{
-                                                        fontSize: { xs: 12, sm: 14 },
-                                                        whiteSpace: { xs: 'normal', sm: 'inherit' }
+                                                        fontSize: {xs: 12, sm: 14},
+                                                        whiteSpace: {xs: 'normal', sm: 'inherit'}
                                                     }}
                                                 >
                                                     {status.description}
@@ -420,7 +421,7 @@ const UserManagement: React.FC = () => {
                             onClick={() => setShowStatusHelper(true)}
                             aria-label="Show status helper"
                         >
-                            <KeyboardArrowDownIcon fontSize="small" sx={{ mr: 0.5 }} />
+                            <KeyboardArrowDownIcon fontSize="small" sx={{mr: 0.5}}/>
                             <Typography variant="body2" color="primary">
                                 Show status helper
                             </Typography>
@@ -442,7 +443,7 @@ const UserManagement: React.FC = () => {
                 </Snackbar>
 
                 {/* Status Tabs */}
-                <Box sx={{ mb: 2 }}>
+                <Box sx={{mb: 2}}>
                     <Tabs
                         value={selectedStatus}
                         onChange={(_, v) => setSelectedStatus(v)}

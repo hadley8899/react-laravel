@@ -16,7 +16,9 @@ const Login: React.FC = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
-    const [errors, setErrors] = useState<{ email?: string; password?: string; general?: string }>({});
+    const [errors, setErrors] = useState<{ email?: string; password?: string; general?: string; company?: string }>(
+        {}
+    );
     const navigate = useNavigate();
     const {setUser} = useContext(AuthContext);
 
@@ -62,20 +64,35 @@ const Login: React.FC = () => {
             const err = error as {
                 response?: {
                     data?: {
-                        errors?: Record<string, string>,
+                        errors?: Record<string, string[] | string>,
                         message?: string
                     }
                 }
             };
 
-            // Handle error response
+            // Collect all error messages
+            const newErrors: { email?: string; password?: string; general?: string; company?: string } = {};
+
             if (err.response?.data?.errors) {
-                setErrors(err.response.data.errors);
-            } else if (err.response?.data?.message) {
-                setErrors({general: err.response.data.message});
-            } else {
-                setErrors({general: 'Login failed. Please try again.'});
+                // Flatten errors (Laravel returns arrays)
+                Object.entries(err.response.data.errors).forEach(([key, value]) => {
+                    if (Array.isArray(value)) {
+                        newErrors[key as keyof typeof newErrors] = value.join(' ');
+                    } else {
+                        newErrors[key as keyof typeof newErrors] = value;
+                    }
+                });
             }
+            if (err.response?.data?.message) {
+                // If message is not already included, add as general
+                if (!Object.values(newErrors).includes(err.response.data.message)) {
+                    newErrors.general = err.response.data.message;
+                }
+            }
+            if (Object.keys(newErrors).length === 0) {
+                newErrors.general = 'Login failed. Please try again.';
+            }
+            setErrors(newErrors);
             console.error('Login error:', error);
         } finally {
             setLoading(false);
@@ -88,12 +105,21 @@ const Login: React.FC = () => {
                 Login
             </Typography>
             <form onSubmit={handleSubmit}>
-                {errors.general && (
-                    <Typography color="error" variant="body2" sx={{mb: 2}}>
-                        {errors.general}
-                    </Typography>
+                {/* Show all error messages */}
+                {(errors.general || errors.company) && (
+                    <Box sx={{ mb: 2 }}>
+                        {errors.general && (
+                            <Typography color="error" variant="body2">
+                                {errors.general}
+                            </Typography>
+                        )}
+                        {errors.company && (
+                            <Typography color="error" variant="body2">
+                                {errors.company}
+                            </Typography>
+                        )}
+                    </Box>
                 )}
-
                 <TextField
                     label="Email"
                     fullWidth
@@ -158,3 +184,4 @@ const Login: React.FC = () => {
 };
 
 export default Login;
+

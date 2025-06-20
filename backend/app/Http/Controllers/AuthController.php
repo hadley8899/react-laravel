@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\AcceptInvitationRequest;
+use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Http\Resources\UserResource;
 use App\Models\Company;
@@ -29,13 +30,8 @@ class AuthController
     /**
      * @throws ValidationException
      */
-    public function login(Request $request): JsonResponse
+    public function login(LoginRequest $request): JsonResponse
     {
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
-        ]);
-
         // If the user
         if (Auth::attempt($request->only('email', 'password'))) {
             // User must be verified
@@ -43,11 +39,25 @@ class AuthController
                 ->where('email', $request->email)
                 ->whereNotNull('email_verified_at')
                 ->where('status', 'active')
+                ->with(['company', 'roles'])
                 ->first();
 
             if (!$user) {
                 throw ValidationException::withMessages([
                     'email' => ['Your account is not active or not verified.'],
+                ]);
+            }
+
+            // Check if the user's company is active
+            if ($user->company->status !== 'Active') {
+                throw ValidationException::withMessages([
+                    'company' => ['Your company account is not active. Please contact support.'],
+                ]);
+            }
+
+            if ($user->company->plan === 'Free' && $user->company->trial_ends_at && $user->company->trial_ends_at < Carbon::now()) {
+                throw ValidationException::withMessages([
+                    'company' => ['Your company has exceeded the trial period. Please upgrade your plan.'],
                 ]);
             }
 

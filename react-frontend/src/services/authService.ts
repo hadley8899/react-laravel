@@ -28,6 +28,9 @@ export async function registerUser(payload: RegisterPayload) {
 
 export async function loginUser(credentials: LoginPayload) {
     const res = await api.post('/login', credentials);
+
+    console.log(res);
+
     const {token, user} = res.data;
 
     if (token) {

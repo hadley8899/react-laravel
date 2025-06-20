@@ -28,7 +28,7 @@ class UpdateCompanyRequest extends FormRequest
             'phone' => ['sometimes', 'nullable', 'string', 'max:64'],
             'email' => ['sometimes', 'email', 'max:255', 'unique:companies,email,' . $this->route('company')->id],
             'website' => ['sometimes', 'nullable', 'url', 'max:255'],
-            'logo' => ['sometimes', 'image', 'max:2048'],
+            'logo' => ['sometimes', 'image', 'max:10000'], // 10MB max
             'tax_id' => ['sometimes', 'nullable', 'string', 'max:64'],
             'registration_number' => ['sometimes', 'nullable', 'string', 'max:64'],
             'industry' => ['sometimes', 'nullable', 'string', 'max:128'],
