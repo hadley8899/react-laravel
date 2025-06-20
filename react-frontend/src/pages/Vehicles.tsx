@@ -106,7 +106,7 @@ const Vehicles: React.FC = () => {
 
     /* ---------- render ---------- */
     return (
-        <MainLayout>
+        <MainLayout title="Vehicles">
             <Container maxWidth="lg" sx={{py: 4}}>
                 <Paper sx={{p: 3, borderRadius: 2}} elevation={3}>
                     <VehiclesTopBar

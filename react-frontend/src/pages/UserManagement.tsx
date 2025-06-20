@@ -152,8 +152,8 @@ const UserManagement: React.FC = () => {
             return false;
         }
         // Role filter
-        if (roleFilter && u.role !== roleFilter) return false;
-        return true;
+        return !(roleFilter && u.role !== roleFilter);
+
     });
 
     // Count for badges
@@ -279,7 +279,7 @@ const UserManagement: React.FC = () => {
     };
 
     return (
-        <MainLayout>
+        <MainLayout title="User Management">
             <Container maxWidth="lg" sx={{py: 4}}>
                 <Box sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4}}>
                     <Typography variant="h4" component="h1" fontWeight="bold">

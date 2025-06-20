@@ -121,7 +121,7 @@ const Invoices: React.FC = () => {
 
 
     return (
-        <MainLayout>
+        <MainLayout title="Invoices">
             <Container maxWidth="lg" sx={{py: 4}}>
                 <Paper sx={{p: 3, borderRadius: 2, overflow: 'hidden'}} elevation={3}>
                     {/* Header */}

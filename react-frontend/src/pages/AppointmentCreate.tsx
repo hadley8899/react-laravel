@@ -7,7 +7,7 @@ const AppointmentCreate: React.FC = () => {
     const nav = useNavigate();
 
     return (
-        <MainLayout>
+        <MainLayout title="Create Appointment">
             <AppointmentForm
                 mode="create"
                 onSuccess={() => nav('/appointments')}

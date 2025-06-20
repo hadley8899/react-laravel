@@ -29,7 +29,7 @@ const InvoiceCreate: React.FC = () => {
     };
 
     return (
-        <MainLayout>
+        <MainLayout title="Create Invoice">
             <Container maxWidth="lg" sx={{py: 4}}>
                 {error && (
                     <Alert severity="error" sx={{mb: 2}}>

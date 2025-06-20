@@ -30,7 +30,7 @@ const AppointmentEdit: React.FC = () => {
     }, [uuid]);
 
     return (
-        <MainLayout>
+        <MainLayout title="Edit Appointment">
             {loading ? (
                 <Box sx={{ p: 6, textAlign: 'center' }}>
                     <CircularProgress />

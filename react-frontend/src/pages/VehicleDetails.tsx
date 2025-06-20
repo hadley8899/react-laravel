@@ -51,7 +51,7 @@ const VehicleDetails: React.FC = () => {
     }, [uuid]);
 
     return (
-        <MainLayout>
+        <MainLayout title="Vehicle Details">
             <Container>
                 <Button
                     startIcon={<ArrowBackIcon/>}

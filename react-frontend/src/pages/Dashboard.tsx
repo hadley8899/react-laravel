@@ -11,7 +11,7 @@ const Dashboard: React.FC = () => {
     const {user} = useContext(AuthContext);
 
     return (
-        <MainLayout>
+        <MainLayout title="Dashboard">
             <Container maxWidth="lg">
                 <Typography variant="h4" sx={{mb: 4}}>
                     Welcome back, {user?.name ?? 'User'}!

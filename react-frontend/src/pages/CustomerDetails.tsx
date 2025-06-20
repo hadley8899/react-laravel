@@ -64,7 +64,7 @@ const CustomerDetails: React.FC = () => {
     };
 
     return (
-        <MainLayout>
+        <MainLayout title="Customer Details">
             <Container>
                 <Button
                     startIcon={<ArrowBackIcon/>}

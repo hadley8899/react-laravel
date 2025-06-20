@@ -36,7 +36,7 @@ const Settings: React.FC = () => {
     }, []);
 
     return (
-        <MainLayout>
+        <MainLayout title="Settings">
             <Container maxWidth="lg" sx={{py: 4}}>
                 <Box sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4}}>
                     <Typography variant="h4" component="h1" fontWeight="bold">

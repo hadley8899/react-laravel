@@ -72,7 +72,7 @@ const Profile: React.FC = () => {
 
     if (loading)
         return (
-            <MainLayout>
+            <MainLayout title="Loading Profile">
                 <Container maxWidth="sm" sx={{py: 6, textAlign: 'center'}}>
                     <CircularProgress/>
                 </Container>
@@ -82,7 +82,7 @@ const Profile: React.FC = () => {
     // Only show full-page error if user/profile cannot be loaded at all
     if (error && !user)
         return (
-            <MainLayout>
+            <MainLayout title="Profile Error">
                 <Container maxWidth="sm" sx={{py: 6}}>
                     <Alert severity="error" sx={{mb: 3}}>{error}</Alert>
                     <Button variant="contained" onClick={() => navigate('/login')}>Go to Login</Button>
@@ -93,7 +93,7 @@ const Profile: React.FC = () => {
     if (!user) return null;
 
     return (
-        <MainLayout>
+        <MainLayout title="Profile">
             <Container maxWidth="md" sx={{py: 4}}>
                 <Paper sx={{p: {xs: 2, sm: 4}, borderRadius: 2}}>
                     {/* Show error inline if present and user is loaded */}
@@ -103,12 +103,12 @@ const Profile: React.FC = () => {
                         </Alert>
                     )}
                     {showPasswordForm ? (
-                        <ProfileChangePassword 
+                        <ProfileChangePassword
                             userUuid={user.uuid}
                             onBack={() => setShowPasswordForm(false)}
                         />
                     ) : (
-                        <ProfileForm 
+                        <ProfileForm
                             user={user}
                             onSave={handleSave}
                             onLogout={handleLogout}

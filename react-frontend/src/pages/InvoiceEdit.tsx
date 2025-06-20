@@ -71,7 +71,7 @@ const InvoiceEdit: React.FC = () => {
 
     /* UI */
     return (
-        <MainLayout>
+        <MainLayout title={"Edit Invoice"}>
             <Container maxWidth="lg" sx={{ py: 4 }}>
                 {error && (
                     <Alert severity="error" sx={{ mb: 2 }}>

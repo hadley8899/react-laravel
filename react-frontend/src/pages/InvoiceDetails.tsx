@@ -149,7 +149,7 @@ const InvoiceDetails: React.FC = () => {
     };
 
     return (
-        <MainLayout>
+        <MainLayout title="Invoice Details">
             <Container maxWidth="lg" sx={{py: 4}}>
                 <Box sx={{mb: 3, display: 'flex', alignItems: 'center'}}>
                     <Button

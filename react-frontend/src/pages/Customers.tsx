@@ -138,7 +138,7 @@ const Customers: React.FC = () => {
     };
 
     return (
-        <MainLayout>
+        <MainLayout title="Customers">
             <Container maxWidth="lg" sx={{py: 4}}>
                 <Paper sx={{p: {xs: 2, sm: 3}, borderRadius: 3, overflow: 'hidden'}} elevation={2}>
                     <CustomerPageFilterBar

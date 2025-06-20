@@ -3,7 +3,7 @@ import {Box, CssBaseline, Toolbar} from '@mui/material';
 import {AuthContext} from '../../context/AuthContext';
 import Sidebar from "../Sidebar";
 import TopBar from "../TopBar";
-
+const baseURL = import.meta.env.VITE_APP_NAME || "React Laravel Starter";
 interface MainLayoutProps {
     children: ReactNode;
     title?: string;
@@ -24,7 +24,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({children, title}) => {
         if (title) {
             document.title = title;
         } else {
-            document.title = 'React Laravel Starter';
+            document.title = baseURL;
         }
     });
 

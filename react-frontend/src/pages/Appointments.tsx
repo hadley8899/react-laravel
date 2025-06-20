@@ -71,7 +71,7 @@ const Appointments: React.FC = () => {
     const handleAddClick = () => nav('/appointments/create');
 
     return (
-        <MainLayout>
+        <MainLayout title="Appointments">
             <Container maxWidth="xl" sx={{py: 4}}>
                 <Paper sx={{p: {xs: 1, sm: 2, md: 3}}} elevation={3}>
                     <AppointmentsHeader

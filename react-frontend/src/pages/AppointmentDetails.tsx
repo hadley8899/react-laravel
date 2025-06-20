@@ -37,7 +37,8 @@ const statusChip = (s: Appointment['status']) => {
         Cancelled: 'error',
         'No Show': 'error',
     } as const;
-    return <Chip label={s} size="small" color={map[s] ?? 'default'} onClick={() => {}}/>;
+    return <Chip label={s} size="small" color={map[s] ?? 'default'} onClick={() => {
+    }}/>;
 };
 
 const AppointmentDetails: React.FC = () => {
@@ -80,13 +81,13 @@ const AppointmentDetails: React.FC = () => {
     };
 
     if (load) return (
-        <MainLayout>
+        <MainLayout title="Loading Appointment">
             <Box sx={{p: 6, textAlign: 'center'}}><CircularProgress/></Box>
         </MainLayout>
     );
 
     if (err || !appt) return (
-        <MainLayout>
+        <MainLayout title="Appointment Not Found">
             <Container maxWidth="sm" sx={{py: 6}}>
                 <Alert severity="error">{err}</Alert>
             </Container>
@@ -94,7 +95,7 @@ const AppointmentDetails: React.FC = () => {
     );
 
     return (
-        <MainLayout>
+        <MainLayout title="Appointment Details">
             <Container maxWidth="md" sx={{py: 4}}>
                 <Box sx={{mb: 3, display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap'}}>
                     <Button startIcon={<ArrowBackIcon/>} onClick={() => nav('/appointments')}>
