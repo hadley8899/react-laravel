@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {
     Box,
     Card,
@@ -11,10 +11,20 @@ import AuthLeftLayoutContent from "./AuthLeftLayoutContent.tsx";
 
 interface AuthLayoutProps {
     children: React.ReactNode;
+    title?: string;
 }
 
-const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
+const AuthLayout: React.FC<AuthLayoutProps> = ({children, title}) => {
     const theme = useTheme();
+
+    // Set the document title if provided
+    useEffect(() => {
+        if (title) {
+            document.title = title;
+        } else {
+            document.title = 'Authentication';
+        }
+    }, [title]);
 
     return (
         <Box
@@ -34,7 +44,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
             }}
         >
             {/* Navbar at the top */}
-            <Navbar />
+            <Navbar/>
 
             {/* Content Wrapper */}
             <Box
@@ -43,8 +53,8 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
                     display: 'flex',
                     justifyContent: 'center',
                     alignItems: 'center',
-                    px: { xs: 2, md: 4 },
-                    py: { xs: 4, md: 8 },
+                    px: {xs: 2, md: 4},
+                    py: {xs: 4, md: 8},
                     // If needed, adjust margin-top to account for the navbar
                 }}
             >
@@ -53,7 +63,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
                     <Card
                         sx={{
                             display: 'flex',
-                            flexDirection: { xs: 'column', md: 'row' },
+                            flexDirection: {xs: 'column', md: 'row'},
                             overflow: 'hidden',
                             borderRadius: 2,
                             boxShadow: 5,
@@ -68,7 +78,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
                         <Box
                             sx={{
                                 flex: 1,
-                                p: { xs: 3, md: 4 },
+                                p: {xs: 3, md: 4},
                                 display: 'flex',
                                 flexDirection: 'column',
                                 justifyContent: 'center',

@@ -218,3 +218,10 @@ export const updateCompanyBilling = async (
     }
     return data.data;
 };
+
+export const completeCompanySetup = async (uuid: string, payload: any): Promise<Company> => {
+    // Add method _PATCH to the post data so Laravel picks it up
+    payload._method = 'PATCH'; // Laravel expects this for PATCH requests
+    const {data} = await api.patch(`/companies/${uuid}/setup`, payload);
+    return data.company;
+};

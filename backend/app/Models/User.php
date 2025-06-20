@@ -14,6 +14,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\HasApiTokens;
+use Random\RandomException;
 use SensitiveParameter;
 use Spatie\Permission\Traits\HasRoles;
 
@@ -104,9 +105,12 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->belongsTo(Company::class);
     }
 
+    /**
+     * @throws RandomException
+     */
     public static function createInvitationToken(): string
     {
-        // As the invide code is unique, We need to make sure it doesnt already exist in the database
+        // As the invite code is unique, We need to make sure it doesn't already exist in the database
         do {
             $invitationCode = bin2hex(random_bytes(16)); // Generate a unique invitation code
         } while (self::query()->where('invitation_token', $invitationCode)->exists());

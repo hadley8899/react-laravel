@@ -146,7 +146,6 @@ const TopBar: React.FC<TopBarProps> = ({
     const handleViewAllNotifications = () => {
         // Navigate to a dedicated notifications page if you have one
         // navigate('/notifications');
-        console.log("View all notifications clicked");
         handleNotifMenuClose();
     };
 

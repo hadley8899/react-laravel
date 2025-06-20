@@ -58,8 +58,13 @@ const Login: React.FC = () => {
             localStorage.setItem('user', JSON.stringify(userData));
             setUser(userData);
 
-            // Redirect to dashboard
-            navigate('/dashboard');
+            console.log(userData);
+            if (!userData.company.setup_complete) {
+                navigate('/company-setup');
+            } else {
+                // Redirect to dashboard
+                navigate('/dashboard');
+            }
         } catch (error: unknown) {
             const err = error as {
                 response?: {
@@ -107,7 +112,7 @@ const Login: React.FC = () => {
             <form onSubmit={handleSubmit}>
                 {/* Show all error messages */}
                 {(errors.general || errors.company) && (
-                    <Box sx={{ mb: 2 }}>
+                    <Box sx={{mb: 2}}>
                         {errors.general && (
                             <Typography color="error" variant="body2">
                                 {errors.general}

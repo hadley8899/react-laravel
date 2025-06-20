@@ -140,4 +140,20 @@ class CompanyController extends Controller
 
         return new UserResource($user);
     }
+
+    public function completeSetup(Request $request, Company $company)
+    {
+        $this->authorize('update', $company);               // spatie / policies
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+        ]);
+
+        $company->fill($validated);
+        $company->setup_complete = true;
+        $company->save();
+
+        return response()->json(['company' => $company->fresh()]);
+    }
 }

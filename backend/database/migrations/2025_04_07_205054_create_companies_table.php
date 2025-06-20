@@ -15,6 +15,7 @@ return new class extends Migration {
             $table->uuid()->unique();
             $table->string('company_code')->unique();
             $table->string('name');
+            $table->boolean('setup_complete')->default(false);
             $table->string('slug')->unique();
             $table->text('address')->nullable();
             $table->string('phone')->nullable();

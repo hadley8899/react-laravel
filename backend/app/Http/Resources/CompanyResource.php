@@ -47,6 +47,7 @@ class CompanyResource extends JsonResource
             'default_payment_terms' => $this->default_payment_terms,
             'invoice_footer_notes' => $this->invoice_footer_notes,
 
+            'setup_complete' => (bool)$this->setup_complete,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

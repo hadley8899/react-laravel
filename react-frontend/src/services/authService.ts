@@ -6,7 +6,9 @@ export interface RegisterPayload {
     email: string;
     password: string;
     password_confirmation: string;
-    company_code: string;
+    company_code: string | undefined;
+    company_name: string | undefined;
+    cf_turnstile_response: string;
 }
 
 export interface LoginPayload {
@@ -28,8 +30,6 @@ export async function registerUser(payload: RegisterPayload) {
 
 export async function loginUser(credentials: LoginPayload) {
     const res = await api.post('/login', credentials);
-
-    console.log(res);
 
     const {token, user} = res.data;
 

@@ -46,7 +46,6 @@ const SwitchCompanyModal: React.FC<SwitchCompanyModalProps> = ({open, onClose}) 
                 data: User
             }>("/companies/switch-company", {company_id: selectedCompany.uuid}).then((response) => {
                 setTimeout(() => {
-                    console.log(response.data.data);
                     setAuthUser(response.data.data);
                     window.location.reload();
                 }, 500);

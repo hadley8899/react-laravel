@@ -56,6 +56,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Role and Permission Routes
     Route::get('/company/roles', [CompanyUserManagementController::class, 'getAvailableRoles']);
     Route::get('/company/permissions', [CompanyUserManagementController::class, 'getAvailablePermissions']);
+    Route::patch('/companies/{company:uuid}/setup', [CompanyController::class, 'completeSetup'])->name('companies.completeSetup');
 
     // Notification routes
     Route::prefix('notifications')->group(function () {

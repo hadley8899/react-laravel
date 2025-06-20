@@ -37,6 +37,7 @@ export interface Company {
     invoice_footer_notes_html: string | null;
     invoice_footer_notes_markdown: string | null;
 
+    setup_complete: boolean;
     created_at: string;
     updated_at: string;
 }

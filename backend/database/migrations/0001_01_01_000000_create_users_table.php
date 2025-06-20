@@ -18,7 +18,7 @@ return new class extends Migration {
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->enum('status', ['active', 'inactive', 'invited', 'pending', 'rejected'])->default('active');
+            $table->enum('status', ['active','owner', 'inactive', 'invited', 'pending', 'rejected'])->default('active');
             $table->string('avatar_path')->nullable();
             $table->boolean('notify_new_booking')->default(true);
             $table->boolean('notify_job_complete')->default(false);

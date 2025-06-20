@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use RuntimeException;
 
@@ -106,40 +107,47 @@ class AuthController
 
     public function register(RegisterRequest $request): JsonResponse
     {
-        DB::beginTransaction();
-        try {
-            $company = Company::query()->where('company_code', $request->company_code)->firstOrFail();
+        return DB::transaction(static function () use ($request) {
+            if ($request->filled('company_code')) {
+                $company = Company::query()
+                    ->where('company_code', $request->company_code)
+                    ->firstOrFail();
+
+                $userStatus = 'pending';
+                $userRole = 'User';
+            } else {
+                $company = Company::query()->create([
+                    'name' => $request->company_name,
+                    'email' => $request->email,
+                    'setup_complete' => false,
+                ]);
+                $userStatus = 'active';
+                $userRole = 'Admin';
+            }
+
             $user = User::query()->create([
                 'name' => $request->name,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
                 'company_id' => $company->id,
-                'status' => 'pending', // Default status for new users
-            ]);
+                'status' => $userStatus,
+            ])->assignRole($userRole);
 
-            $adminsAndManagers = $company->users()->role(['Admin', 'Manager'])->get();
-
-            // Send a notification to all found admins and managers.
-            if ($adminsAndManagers->isNotEmpty()) {
-                Notification::send($adminsAndManagers, new NewUserRegistered($user, $company));
+            if ($userStatus === 'pending') {
+                $admins = $company->users()->role(['Admin', 'Manager', 'Owner'])->get();
+                Notification::send($admins, new NewUserRegistered($user, $company));
             }
 
-            // Dispatch registered event to trigger verification email if needed
             event(new Registered($user));
-
-            // Create token for the new user
-            // Response to the newly registered user
-
-            DB::commit();
 
             return response()->json([
                 'success' => true,
-                'message' => 'Registration successful. An administrator has been notified to approve your account. You will receive an email once your account is active.',
+                'company_code' => $company->company_code,
+                'message' => $userStatus === 'active'
+                    ? 'Company created! You’re the owner—invite your team from Settings.'
+                    : 'Registration submitted. An admin will approve your account shortly.',
             ], 201);
-        } catch (Exception $e) {
-            DB::rollBack();
-            throw new RuntimeException($e->getMessage());
-        }
+        });
     }
 
     public function verifyEmail(Request $request): RedirectResponse

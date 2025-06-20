@@ -6,11 +6,14 @@ use App\Actions\Fortify\PasswordValidationRules;
 use App\Models\User;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Validation\Rule;
 
 class RegisterRequest extends FormRequest
 {
     use PasswordValidationRules;
+
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -36,7 +39,34 @@ class RegisterRequest extends FormRequest
                 Rule::unique(User::class),
             ],
             'password' => $this->passwordRules(),
-            'company_code' => ['required', 'string', 'exists:companies,company_code'],
+            'company_code' => ['string', 'sometimes', 'exists:companies,company_code'],
+            'cf_turnstile_response' => ['required', 'string'],
         ];
+    }
+
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            if (!$this->passesTurnstile()) {
+                $validator->errors()->add('captcha', 'Turnstile verification failed.');
+            }
+        });
+    }
+
+    /**
+     * @throws ConnectionException
+     */
+    private function passesTurnstile(): bool
+    {
+        $response = Http::post(
+            'https://challenges.cloudflare.com/turnstile/v0/siteverify',
+            [
+                'secret'   => config('services.turnstile.secret'),
+                'response' => $this->cf_turnstile_response,
+                'remoteip' => $this->ip(),
+            ]
+        );
+
+        return (bool) ($response->json()['success'] ?? false);
     }
 }

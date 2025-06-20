@@ -54,6 +54,7 @@ class Company extends Model
         'next_invoice_number',
         'default_payment_terms',
         'invoice_footer_notes',
+        'setup_complete',
     ];
 
     protected $casts = [
@@ -83,6 +84,11 @@ class Company extends Model
             if (empty($company->company_code)) {
                 // Generate a unique code and assign it to the model.
                 $company->company_code = self::generateUniqueCompanyCode($company->name);
+            }
+
+            if (empty($company->slug)) {
+                // Generate a slug from the company name.
+                $company->slug = str($company->name)->slug();
             }
         });
     }
