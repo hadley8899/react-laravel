@@ -282,17 +282,18 @@ const TopBar: React.FC<TopBarProps> = ({
                 anchorEl={anchorEl}
                 open={userMenuOpen}
                 onClose={handleUserMenuClose}
-                PaperProps={{
-                    elevation: 4,
-                    sx: {
-                        width: 220,
-                        mt: 1.5
-                    },
+                slotProps={{
+                    paper: {
+                        elevation: 4,
+                        sx: {
+                            width: 220,
+                            mt: 1.5
+                        }
+                    }
                 }}
                 transformOrigin={{horizontal: 'right', vertical: 'top'}}
                 anchorOrigin={{horizontal: 'right', vertical: 'bottom'}}
             >
-                {/* ThemeSwitcher in menu for mobile only */}
                 <Box sx={{display: {xs: 'flex', sm: 'none'}, px: 2, py: 1, justifyContent: 'center'}}>
                     <ThemeSwitcher/>
                 </Box>
