@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Company\CompleteCompanySetupRequest;
 use App\Http\Requests\Company\StoreCompanyRequest;
 use App\Http\Requests\Company\UpdateCompanyBillingRequest;
 use App\Http\Requests\Company\UpdateCompanyRequest;
@@ -141,14 +142,11 @@ class CompanyController extends Controller
         return new UserResource($user);
     }
 
-    public function completeSetup(Request $request, Company $company)
+    public function completeSetup(CompleteCompanySetupRequest $request, Company $company): JsonResponse
     {
-        $this->authorize('update', $company);               // spatie / policies
+        $this->authorize('update', $company);
 
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
-        ]);
+        $validated = $request->validated();
 
         $company->fill($validated);
         $company->setup_complete = true;

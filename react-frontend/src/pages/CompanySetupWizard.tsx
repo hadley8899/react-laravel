@@ -1,15 +1,22 @@
 import React, {useState} from 'react';
 import {
-    Box, Button, Stepper, Step, StepLabel,
-    Paper, Typography, CircularProgress
+    Box,
+    Button,
+    Stepper,
+    Step,
+    StepLabel,
+    Paper,
+    Typography,
+    CircularProgress,
 } from '@mui/material';
-import CompanyInfo from '../components/settings/CompanyInfo';
-import AppointmentSettings from '../components/settings/AppointmentSettings';
-import InvoiceAndPaymentSettings from '../components/settings/InvoiceAndPaymentSettings';
+
+import CompanyInfoWizard from '../components/setup/CompanyInfoWizard';
 import {completeCompanySetup} from '../services/CompanyService';
 import {useNotifier} from '../contexts/NotificationContext';
 import {useNavigate} from 'react-router-dom';
-import {useAuth} from "../context/AuthContext.tsx";
+import {useAuth} from '../context/AuthContext.tsx';
+import AppointmentSettingsWizard from "../components/setup/AppointmentSettingsWizard.tsx";
+import InvoiceAndPaymentSettingsWizard from "../components/setup/InvoiceAndPaymentSettingsWizard.tsx";
 
 const steps = ['Company', 'Appointments', 'Billing'];
 
@@ -18,17 +25,15 @@ const CompanySetupWizard: React.FC = () => {
     const {showNotification} = useNotifier();
     const nav = useNavigate();
 
-    const [company, setCompany] = useState(user?.company);
+    const [company, setCompany] = useState(user?.company ?? null);
     const [active, setActive] = useState(0);
     const [saving, setSaving] = useState(false);
 
-    const next = () => setActive((p) => p + 1);
-    const back = () => setActive((p) => p - 1);
+    const next = () => setActive(p => p + 1);
+    const back = () => setActive(p => p - 1);
 
     const finish = async () => {
-        if (!company || !user) {
-            return;
-        }
+        if (!company || !user) return;
         setSaving(true);
         try {
             const updated = await completeCompanySetup(company.uuid, company);
@@ -61,14 +66,16 @@ const CompanySetupWizard: React.FC = () => {
             </Typography>
 
             <Stepper activeStep={active} sx={{mb: 4}}>
-                {steps.map((s) => (
-                    <Step key={s}><StepLabel>{s}</StepLabel></Step>
+                {steps.map(s => (
+                    <Step key={s}>
+                        <StepLabel>{s}</StepLabel>
+                    </Step>
                 ))}
             </Stepper>
 
-            {active === 0 && <CompanyInfo company={company} setCompany={setCompany}/>}
-            {active === 1 && <AppointmentSettings company={company} setCompany={setCompany}/>}
-            {active === 2 && <InvoiceAndPaymentSettings company={company} setCompany={setCompany}/>}
+            {active === 0 && <CompanyInfoWizard company={company} setCompany={setCompany}/>}
+            {active === 1 && <AppointmentSettingsWizard company={company} setCompany={setCompany}/>}
+            {active === 2 && <InvoiceAndPaymentSettingsWizard company={company} setCompany={setCompany}/>}
 
             <Box sx={{mt: 3, textAlign: 'right'}}>
                 {active > 0 && (
