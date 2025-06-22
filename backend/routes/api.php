@@ -45,8 +45,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/{user:uuid}/status', [CompanyUserManagementController::class, 'updateStatus']);
         Route::put('/{user:uuid}/roles', [CompanyUserManagementController::class, 'assignRoles']);
         Route::put('/{user:uuid}/permissions', [CompanyUserManagementController::class, 'assignPermissions']);
+        Route::post('/{user:uuid}/reset-password', [CompanyUserManagementController::class, 'resetPassword'])->name('companyUserManagement.resetPassword');
     });
 
+    // Dashboard routes
     Route::middleware('auth:sanctum')->prefix('dashboard')->group(function () {
         Route::get('/overview', [DashboardController::class, 'overview']);
         Route::get('/charts',   [DashboardController::class, 'chartData']);

@@ -4,12 +4,11 @@ import {
     Typography, Container, Box,
     Button,
     Dialog, DialogTitle, DialogContent, DialogActions,
-    CircularProgress, Alert, Snackbar,
-    Tabs, Tab, Badge
+    CircularProgress, TextField
 } from "@mui/material";
-import UserForm from "../components/user-management/UserForm";
 import PeopleIcon from '@mui/icons-material/People';
 import AddIcon from '@mui/icons-material/Add';
+
 import {
     getCompanyUsers,
     getAvailableRoles,
@@ -17,106 +16,51 @@ import {
     updateCompanyUser,
     deleteCompanyUser,
     updateUserStatus,
+    resetUserPassword,
     CompanyUser,
     CreateUserPayload,
     UpdateCompanyUserPayload
 } from "../services/UserManagementService";
+
 import UsersTable from "../components/user-management/UsersTable.tsx";
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
-import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-
-const USER_STATUSES = [
-    {label: "Active", value: "active"},
-    {label: "Pending", value: "pending"},
-    {label: "Invited", value: "invited"},
-    {label: "Rejected", value: "rejected"},
-    {label: "Inactive", value: "inactive"},
-    {label: "All", value: "all"}
-];
-
-const STATUS_HELPER = [
-    {
-        label: "Active",
-        color: "success.main",
-        description: "User is fully active and can log in to the system."
-    },
-    {
-        label: "Pending",
-        color: "warning.main",
-        description: "User has verified their email but is awaiting admin approval before they can log in."
-    },
-    {
-        label: "Invited",
-        color: "info.main",
-        description: "User was invited by an admin or manager and has not yet accepted the invitation."
-    },
-    {
-        label: "Rejected",
-        color: "error.main",
-        description: "User's registration or invitation was rejected by an admin or manager and cannot access the system."
-    },
-    {
-        label: "Inactive",
-        color: "grey.600",
-        description: "User account has been deactivated by an admin or manager and cannot log in."
-    },
-    {
-        label: "All",
-        color: "text.primary",
-        description: "Displays all users, regardless of their status."
-    }
-];
+import {USER_STATUSES, getStatusCounts, filterUsersByStatus} from "../helpers/UserManagementHelper.ts";
+import StatusHelper from "../components/user-management/StatusHelper.tsx";
+import StatusTabs from "../components/user-management/StatusTabs.tsx";
+import {useNotifier} from "../context/NotificationContext.tsx";
+import UserForm from "../components/user-management/UserForm.tsx";
 
 const UserManagement: React.FC = () => {
-    // Data states
+    /* ─────────────── data ─────────────── */
     const [users, setUsers] = useState<CompanyUser[]>([]);
     const [availableRoles, setAvailableRoles] = useState<string[]>([]);
 
-    // UI states
+    /* ─────────────── ui state ──────────── */
     const [openEditDialog, setOpenEditDialog] = useState(false);
     const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
     const [openAddDialog, setOpenAddDialog] = useState(false);
+    const [openResetDialog, setOpenResetDialog] = useState(false);
     const [selectedUser, setSelectedUser] = useState<CompanyUser | null>(null);
 
-    // Form states
+    /* ─────────────── form state ────────── */
     const [newUser, setNewUser] = useState<CreateUserPayload>({
-        name: "",
-        email: "",
-        password: "",
-        password_confirmation: "",
-        status: "active",
-        role: "",
+        name: "", email: "", password: "", password_confirmation: "", status: "active", role: "",
     });
+    const [tempPassword, setTempPassword] = useState('');
 
-    // Loading/error states
+    /* misc */
+    const {showNotification} = useNotifier();
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [successMessage, setSuccessMessage] = useState<string | null>(null);
-
-    // Tab state
     const [selectedStatus, setSelectedStatus] = useState<string>("all");
-
-    // Add state for status helper collapse
-    const [showStatusHelper, setShowStatusHelper] = useState(true);
-
-    // Filter/search states
     const [search, setSearch] = useState('');
     const [roleFilter, setRoleFilter] = useState('');
+    const statusCounts = getStatusCounts(users);
 
-    // Load data on component mount
+    /* ─────────────── initial load ──────── */
     useEffect(() => {
-        const loadData = async () => {
+        (async () => {
             try {
                 setLoading(true);
-                setError(null);
-
-                // Fetch all data in parallel
-                const [usersData, rolesData] = await Promise.all([
-                    getCompanyUsers(),
-                    getAvailableRoles(),
-                ]);
-
+                const [usersData, rolesData] = await Promise.all([getCompanyUsers(), getAvailableRoles()]);
                 setUsers(usersData);
                 setAvailableRoles(rolesData);
 
@@ -124,68 +68,41 @@ const UserManagement: React.FC = () => {
                 if (rolesData.length > 0 && !newUser.role) {
                     setNewUser(prev => ({...prev, role: rolesData[rolesData.length - 1]}));
                 }
-            } catch (err) {
-                console.error("Failed to load data:", err);
-                setError("Failed to load user data. Please try again.");
+            } catch (e) {
+                console.error(e);
+                showNotification('Failed to load user data. Please try again.', 'error');
             } finally {
                 setLoading(false);
             }
-        };
+        })();
+    }, [newUser.role, showNotification]);
 
-        loadData().then(() => {
-        });
-    }, [newUser.role]);
+    const filteredUsers = filterUsersByStatus(users, selectedStatus, search, roleFilter);
 
-    // Filter users based on selected tab, search, and role
-    const filteredUsers = users.filter(u => {
-        // Status filter
-        if (selectedStatus !== "all" && u.status !== selectedStatus) return false;
-        // Search filter
-        const searchLower = search.toLowerCase();
-        if (
-            searchLower &&
-            !(
-                u.name.toLowerCase().includes(searchLower) ||
-                u.email.toLowerCase().includes(searchLower)
-            )
-        ) {
-            return false;
-        }
-        // Role filter
-        return !(roleFilter && u.role !== roleFilter);
-
-    });
-
-    // Count for badges
-    const statusCounts = {
-        pending: users.filter(u => u.status === "pending").length,
-        invited: users.filter(u => u.status === "invited").length,
-        rejected: users.filter(u => u.status === "rejected").length,
-        active: users.filter(u => u.status === "active").length,
-    };
-
-    // CRUD operations
-    const handleEditUser = (user: CompanyUser) => {
-        setSelectedUser(user);
+    const handleEditUser = (u: CompanyUser) => {
+        setSelectedUser(u);
         setOpenEditDialog(true);
     };
-
-    const handleDeleteUser = (user: CompanyUser) => {
-        setSelectedUser(user);
+    const handleDeleteUser = (u: CompanyUser) => {
+        setSelectedUser(u);
         setOpenDeleteDialog(true);
+    };
+    const handleResetUser = (u: CompanyUser) => {
+        setSelectedUser(u);
+        setTempPassword('');
+        setOpenResetDialog(true);
     };
 
     const confirmDelete = async () => {
-        if (!selectedUser?.uuid) return;
-
+        if (!selectedUser) return;
         try {
             setLoading(true);
             await deleteCompanyUser(selectedUser.uuid);
-            setUsers(users.filter(user => user.uuid !== selectedUser.uuid));
-            setSuccessMessage(`User ${selectedUser.name} deleted successfully`);
-        } catch (err) {
-            console.error("Failed to delete user:", err);
-            setError("Failed to delete user. Please try again.");
+            setUsers(prev => prev.filter(u => u.uuid !== selectedUser.uuid));
+            showNotification(`User ${selectedUser.name} deleted successfully`, 'success');
+        } catch (e) {
+            console.error(e);
+            showNotification('Failed to delete user. Please try again.', 'error');
         } finally {
             setLoading(false);
             setOpenDeleteDialog(false);
@@ -193,37 +110,22 @@ const UserManagement: React.FC = () => {
     };
 
     const handleUpdateUser = async () => {
-        if (!selectedUser?.uuid) return;
-
+        if (!selectedUser) return;
         try {
             setLoading(true);
-
             const payload: UpdateCompanyUserPayload = {
                 name: selectedUser.name,
                 email: selectedUser.email,
                 status: selectedUser.status,
+                ...(selectedUser.role && {role: selectedUser.role}),
+                ...(selectedUser.permissions?.length && {permissions: selectedUser.permissions})
             };
-
-            // Only include role if it exists
-            if (selectedUser.role) {
-                payload.role = selectedUser.role;
-            }
-
-            // Only include permissions if they exist
-            if (selectedUser.permissions?.length) {
-                payload.permissions = selectedUser.permissions;
-            }
-
-            const updatedUser = await updateCompanyUser(selectedUser.uuid, payload);
-
-            setUsers(users.map(user =>
-                user.uuid === updatedUser.uuid ? updatedUser : user
-            ));
-
-            setSuccessMessage(`User ${updatedUser.name} updated successfully`);
-        } catch (err) {
-            console.error("Failed to update user:", err);
-            setError("Failed to update user. Please try again.");
+            const updated = await updateCompanyUser(selectedUser.uuid, payload);
+            setUsers(prev => prev.map(u => u.uuid === updated.uuid ? updated : u));
+            showNotification(`User ${updated.name} updated successfully`, 'success');
+        } catch (e) {
+            console.error(e);
+            showNotification('Failed to update user. Please try again.', 'error');
         } finally {
             setLoading(false);
             setOpenEditDialog(false);
@@ -233,13 +135,9 @@ const UserManagement: React.FC = () => {
     const handleAddUser = async () => {
         try {
             setLoading(true);
-
-            const createdUser = await createCompanyUser(newUser);
-
-            setUsers([...users, createdUser]);
-            setSuccessMessage(`User ${createdUser.name} added successfully`);
-
-            // Reset form
+            const created = await createCompanyUser(newUser);
+            setUsers(prev => [...prev, created]);
+            showNotification(`User ${created.name} added successfully`, 'success');
             setNewUser({
                 name: "",
                 email: "",
@@ -248,9 +146,9 @@ const UserManagement: React.FC = () => {
                 status: "active",
                 role: availableRoles.length > 0 ? availableRoles[availableRoles.length - 1] : "",
             });
-        } catch (err) {
-            console.error("Failed to add user:", err);
-            setError("Failed to create user. Please try again.");
+        } catch (e) {
+            console.error(e);
+            showNotification('Failed to create user. Please try again.', 'error');
         } finally {
             setLoading(false);
             setOpenAddDialog(false);
@@ -260,221 +158,55 @@ const UserManagement: React.FC = () => {
     const handleToggleStatus = async (user: CompanyUser) => {
         try {
             const newStatus = user.status === 'active' ? 'inactive' : 'active';
-            const updatedUser = await updateUserStatus(user.uuid, newStatus);
-
-            setUsers(users.map(u =>
-                u.uuid === updatedUser.uuid ? updatedUser : u
-            ));
-
-            setSuccessMessage(`User ${updatedUser.name} ${newStatus === 'active' ? 'activated' : 'deactivated'} successfully`);
-        } catch (err) {
-            console.error("Failed to update user status:", err);
-            setError("Failed to update user status. Please try again.");
+            const updated = await updateUserStatus(user.uuid, newStatus);
+            setUsers(prev => prev.map(u => u.uuid === updated.uuid ? updated : u));
+            showNotification(`User ${updated.name} ${newStatus === 'active' ? 'activated' : 'deactivated'} successfully`, 'success');
+        } catch (e) {
+            console.error(e);
+            showNotification('Failed to update user status.', 'error');
         }
     };
 
-    const handleCloseAlert = () => {
-        setError(null);
-        setSuccessMessage(null);
+    const confirmResetPassword = async () => {
+        if (!selectedUser) return;
+        try {
+            setLoading(true);
+            const res = await resetUserPassword(selectedUser.uuid, tempPassword || undefined);
+            const tempPwd = res.data.tempPassword;                 // ← grab from .data
+            showNotification(
+                tempPwd ? `Temporary password: ${tempPwd}` : 'Password reset email sent.',
+                'success'
+            );
+        } catch (e) {
+            console.error(e);
+            showNotification('Failed to reset password. Please try again.', 'error');
+        } finally {
+            setLoading(false);
+            setOpenResetDialog(false);
+        }
     };
 
+    /* ─────────────── render ────────────── */
     return (
         <MainLayout title="User Management">
             <Container maxWidth="lg" sx={{py: 4}}>
+                {/* header */}
                 <Box sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4}}>
-                    <Typography variant="h4" component="h1" fontWeight="bold">
+                    <Typography variant="h4" fontWeight="bold">
                         <PeopleIcon sx={{mr: 1, verticalAlign: 'middle', fontSize: '2rem'}}/>
                         User Management
                     </Typography>
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        startIcon={<AddIcon/>}
-                        onClick={() => setOpenAddDialog(true)}
-                    >
+                    <Button variant="contained" startIcon={<AddIcon/>} onClick={() => setOpenAddDialog(true)}>
                         Add User
                     </Button>
                 </Box>
 
-                {/* Status Helper */}
-                <Box sx={{mb: 3}}>
-                    {showStatusHelper ? (
-                        <Box
-                            sx={{
-                                backgroundColor: 'background.paper',
-                                borderRadius: 2,
-                                boxShadow: 1,
-                                p: {xs: 1.5, sm: 2},
-                                borderLeft: 4,
-                                borderColor: 'primary.main',
-                                display: 'flex',
-                                alignItems: {xs: 'stretch', sm: 'flex-start'},
-                                gap: 2,
-                                flexDirection: {xs: 'column', sm: 'row'},
-                                position: 'relative'
-                            }}
-                        >
-                            {/* Collapse button */}
-                            <Button
-                                size="small"
-                                onClick={() => setShowStatusHelper(false)}
-                                sx={{
-                                    position: 'absolute',
-                                    top: 8,
-                                    right: 8,
-                                    minWidth: 0,
-                                    p: 0.5,
-                                    zIndex: 2,
-                                }}
-                                aria-label="Hide status helper"
-                            >
-                                <KeyboardArrowUpIcon/>
-                            </Button>
-                            <InfoOutlinedIcon
-                                color="primary"
-                                sx={{
-                                    mt: {xs: 0, sm: 0.5},
-                                    alignSelf: {xs: 'center', sm: 'flex-start'},
-                                    fontSize: {xs: 32, sm: 24}
-                                }}
-                            />
-                            <Box sx={{width: '100%'}}>
-                                <Typography
-                                    variant="subtitle1"
-                                    fontWeight="bold"
-                                    gutterBottom
-                                    sx={{textAlign: {xs: 'center', sm: 'left'}}}
-                                >
-                                    What do user statuses mean?
-                                </Typography>
-                                <Box
-                                    component="ul"
-                                    sx={{
-                                        pl: {xs: 0, sm: 3},
-                                        mb: 0,
-                                        display: 'flex',
-                                        flexDirection: {xs: 'row', sm: 'column'},
-                                        overflowX: {xs: 'auto', sm: 'visible'},
-                                        gap: {xs: 2, sm: 0},
-                                        listStyle: 'none'
-                                    }}
-                                >
-                                    {STATUS_HELPER.map(status => (
-                                        <li
-                                            key={status.label}
-                                            style={{
-                                                minWidth: 220,
-                                                marginBottom: 4,
-                                                display: 'flex',
-                                                alignItems: 'center'
-                                            }}
-                                        >
-                                            <Box sx={{display: 'flex', alignItems: 'center', gap: 1}}>
-                                                <Box
-                                                    component="span"
-                                                    sx={{
-                                                        display: 'inline-block',
-                                                        width: 10,
-                                                        height: 10,
-                                                        borderRadius: '50%',
-                                                        bgcolor: status.color,
-                                                        mr: 1
-                                                    }}
-                                                />
-                                                <Typography component="span" fontWeight="bold"
-                                                            sx={{mr: 1, fontSize: {xs: 13, sm: 14}}}>
-                                                    {status.label}
-                                                </Typography>
-                                                <Typography
-                                                    component="span"
-                                                    color="text.secondary"
-                                                    sx={{
-                                                        fontSize: {xs: 12, sm: 14},
-                                                        whiteSpace: {xs: 'normal', sm: 'inherit'}
-                                                    }}
-                                                >
-                                                    {status.description}
-                                                </Typography>
-                                            </Box>
-                                        </li>
-                                    ))}
-                                </Box>
-                            </Box>
-                        </Box>
-                    ) : (
-                        <Box
-                            sx={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                backgroundColor: 'background.paper',
-                                borderRadius: 2,
-                                boxShadow: 1,
-                                py: 0.5,
-                                px: 2,
-                                borderLeft: 4,
-                                borderColor: 'primary.main',
-                                cursor: 'pointer',
-                                width: 'fit-content',
-                                mx: 'auto'
-                            }}
-                            onClick={() => setShowStatusHelper(true)}
-                            aria-label="Show status helper"
-                        >
-                            <KeyboardArrowDownIcon fontSize="small" sx={{mr: 0.5}}/>
-                            <Typography variant="body2" color="primary">
-                                Show status helper
-                            </Typography>
-                        </Box>
-                    )}
-                </Box>
+                <StatusHelper/>
+                <StatusTabs selectedStatus={selectedStatus} setSelectedStatus={setSelectedStatus}
+                            statusCounts={statusCounts}/>
 
-                {/* Error and Success Messages */}
-                <Snackbar open={!!error} autoHideDuration={6000} onClose={handleCloseAlert}>
-                    <Alert onClose={handleCloseAlert} severity="error" sx={{width: '100%'}}>
-                        {error}
-                    </Alert>
-                </Snackbar>
-
-                <Snackbar open={!!successMessage} autoHideDuration={6000} onClose={handleCloseAlert}>
-                    <Alert onClose={handleCloseAlert} severity="success" sx={{width: '100%'}}>
-                        {successMessage}
-                    </Alert>
-                </Snackbar>
-
-                {/* Status Tabs */}
-                <Box sx={{mb: 2}}>
-                    <Tabs
-                        value={selectedStatus}
-                        onChange={(_, v) => setSelectedStatus(v)}
-                        variant="scrollable"
-                        scrollButtons="auto"
-                    >
-                        {USER_STATUSES.map(tab => (
-                            <Tab
-                                key={tab.value}
-                                label={
-                                    (tab.value === "pending" || tab.value === "invited" || tab.value === "rejected" || tab.value === "active")
-                                        ? (
-                                            <Badge
-                                                color={tab.value === "pending" ? "warning" : tab.value === "invited" ? "info" : tab.value === "rejected" ? "error" : "success"}
-                                                badgeContent={statusCounts[tab.value as keyof typeof statusCounts] || 0}
-                                                max={99}
-                                            >
-                                                {tab.label}
-                                            </Badge>
-                                        ) : tab.label
-                                }
-                                value={tab.value}
-                            />
-                        ))}
-                    </Tabs>
-                </Box>
-
-                {loading && !openAddDialog && !openEditDialog && !openDeleteDialog ? (
-                    <Box sx={{display: 'flex', justifyContent: 'center', py: 4}}>
-                        <CircularProgress/>
-                    </Box>
+                {loading && !openAddDialog && !openEditDialog && !openDeleteDialog && !openResetDialog ? (
+                    <Box sx={{display: 'flex', justifyContent: 'center', py: 4}}><CircularProgress/></Box>
                 ) : (
                     <UsersTable
                         users={filteredUsers}
@@ -482,6 +214,7 @@ const UserManagement: React.FC = () => {
                         onEdit={handleEditUser}
                         onDelete={handleDeleteUser}
                         onToggleStatus={handleToggleStatus}
+                        onReset={handleResetUser}
                         search={search}
                         onSearchChange={setSearch}
                         roleFilter={roleFilter}
@@ -490,13 +223,8 @@ const UserManagement: React.FC = () => {
                     />
                 )}
 
-                {/* Edit User Dialog */}
-                <Dialog
-                    open={openEditDialog}
-                    onClose={() => setOpenEditDialog(false)}
-                    maxWidth="sm"
-                    fullWidth
-                >
+                {/* ----- Edit User Dialog ----- */}
+                <Dialog open={openEditDialog} onClose={() => setOpenEditDialog(false)} maxWidth="sm" fullWidth>
                     <DialogTitle>Edit User</DialogTitle>
                     <DialogContent>
                         {selectedUser && (
@@ -505,67 +233,63 @@ const UserManagement: React.FC = () => {
                                 userData={selectedUser}
                                 availableRoles={availableRoles}
                                 availableStatuses={USER_STATUSES.filter(s => s.value !== "all")}
-                                onUserChange={(updatedUser) => setSelectedUser(updatedUser as CompanyUser)}
+                                onUserChange={u => setSelectedUser(u as CompanyUser)}
                             />
                         )}
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={() => setOpenEditDialog(false)}>Cancel</Button>
-                        <Button
-                            onClick={handleUpdateUser}
-                            variant="contained"
-                            color="primary"
-                            disabled={loading}
-                        >
+                        <Button onClick={handleUpdateUser} variant="contained" disabled={loading}>
                             {loading ? <CircularProgress size={24}/> : 'Save'}
                         </Button>
                     </DialogActions>
                 </Dialog>
 
-                {/* Delete Confirmation Dialog */}
+                {/* ----- Delete Dialog ----- */}
                 <Dialog open={openDeleteDialog} onClose={() => setOpenDeleteDialog(false)}>
                     <DialogTitle>Confirm Delete</DialogTitle>
-                    <DialogContent>
-                        Are you sure you want to delete {selectedUser?.name}?
-                    </DialogContent>
+                    <DialogContent>Are you sure you want to delete {selectedUser?.name}?</DialogContent>
                     <DialogActions>
                         <Button onClick={() => setOpenDeleteDialog(false)}>Cancel</Button>
-                        <Button
-                            onClick={confirmDelete}
-                            color="error"
-                            variant="contained"
-                            disabled={loading}
-                        >
-                            {loading ? <CircularProgress size={24} color="error"/> : 'Delete'}
+                        <Button onClick={confirmDelete} color="error" variant="contained" disabled={loading}>
+                            {loading ? <CircularProgress size={24}/> : 'Delete'}
                         </Button>
                     </DialogActions>
                 </Dialog>
 
-                {/* Add User Dialog */}
-                <Dialog
-                    open={openAddDialog}
-                    onClose={() => setOpenAddDialog(false)}
-                    maxWidth="sm"
-                    fullWidth
-                >
+                {/* ----- Add User Dialog ----- */}
+                <Dialog open={openAddDialog} onClose={() => setOpenAddDialog(false)} maxWidth="sm" fullWidth>
                     <DialogTitle>Add New User</DialogTitle>
                     <DialogContent>
-                        <UserForm
-                            mode="add"
-                            userData={newUser}
-                            availableRoles={availableRoles}
-                            onUserChange={(updatedUser) => setNewUser(updatedUser as CreateUserPayload)}
-                        />
+                        <UserForm mode="add" userData={newUser} availableRoles={availableRoles}
+                                  onUserChange={u => setNewUser(u as CreateUserPayload)}/>
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={() => setOpenAddDialog(false)}>Cancel</Button>
-                        <Button
-                            onClick={handleAddUser}
-                            variant="contained"
-                            color="primary"
-                            disabled={loading}
-                        >
+                        <Button onClick={handleAddUser} variant="contained" disabled={loading}>
                             {loading ? <CircularProgress size={24}/> : 'Add User'}
+                        </Button>
+                    </DialogActions>
+                </Dialog>
+
+                {/* ----- Reset Password Dialog ----- */} {/* ➜ NEW */}
+                <Dialog open={openResetDialog} onClose={() => setOpenResetDialog(false)} maxWidth="xs" fullWidth>
+                    <DialogTitle>Reset Password for {selectedUser?.name}</DialogTitle>
+                    <DialogContent>
+                        <Typography sx={{mb: 2}}>
+                            Leave blank to email a reset link or enter a temporary password to set immediately.
+                        </Typography>
+                        <TextField
+                            fullWidth
+                            label="Temporary Password"
+                            value={tempPassword}
+                            onChange={e => setTempPassword(e.target.value)}
+                        />
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={() => setOpenResetDialog(false)}>Cancel</Button>
+                        <Button variant="contained" onClick={confirmResetPassword} disabled={loading}>
+                            {loading ? <CircularProgress size={24}/> : 'Reset'}
                         </Button>
                     </DialogActions>
                 </Dialog>

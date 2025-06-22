@@ -15,7 +15,7 @@ import {
     updateCompanyBilling,
     UpdateCompanyBillingPayload,
 } from '../../services/CompanyService';
-import {useNotifier} from '../../contexts/NotificationContext';
+import {useNotifier} from '../../context/NotificationContext.tsx';
 import SettingsAccordionItem from "../layout/SettingsAccordionItem.tsx";
 import {Company} from "../../interfaces/Company.ts";
 

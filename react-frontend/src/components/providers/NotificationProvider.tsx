@@ -1,6 +1,6 @@
 import React, {useState, useCallback, ReactNode} from 'react';
 import {Snackbar, Alert, AlertColor} from '@mui/material';
-import NotificationContext from '../../contexts/NotificationContext'; // Adjust path if needed
+import NotificationContext from '../../context/NotificationContext.tsx';
 
 interface NotificationProviderProps {
     children: ReactNode;
@@ -40,7 +40,6 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({
         []
     );
 
-    // The value provided to consuming components
     const contextValue = {
         showNotification,
     };
@@ -54,8 +53,6 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({
                 onClose={handleClose}
                 anchorOrigin={{vertical: 'bottom', horizontal: 'left'}}
             >
-                {/* Use Alert for styling, consistent with AppointmentSettings example */}
-                {/* Add key to force re-render on message change if transitions are used */}
                 <Alert
                     key={notification.message} // Useful if using slide transitions
                     onClose={handleClose}

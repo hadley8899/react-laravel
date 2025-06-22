@@ -17,7 +17,7 @@ import {
     getCurrentUser,
     updateUserPreferences,
 } from '../../services/UserService';
-import {useNotifier} from '../../contexts/NotificationContext';
+import {useNotifier} from '../../context/NotificationContext.tsx';
 
 const NotificationPreferences: React.FC = () => {
     const {showNotification} = useNotifier();

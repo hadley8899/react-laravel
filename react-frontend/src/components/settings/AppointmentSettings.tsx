@@ -20,7 +20,7 @@ import EventNoteIcon from '@mui/icons-material/EventNote';
 import SaveIcon from '@mui/icons-material/Save';
 
 import {updateCompanySettings, UpdateCompanySettingsPayload} from "../../services/CompanyService.ts";
-import {useNotifier} from "../../contexts/NotificationContext.tsx";
+import {useNotifier} from "../../context/NotificationContext.tsx";
 import {getAuthUser, setAuthUser} from "../../services/authService.ts";
 import SettingsAccordionItem from "../layout/SettingsAccordionItem.tsx";
 import {Company} from "../../interfaces/Company.ts";

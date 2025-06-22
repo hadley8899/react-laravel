@@ -9,6 +9,7 @@ use App\Http\Requests\UpdateCompanyUserRequest;
 use App\Http\Requests\UpdateCompanyUserStatusRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
+use App\Notifications\AdminPasswordReset;
 use App\Notifications\NewUserInvite;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\JsonResponse;
@@ -18,6 +19,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
+use Illuminate\Validation\UnauthorizedException;
 use Random\RandomException;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -182,5 +185,27 @@ class CompanyUserManagementController extends Controller
     {
         $user->syncPermissions($request->permissions);
         return new UserResource($user);
+    }
+
+    public function resetPassword(Request $request, User $user)
+    {
+        if ($user->company_id !== Auth::user()->company->id) {
+            throw new UnauthorizedException('You do not have permission to reset this user\'s password.');
+        }
+
+        // Either admin supplies a new pwd or we generate one
+        $newPwd = $request->input('password') ?? Str::random(12);
+
+        $user->forceFill([
+            'password' => Hash::make($newPwd),
+            'remember_token' => null,
+        ])->save();
+
+        $user->notify(new AdminPasswordReset($newPwd));
+
+        return response()->json([
+            'message' => 'Password reset successfully.',
+            'tempPassword' => config('app.env') === 'local' ? $newPwd : null
+        ]);
     }
 }

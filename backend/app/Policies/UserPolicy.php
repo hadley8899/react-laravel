@@ -80,4 +80,6 @@ class UserPolicy
     {
         return $user->hasPermissionTo('manage_users') && $user->company_id === $model->company_id;
     }
+
+
 }

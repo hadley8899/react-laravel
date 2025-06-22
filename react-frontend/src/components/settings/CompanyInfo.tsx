@@ -23,7 +23,7 @@ import {AdapterDateFns} from "@mui/x-date-pickers/AdapterDateFns";
 import {DatePicker} from "@mui/x-date-pickers/DatePicker";
 import {DATE_FORMAT} from '../../services/dateService';
 import {format} from 'date-fns';
-import {useNotifier} from "../../contexts/NotificationContext.tsx";
+import {useNotifier} from "../../context/NotificationContext.tsx";
 import {hasPermission} from "../../services/authService";
 
 const currencies = ['GBP', 'USD', 'EUR', 'AUD', 'CAD', 'NZD'];
@@ -96,16 +96,6 @@ const CompanyInfo: React.FC<CompanyInfoProps> = ({company, setCompany}) => {
     // Add permission check
     const canEditPlanSettings = hasPermission('update_company_plan_settings');
 
-    /* ---------- fetch ---------- */
-    useEffect(() => {
-        if (company) {
-            initialise(company);
-            setLoad(false);
-        } else {
-            setLoad(true);
-        }
-    }, [company]);
-
     const initialise = (c: Company) => {
         setCompany(c);
         setName(c.name ?? '');
@@ -130,7 +120,15 @@ const CompanyInfo: React.FC<CompanyInfoProps> = ({company, setCompany}) => {
         setNotes(c.notes ?? '');
     };
 
-    /* ---------- handlers ---------- */
+    useEffect(() => {
+        if (company) {
+            initialise(company);
+            setLoad(false);
+        } else {
+            setLoad(true);
+        }
+    }, [company]);
+
     const pickLogo = () => fileRef.current?.click();
     const removeLogo = () => setLogoFile(null);
     const fileChange = (e: React.ChangeEvent<HTMLInputElement>) =>

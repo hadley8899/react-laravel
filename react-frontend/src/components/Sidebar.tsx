@@ -15,7 +15,8 @@ import {
     DirectionsCar,
     Person,
     ReceiptLong,
-    Settings
+    Settings,
+    Shield
 } from "@mui/icons-material";
 import React, {useEffect, useState} from "react";
 import {useLocation, useNavigate} from "react-router-dom";
@@ -66,15 +67,15 @@ const Sidebar: React.FC<SidebarProps> = ({mobileOpen, handleDrawerToggle}) => {
     // Define navigation items
     const mainNavItems: SidebarItem[] = [
         {title: "Dashboard", path: "/dashboard", icon: <DashboardIcon/>},
-        {title: "Vehicles", path: "/vehicles", icon: <DirectionsCar/>},
+        {title: "Vehicles", path: "/vehicles", icon: <DirectionsCar/>, permissions: ['view_vehicles']},
         {title: "Customers", path: "/customers", icon: <PersonIcon/>, permissions: ['view_customers']},
-        {title: "Invoices", path: "/invoices", icon: <ReceiptLong/>},
-        {title: "Appointments", path: "/appointments", icon: <CalendarMonth/>}
+        {title: "Invoices", path: "/invoices", icon: <ReceiptLong/>, permissions: ['view_invoices']},
+        {title: "Appointments", path: "/appointments", icon: <CalendarMonth/>, permissions: ['view_appointments']},
     ];
 
     const secondaryNavItems: SidebarItem[] = [
         {title: "Profile", path: "/profile", icon: <Person/>},
-        {title: "Settings", path: "/settings", icon: <Settings/>}
+        {title: "Settings", path: "/settings", icon: <Settings/>},
     ];
 
     const handleNavigation = (path: string) => {
@@ -162,13 +163,23 @@ const Sidebar: React.FC<SidebarProps> = ({mobileOpen, handleDrawerToggle}) => {
                         onClick={() => setSwitchCompanyOpen(true)}
                     >
                         <ListItemIcon>
-                            <SwapHorizIcon />
+                            <SwapHorizIcon/>
                         </ListItemIcon>
                         <ListItemText primary="Switch Company"/>
                     </ListItemButton>
                 )}
+                {authUser?.role === 'Super Admin' && (
+                    <ListItemButton
+                        onClick={() => handleNavigation('/admin')}
+                    >
+                        <ListItemIcon>
+                            <Shield/>
+                        </ListItemIcon>
+                        <ListItemText primary="Admin"/>
+                    </ListItemButton>
+                )}
             </List>
-            <SwitchCompanyModal open={switchCompanyOpen} onClose={() => setSwitchCompanyOpen(false)} />
+            <SwitchCompanyModal open={switchCompanyOpen} onClose={() => setSwitchCompanyOpen(false)}/>
         </Box>
     );
 

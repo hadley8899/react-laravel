@@ -7,7 +7,7 @@ import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import MarkEmailReadIcon from '@mui/icons-material/MarkEmailRead';
 import AuthLayout from '../components/layout/AuthLayout';
 import { registerUser } from '../services/authService';
-import { useNotifier } from '../contexts/NotificationContext';
+import { useNotifier } from '../context/NotificationContext.tsx';
 import { Turnstile } from '@marsidev/react-turnstile';
 
 const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY;

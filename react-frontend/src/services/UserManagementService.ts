@@ -99,3 +99,9 @@ export const assignUserPermissions = async (
     );
     return response.data.data;
 };
+
+export const resetUserPassword = (uuid: string, password?: string) =>
+    api.post<{ message: string; tempPassword?: string }>(
+        `/company/users/${uuid}/reset-password`,
+        password ? { password } : {}
+    )

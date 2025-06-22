@@ -1,4 +1,3 @@
-// src/pages/AcceptInvitation.tsx
 import React, {useState} from 'react';
 import {useSearchParams, Link as RouterLink, useNavigate} from 'react-router-dom';
 import {

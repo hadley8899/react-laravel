@@ -12,7 +12,7 @@ import {
 
 import CompanyInfoWizard from '../components/setup/CompanyInfoWizard';
 import {completeCompanySetup} from '../services/CompanyService';
-import {useNotifier} from '../contexts/NotificationContext';
+import {useNotifier} from '../context/NotificationContext.tsx';
 import {useNavigate} from 'react-router-dom';
 import {useAuth} from '../context/AuthContext.tsx';
 import AppointmentSettingsWizard from "../components/setup/AppointmentSettingsWizard.tsx";

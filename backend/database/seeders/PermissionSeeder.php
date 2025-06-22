@@ -59,6 +59,7 @@ class PermissionSeeder extends Seeder
             // Super Admin only
             'update_company_plan_settings', // can update plan, status, trial dates
             'switch_companies',
+            'view_admin',
         ];
 
         foreach ($permissions as $permission) {
