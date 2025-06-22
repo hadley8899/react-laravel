@@ -1,110 +1,108 @@
-import React from "react";
-import {Box, Button, Checkbox, FormControlLabel, InputAdornment, TextField, Typography} from "@mui/material";
-import PeopleIcon from "@mui/icons-material/People";
-import SearchIcon from "@mui/icons-material/Search";
-import AddIcon from "@mui/icons-material/Add";
+import React from 'react';
+import {
+    Box,
+    Button,
+    Checkbox,
+    FormControlLabel,
+    InputAdornment,
+    TextField,
+    Typography,
+} from '@mui/material';
+import PeopleIcon from '@mui/icons-material/People';
+import SearchIcon from '@mui/icons-material/Search';
+import AddIcon from '@mui/icons-material/Add';
+import { Tag } from '../../interfaces/Tag';
+import TagFilterSelect from '../filters/TagFilterSelect';
 
-interface CustomerPageFilerBarProps {
-    showInactive: boolean,
-    searchTermInput: string,
-    handleShowInactiveChange: (showInactive: boolean) => void,
-    handleSearchChange: (event: React.ChangeEvent<HTMLInputElement>) => void,
-    handleOpenAddModal: () => void,
+interface CustomerPageFilterBarProps {
+    /* existing props */
+    showInactive: boolean;
+    searchTermInput: string;
+    handleShowInactiveChange: (checked: boolean) => void;
+    handleSearchChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    handleOpenAddModal: () => void;
+
+    /* new props */
+    selectedTags: Tag[];
+    onTagFilterChange: (tags: Tag[]) => void;
 }
 
-const CustomerPageFilterBar: React.FC<CustomerPageFilerBarProps> = ({
-                                                                        showInactive,
-                                                                        searchTermInput,
-                                                                        handleShowInactiveChange,
-                                                                        handleSearchChange,
-                                                                        handleOpenAddModal,
-                                                                    }) => {
-    return (
+const CustomerPageFilterBar: React.FC<CustomerPageFilterBarProps> = ({
+                                                                         showInactive,
+                                                                         searchTermInput,
+                                                                         handleShowInactiveChange,
+                                                                         handleSearchChange,
+                                                                         handleOpenAddModal,
+                                                                         selectedTags,
+                                                                         onTagFilterChange,
+                                                                     }) => (
+    <Box
+        sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: 2,
+            mb: 3,
+        }}
+    >
+        <Typography variant="h5" component="h1" fontWeight={600} sx={{ display: 'flex', alignItems: 'center' }}>
+            <PeopleIcon sx={{ mr: 1.5, color: 'primary.main' }} />
+            Customers
+        </Typography>
+
         <Box
             sx={{
                 display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                flexWrap: 'wrap',
-                gap: 2,
-                mb: 3
+                flexDirection: { xs: 'column', sm: 'row' },
+                gap: 1.5,
+                alignItems: { xs: 'stretch', sm: 'center' },
+                width: { xs: '100%', sm: 'auto' },
+                flex: 1,
             }}
         >
-            <Typography variant="h5" component="h1" fontWeight="600"
-                        sx={{display: 'flex', alignItems: 'center'}}>
-                <PeopleIcon sx={{mr: 1.5, color: 'primary.main'}}/>
-                Customers
-            </Typography>
-            <Box
-                sx={{
-                    display: 'flex',
-                    flexDirection: { xs: 'column', sm: 'row' },
-                    gap: 1.5,
-                    alignItems: { xs: 'stretch', sm: 'center' },
-                    width: { xs: '100%', sm: 'auto' },
-                    flex: 1,
-                    maxWidth: { xs: '100%', sm: 'unset' },
-                }}
-            >
-                <FormControlLabel
-                    control={
-                        <Checkbox
-                            name={'showInactive'}
-                            checked={showInactive}
-                            onChange={(e) => handleShowInactiveChange(e.target.checked)}
-                            sx={{
-                                p: { xs: 0.5, sm: 1 },
-                                mr: { xs: 1, sm: 0.5 },
-                            }}
-                        />
-                    }
-                    label={'Show inactive customers'}
-                    sx={{
-                        m: 0,
-                        width: { xs: '100%', sm: 'auto' },
-                        alignItems: 'center',
-                        flexDirection: { xs: 'row', sm: 'row' },
-                        '.MuiFormControlLabel-label': {
-                            fontSize: { xs: '1rem', sm: '1rem' },
-                            lineHeight: 1.2,
-                        },
-                        mb: { xs: 0.5, sm: 0 },
-                    }}
-                />
+            <FormControlLabel
+                control={
+                    <Checkbox
+                        checked={showInactive}
+                        onChange={(e) => handleShowInactiveChange(e.target.checked)}
+                        sx={{ p: { xs: 0.5, sm: 1 }, mr: { xs: 1, sm: 0.5 } }}
+                    />
+                }
+                label="Show inactive"
+                sx={{ m: 0 }}
+            />
 
-                <TextField
-                    variant="outlined"
-                    placeholder="Search name or email..."
-                    size="small"
-                    value={searchTermInput}
-                    onChange={handleSearchChange}
-                    sx={{
-                        minWidth: { xs: 0, sm: '250px' },
-                        width: { xs: '100%', sm: 'auto' },
-                        '& .MuiOutlinedInput-root': {borderRadius: 2}
-                    }}
-                    slotProps={{
-                        input: {
-                            startAdornment: (<InputAdornment position="start"><SearchIcon/></InputAdornment>),
-                        }
-                    }}
-                />
-                <Button
-                    variant="contained"
-                    startIcon={<AddIcon/>}
-                    size="medium"
-                    onClick={handleOpenAddModal}
-                    sx={{
-                        whiteSpace: 'nowrap',
-                        borderRadius: 2,
-                        width: { xs: '100%', sm: 'auto' }
-                    }}
-                >
-                    Add Customer
-                </Button>
-            </Box>
+            {/* tag filter */}
+            <TagFilterSelect value={selectedTags} onChange={onTagFilterChange} />
+
+            <TextField
+                size="small"
+                placeholder="Search name or email…"
+                value={searchTermInput}
+                onChange={handleSearchChange}
+                sx={{ minWidth: { xs: 0, sm: 230 }, flex: 1 }}
+                slotProps={{
+                    input: {
+                        startAdornment: (
+                            <InputAdornment position="start">
+                                <SearchIcon />
+                            </InputAdornment>
+                        ),
+                    }
+                }}
+            />
+
+            <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={handleOpenAddModal}
+                sx={{ whiteSpace: 'nowrap', borderRadius: 2 }}
+            >
+                Add Customer
+            </Button>
         </Box>
-    );
-}
+    </Box>
+);
 
 export default CustomerPageFilterBar;

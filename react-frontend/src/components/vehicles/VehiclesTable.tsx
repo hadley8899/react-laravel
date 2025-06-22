@@ -8,7 +8,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import {Link as RouterLink} from 'react-router-dom';
 import {Vehicle} from '../../interfaces/Vehicle';
-import {hasPermission} from "../../services/authService.ts";
+import {hasPermission} from "../../services/AuthService.ts";
 
 interface VehiclesTableProps {
     vehicles: Vehicle[];

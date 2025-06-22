@@ -4,7 +4,7 @@ import {
     Box, Button, CircularProgress, TextField, Typography, Alert, Link as MuiLink,
 } from '@mui/material';
 import AuthLayout from '../components/layout/AuthLayout';
-import {acceptInvitation} from '../services/authService';
+import {acceptInvitation} from '../services/AuthService.ts';
 
 const AcceptInvitation: React.FC = () => {
     const [params] = useSearchParams();

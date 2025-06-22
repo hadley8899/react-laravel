@@ -9,7 +9,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import {
     getDashboardActivities,
     type Activity,
-} from '../../services/dashboardService';
+} from '../../services/DashboardService.ts';
 
 const DashboardRecords: React.FC = () => {
     const theme = useTheme();

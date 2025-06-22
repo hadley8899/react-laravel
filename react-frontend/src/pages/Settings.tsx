@@ -14,7 +14,7 @@ import SettingsThemeSwitcher from "../components/settings/SettingsThemeSwitcher.
 import {Company} from "../interfaces/Company.ts";
 import {getMyCompany} from "../services/CompanyService.ts";
 import UserManagementLink from "../components/settings/UserManagementLink.tsx";
-import {hasPermission} from "../services/authService.ts";
+import {hasPermission} from "../services/AuthService.ts";
 // import SwitchCompany from "../components/settings/SwitchCompany";
 // import Integrations from "../components/settings/Integrations.tsx";
 

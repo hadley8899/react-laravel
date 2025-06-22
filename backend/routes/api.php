@@ -5,9 +5,11 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\CompanyUserManagementController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\CustomerTagController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\TagController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VehicleController;
 use App\Http\Controllers\VehicleMakeModelController;
@@ -51,7 +53,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Dashboard routes
     Route::middleware('auth:sanctum')->prefix('dashboard')->group(function () {
         Route::get('/overview', [DashboardController::class, 'overview']);
-        Route::get('/charts',   [DashboardController::class, 'chartData']);
+        Route::get('/charts', [DashboardController::class, 'chartData']);
         Route::get('/activity', [DashboardController::class, 'recentActivity']);
     });
 
@@ -75,6 +77,19 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{customer:uuid}', [CustomerController::class, 'show']);
         Route::put('/{customer:uuid}', [CustomerController::class, 'update']);
         Route::delete('/{customer:uuid}', [CustomerController::class, 'destroy']);
+
+        Route::post('/{customer:uuid}/tags', [CustomerTagController::class, 'sync']);
+    });
+
+    Route::prefix('/tags')->group(function () {
+        Route::get('/', [TagController::class, 'index']);
+        Route::post('/', [TagController::class, 'store']);
+        Route::get('/{tag:uuid}', [TagController::class, 'show']);
+        Route::put('/{tag:uuid}', [TagController::class, 'update']);
+        Route::delete('/{tag:uuid}', [TagController::class, 'destroy']);
+
+        // Customers with this tag
+        Route::get('/{tag:uuid}/customers', [TagController::class, 'customers']);
     });
 
     // Invoice routes

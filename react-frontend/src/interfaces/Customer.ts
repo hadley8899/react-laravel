@@ -1,3 +1,5 @@
+import {Tag} from "./Tag.ts";
+
 export interface Customer {
     uuid: string;
     first_name: string;
@@ -8,4 +10,5 @@ export interface Customer {
     created_at: string;
     status: 'Active' | 'Inactive';
     total_spent: number;
+    tags: Tag[];
 }

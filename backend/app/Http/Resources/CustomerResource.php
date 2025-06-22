@@ -21,9 +21,11 @@ class CustomerResource extends JsonResource
             'email' => $this->email,
             'phone' => $this->phone,
             'address' => $this->address,
-            'created_at' => $this->created_at->toDateTimeString(),
             'status' => $this->status,
             'total_spent' => $this->total_spent,
+            'tags' => TagResource::collection($this->tags),
+            'created_at' => $this->created_at->toDateTimeString(),
+            'updated_at' => $this->updated_at->toDateTimeString(),
         ];
     }
 }

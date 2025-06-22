@@ -5,7 +5,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import RefreshIcon from '@mui/icons-material/Refresh';
-import {hasPermission} from "../../services/authService.ts";
+import {hasPermission} from "../../services/AuthService.ts";
 
 interface Props {
     searchInput: string;

@@ -22,8 +22,9 @@ import React, {useEffect, useState} from "react";
 import {useLocation, useNavigate} from "react-router-dom";
 import PersonIcon from "@mui/icons-material/Person";
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
-import {getAuthUserLocal, hasPermission} from "../services/authService";
+import {getAuthUserLocal, hasPermission} from "../services/AuthService.ts";
 import SwitchCompanyModal from "./settings/SwitchCompany";
+import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 
 interface SidebarProps {
     mobileOpen: boolean;
@@ -67,6 +68,7 @@ const Sidebar: React.FC<SidebarProps> = ({mobileOpen, handleDrawerToggle}) => {
     // Define navigation items
     const mainNavItems: SidebarItem[] = [
         {title: "Dashboard", path: "/dashboard", icon: <DashboardIcon/>},
+        {title: "Tags", path: "/tags", icon: <LocalOfferIcon/>},
         {title: "Vehicles", path: "/vehicles", icon: <DirectionsCar/>, permissions: ['view_vehicles']},
         {title: "Customers", path: "/customers", icon: <PersonIcon/>, permissions: ['view_customers']},
         {title: "Invoices", path: "/invoices", icon: <ReceiptLong/>, permissions: ['view_invoices']},

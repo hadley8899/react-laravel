@@ -9,7 +9,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import SearchIcon from '@mui/icons-material/Search';
 import {CompanyUser} from "../../services/UserManagementService";
 import LockResetIcon from '@mui/icons-material/LockReset';
-import {getAuthUserLocal} from "../../services/authService.ts";
+import {getAuthUserLocal} from "../../services/AuthService.ts";
 
 interface UsersTableProps {
     users: CompanyUser[];

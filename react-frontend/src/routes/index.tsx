@@ -29,6 +29,7 @@ import UserManagement from "../pages/UserManagement.tsx";
 import VehicleDetails from "../pages/VehicleDetails.tsx";
 import CompanySetupWizard from "../pages/CompanySetupWizard.tsx";
 import Admin from "../pages/Admin.tsx";
+import TagListPage from "../pages/tags/TagListPage.tsx";
 
 const AppRoutes: React.FC = () => {
     return (
@@ -56,6 +57,7 @@ const AppRoutes: React.FC = () => {
                 <Route path="/appointments/create" element={<AppointmentCreate/>}/>
                 <Route path="/appointments/:uuid" element={<AppointmentDetails/>}/>
                 <Route path="/appointments/:uuid/edit" element={<AppointmentEdit/>}/>
+                <Route path="/tags" element={<TagListPage/>}/>
                 <Route path="/profile" element={<Profile/>}/>
                 <Route path="/settings" element={<Settings/>}/>
                 <Route path="/user-management" element={<UserManagement/>}/>

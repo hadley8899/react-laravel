@@ -19,7 +19,7 @@ import {
     updateAppointment,
     CreateAppointmentPayload,
     UpdateAppointmentPayload,
-} from '../../services/appointmentService';
+} from '../../services/AppointmentService.ts';
 import {Appointment, AppointmentStatus, AppointmentType} from '../../interfaces/Appointment';
 
 dayjs.locale('en-gb');

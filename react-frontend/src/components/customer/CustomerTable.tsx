@@ -21,7 +21,7 @@ import PeopleIcon from "@mui/icons-material/People";
 import {useNavigate} from "react-router-dom";
 import {Customer} from "../../interfaces/Customer";
 import DeleteIcon from "@mui/icons-material/Delete";
-import {hasPermission} from "../../services/authService.ts";
+import {hasPermission} from "../../services/AuthService.ts";
 
 interface CustomerTableProps {
     customers: Customer[];
@@ -130,6 +130,10 @@ const CustomerTable: React.FC<CustomerTableProps> = ({
                                                     sx={{mt: 1, fontWeight: '500'}}>
                                             Total Spent: {formatCurrency(customer.total_spent)}
                                         </Typography>
+                                        <Typography variant="body2" color="text.secondary"
+                                                    sx={{mt: 0.5, fontWeight: '500'}}>
+                                            Tags: {customer.tags.length > 0 ? customer.tags.map(tag => tag.name).join(', ') : 'None'}
+                                        </Typography>
                                     </Box>
                                 </CardContent>
                                 <CardActions sx={{justifyContent: 'flex-end', pt: 0, pb: 1.5, px: 1.5}}>
@@ -141,7 +145,7 @@ const CustomerTable: React.FC<CustomerTableProps> = ({
                                             <VisibilityIcon fontSize="small"/>
                                         </IconButton>
                                     </Tooltip>
-                                    {hasPermission('edit_customers') && (
+                                    {hasPermission('update_customers') && (
                                         <Tooltip title="Edit Customer">
                                             <IconButton
                                                 size="small"

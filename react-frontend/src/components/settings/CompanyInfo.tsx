@@ -21,10 +21,10 @@ import {updateCompany} from '../../services/CompanyService';
 import {LocalizationProvider} from "@mui/x-date-pickers/LocalizationProvider";
 import {AdapterDateFns} from "@mui/x-date-pickers/AdapterDateFns";
 import {DatePicker} from "@mui/x-date-pickers/DatePicker";
-import {DATE_FORMAT} from '../../services/dateService';
+import {DATE_FORMAT} from '../../services/DateService.ts';
 import {format} from 'date-fns';
 import {useNotifier} from "../../context/NotificationContext.tsx";
-import {hasPermission} from "../../services/authService";
+import {hasPermission} from "../../services/AuthService.ts";
 
 const currencies = ['GBP', 'USD', 'EUR', 'AUD', 'CAD', 'NZD'];
 const units = ['metric', 'imperial'] as const;

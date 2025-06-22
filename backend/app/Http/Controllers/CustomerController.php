@@ -22,6 +22,7 @@ class CustomerController extends Controller
     {
         $this->authorizeResource(Customer::class, 'customer');
     }
+
     /**
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
@@ -36,7 +37,12 @@ class CustomerController extends Controller
             $showInactive = request()->get('show_inactive') === 'true';
         }
 
-        $customers = CustomerListService::listCustomers(Auth::user()->company->id, $showInactive, $search);
+        $uuids = [];
+        if ($tagIds = request('tag_ids')) {
+            $uuids = explode(',', $tagIds);
+        }
+
+        $customers = CustomerListService::listCustomers(Auth::user()->company->id, $showInactive, $search, $uuids);
 
         return CustomerResource::collection($customers->paginate($perPage));
     }

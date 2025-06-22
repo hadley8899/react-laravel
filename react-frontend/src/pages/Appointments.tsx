@@ -8,7 +8,7 @@ import dayjs from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
 import {useNavigate} from 'react-router-dom';
 import {Appointment, AppointmentStatus, AppointmentType} from "../interfaces/Appointment.ts";
-import {getAppointments} from '../services/appointmentService.ts';
+import {getAppointments} from '../services/AppointmentService.ts';
 import MainLayout from "../components/layout/MainLayout.tsx";
 import AppointmentsHeader from '../components/appointments/AppointmentsHeader';
 import AppointmentList from '../components/appointments/AppointmentList';

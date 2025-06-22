@@ -26,7 +26,7 @@ import {Line, Pie} from 'react-chartjs-2';
 import {
     getDashboardCharts,
     type DashboardChartData,
-} from '../../services/dashboardService';
+} from '../../services/DashboardService.ts';
 
 ChartJS.register(
     CategoryScale,

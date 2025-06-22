@@ -21,7 +21,7 @@ import SaveIcon from '@mui/icons-material/Save';
 
 import {updateCompanySettings, UpdateCompanySettingsPayload} from "../../services/CompanyService.ts";
 import {useNotifier} from "../../context/NotificationContext.tsx";
-import {getAuthUser, setAuthUser} from "../../services/authService.ts";
+import {getAuthUser, setAuthUser} from "../../services/AuthService.ts";
 import SettingsAccordionItem from "../layout/SettingsAccordionItem.tsx";
 import {Company} from "../../interfaces/Company.ts";
 

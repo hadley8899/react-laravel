@@ -39,6 +39,9 @@ class DatabaseSeeder extends Seeder
         // Makes and models
         $makesWithModels = VehicleMake::query()->with('models')->get();
 
+        $this->command->info('Seeding the company tags...');
+        $this->call(TagSeeder::class);
+
         Company::all()->each(function ($company) use ($makesWithModels) {
             $this->createCompanyData($company, $makesWithModels);
         });
@@ -95,7 +98,7 @@ class DatabaseSeeder extends Seeder
      * @return void
      * @throws RandomException
      */
-    function createVehiclesAndAppointments($customer, $company, Collection $makesWithModels): void
+    private function createVehiclesAndAppointments($customer, $company, Collection $makesWithModels): void
     {
         $this->command->info('Creating customer ' . $customer->name . ' for company ' . $company->name);
         $vehicleCount = random_int(1, 25);
@@ -153,7 +156,7 @@ class DatabaseSeeder extends Seeder
      * @return void
      * @throws RandomException
      */
-    function createCompanyData($company, Collection $makesWithModels): void
+    private function createCompanyData($company, Collection $makesWithModels): void
     {
         User::factory(random_int(5, 100))->create([
             'company_id' => $company->id

@@ -21,6 +21,7 @@ import {deleteCustomer, getCustomers} from "../services/CustomerService";
 import CustomerTable from "../components/customer/CustomerTable";
 import CustomerFormDialog from '../components/customer/CustomerFormDialog';
 import CustomerPageFilterBar from "../components/customer/CustomerPageFilterBar.tsx";
+import {Tag} from "../interfaces/Tag.ts";
 
 function useDebounce(value: string, delay: number): string {
     const [debouncedValue, setDebouncedValue] = useState(value);
@@ -37,6 +38,7 @@ function useDebounce(value: string, delay: number): string {
 
 const Customers: React.FC = () => {
     const [customers, setCustomers] = useState<Customer[]>([]);
+    const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
     const [showInactive, setShowInactive] = useState(false);
     const [totalCustomers, setTotalCustomers] = useState(0);
     const [page, setPage] = useState(0);
@@ -54,23 +56,28 @@ const Customers: React.FC = () => {
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [customerToDelete, setCustomerToDelete] = useState<Customer | null>(null);
 
-    const fetchCustomers = useCallback(async (showLoading = true) => {
-        if (showLoading) {
-            setLoading(true)
-        }
-
-        setError(null);
-        try {
-            const response = await getCustomers(page + 1, rowsPerPage, debouncedSearchTerm, showInactive);
-            setCustomers(response.data);
-            setTotalCustomers(response.meta.total);
-        } catch (err: any) {
-            console.error("Failed to fetch customers:", err);
-            setError(err.message || "Failed to load customers. Please try again.");
-        } finally {
-            if (showLoading) setLoading(false);
-        }
-    }, [page, rowsPerPage, debouncedSearchTerm, showInactive]);
+    const fetchCustomers = useCallback(
+        async (showLoading = true) => {
+            if (showLoading) setLoading(true);
+            setError(null);
+            try {
+                const res = await getCustomers(
+                    page + 1,
+                    rowsPerPage,
+                    debouncedSearchTerm,
+                    showInactive,
+                    selectedTags.map((t) => t.uuid),
+                );
+                setCustomers(res.data);
+                setTotalCustomers(res.meta.total);
+            } catch (err: any) {
+                setError(err.message ?? 'Failed to load customers');
+            } finally {
+                if (showLoading) setLoading(false);
+            }
+        },
+        [page, rowsPerPage, debouncedSearchTerm, showInactive, selectedTags],
+    );
 
     useEffect(() => {
         fetchCustomers();
@@ -137,6 +144,11 @@ const Customers: React.FC = () => {
         setPage(0);
     };
 
+    const handleTagFilterChange = (tags: Tag[]) => {
+        setSelectedTags(tags);
+        setPage(0);
+    };
+
     return (
         <MainLayout title="Customers">
             <Container maxWidth="lg" sx={{py: 4}}>
@@ -147,6 +159,8 @@ const Customers: React.FC = () => {
                         handleShowInactiveChange={handleShowInactiveChange}
                         handleSearchChange={handleSearchChange}
                         handleOpenAddModal={handleOpenAddModal}
+                        selectedTags={selectedTags}
+                        onTagFilterChange={handleTagFilterChange}
                     />
 
                     {loading && (

@@ -30,24 +30,20 @@ import {useNotifier} from "../context/NotificationContext.tsx";
 import UserForm from "../components/user-management/UserForm.tsx";
 
 const UserManagement: React.FC = () => {
-    /* ─────────────── data ─────────────── */
     const [users, setUsers] = useState<CompanyUser[]>([]);
     const [availableRoles, setAvailableRoles] = useState<string[]>([]);
 
-    /* ─────────────── ui state ──────────── */
     const [openEditDialog, setOpenEditDialog] = useState(false);
     const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
     const [openAddDialog, setOpenAddDialog] = useState(false);
     const [openResetDialog, setOpenResetDialog] = useState(false);
     const [selectedUser, setSelectedUser] = useState<CompanyUser | null>(null);
 
-    /* ─────────────── form state ────────── */
     const [newUser, setNewUser] = useState<CreateUserPayload>({
         name: "", email: "", password: "", password_confirmation: "", status: "active", role: "",
     });
     const [tempPassword, setTempPassword] = useState('');
 
-    /* misc */
     const {showNotification} = useNotifier();
     const [loading, setLoading] = useState(true);
     const [selectedStatus, setSelectedStatus] = useState<string>("all");
@@ -55,7 +51,6 @@ const UserManagement: React.FC = () => {
     const [roleFilter, setRoleFilter] = useState('');
     const statusCounts = getStatusCounts(users);
 
-    /* ─────────────── initial load ──────── */
     useEffect(() => {
         (async () => {
             try {

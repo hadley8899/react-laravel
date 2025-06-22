@@ -8,7 +8,7 @@ import AddIcon from '@mui/icons-material/Add';
 import {
     CreateInvoicePayload,
     InvoiceItemInput,
-} from '../../services/invoiceService';
+} from '../../services/InvoiceService.ts';
 import {getCustomers} from '../../services/CustomerService';
 import {Customer} from '../../interfaces/Customer';
 import {DatePicker} from '@mui/x-date-pickers/DatePicker';

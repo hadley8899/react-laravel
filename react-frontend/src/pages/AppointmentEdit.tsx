@@ -5,7 +5,7 @@ import Box from '@mui/material/Box';
 import Alert from '@mui/material/Alert';
 import MainLayout from '../components/layout/MainLayout';
 import AppointmentForm from '../components/appointments/AppointmentForm';
-import { getAppointment } from '../services/appointmentService';
+import { getAppointment } from '../services/AppointmentService.ts';
 import { Appointment } from '../interfaces/Appointment';
 
 const AppointmentEdit: React.FC = () => {

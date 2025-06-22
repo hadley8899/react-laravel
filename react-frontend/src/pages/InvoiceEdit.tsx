@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Alert, CircularProgress, Container } from '@mui/material';
 import MainLayout from "../components/layout/MainLayout.tsx";
 import InvoiceForm from "../components/invoices/InvoiceForm.tsx";
-import {CreateInvoicePayload, getInvoice, updateInvoice} from '../services/invoiceService.ts';
+import {CreateInvoicePayload, getInvoice, updateInvoice} from '../services/InvoiceService.ts';
 
 const InvoiceEdit: React.FC = () => {
     const { uuid } = useParams<{ uuid: string }>();

@@ -17,7 +17,7 @@ import TaskAltIcon from '@mui/icons-material/TaskAlt';
 import {
     getDashboardOverview,
     type DashboardOverview,
-} from '../../services/dashboardService';
+} from '../../services/DashboardService.ts';
 
 interface StatCardProps {
     title: string;

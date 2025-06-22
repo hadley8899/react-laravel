@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {Alert, Container} from '@mui/material';
-import {createInvoice, CreateInvoicePayload} from "../services/invoiceService.ts";
+import {createInvoice, CreateInvoicePayload} from "../services/InvoiceService.ts";
 import MainLayout from "../components/layout/MainLayout.tsx";
 import InvoiceForm from "../components/invoices/InvoiceForm.tsx";
 

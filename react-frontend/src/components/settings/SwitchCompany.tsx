@@ -9,7 +9,7 @@ import {
     Autocomplete,
     TextField
 } from "@mui/material";
-import {hasPermission, getAuthUserLocal, setAuthUser} from "../../services/authService";
+import {hasPermission, getAuthUserLocal, setAuthUser} from "../../services/AuthService.ts";
 import {api} from "../../services/api";
 import User from "../../interfaces/User";
 

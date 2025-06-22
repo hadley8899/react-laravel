@@ -3,7 +3,7 @@ import {
     Box,
     Typography,
     Grid,
-    Chip
+    Chip,
 } from '@mui/material';
 import EmailIcon from '@mui/icons-material/Email';
 import PhoneIcon from '@mui/icons-material/Phone';
@@ -11,15 +11,18 @@ import LocationOnIcon from '@mui/icons-material/LocationOn';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
 
 import { Customer } from '../../interfaces/Customer';
+import TagChip from '../TagChip';
 
 interface CustomerDetailsCardProps {
     customer: Customer;
 }
 
-const CustomerDetailsCard: React.FC<CustomerDetailsCardProps> = ({ customer }) => {
+const CustomerDetailsCard: React.FC<CustomerDetailsCardProps> = ({
+                                                                     customer,
+                                                                 }) => {
     const getStatusChip = (status: Customer['status']) => {
-        let color: "success" | "error" = "error";
-        let variant: "filled" | "outlined" = "outlined";
+        let color: 'success' | 'error' = 'error';
+        let variant: 'filled' | 'outlined' = 'outlined';
         if (status === 'Active') {
             color = 'success';
             variant = 'filled';
@@ -28,29 +31,44 @@ const CustomerDetailsCard: React.FC<CustomerDetailsCardProps> = ({ customer }) =
     };
 
     const formatCurrency = (value: number, currencyCode = 'GBP') => {
-        const formatter = new Intl.NumberFormat('en-GB', {
+        return new Intl.NumberFormat('en-GB', {
             style: 'currency',
             currency: currencyCode,
-        });
-        return formatter.format(value);
+        }).format(value);
     };
 
     return (
         <Grid container spacing={3}>
+            {/* Left column */}
             <Grid size={{ xs: 12, md: 4 }}>
                 <Box
                     sx={{
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'center',
-                        textAlign: 'center'
+                        textAlign: 'center',
                     }}
                 >
                     {getStatusChip(customer.status)}
+                    {customer.tags && customer.tags.length > 0 && (
+                        <Box
+                            sx={{
+                                mt: 2,
+                                display: 'flex',
+                                flexWrap: 'wrap',
+                                gap: 0.75,
+                                justifyContent: 'center',
+                            }}
+                        >
+                            {customer.tags.map((tag) => (
+                                <TagChip key={tag.uuid} tag={tag} />
+                            ))}
+                        </Box>
+                    )}
                 </Box>
             </Grid>
 
-            {/* Right Column: Customer Info */}
+            {/* Right column */}
             <Grid size={{ xs: 12, md: 8 }}>
                 <Box sx={{ mb: 2 }}>
                     <Typography variant="h5" component="div" fontWeight="500">
@@ -60,6 +78,7 @@ const CustomerDetailsCard: React.FC<CustomerDetailsCardProps> = ({ customer }) =
                         Joined on {new Date(customer.created_at).toLocaleDateString('en-GB')}
                     </Typography>
                 </Box>
+
                 <Grid container spacing={2}>
                     {/* Email */}
                     <Grid size={{ xs: 12, md: 6 }}>
@@ -70,31 +89,49 @@ const CustomerDetailsCard: React.FC<CustomerDetailsCardProps> = ({ customer }) =
                             </Typography>
                         </Box>
                     </Grid>
+
                     {/* Phone */}
                     {customer.phone && (
                         <Grid size={{ xs: 12, md: 6 }}>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                 <PhoneIcon color="action" />
-                                <Typography variant="body1">
-                                    {customer.phone}
-                                </Typography>
+                                <Typography variant="body1">{customer.phone}</Typography>
                             </Box>
                         </Grid>
                     )}
+
                     {/* Address */}
                     {customer.address && (
                         <Grid size={12}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
+                            <Box
+                                sx={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 1,
+                                    mt: 1,
+                                }}
+                            >
                                 <LocationOnIcon color="action" />
-                                <Typography variant="body1" sx={{ whiteSpace: 'pre-line' }}>
+                                <Typography
+                                    variant="body1"
+                                    sx={{ whiteSpace: 'pre-line' }}
+                                >
                                     {customer.address}
                                 </Typography>
                             </Box>
                         </Grid>
                     )}
-                    {/* Total Spent */}
+
+                    {/* Total spent */}
                     <Grid size={12}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 2 }}>
+                        <Box
+                            sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 1,
+                                mt: 2,
+                            }}
+                        >
                             <MonetizationOnIcon color="action" />
                             <Typography variant="body1" fontWeight="500">
                                 Total Spent: {formatCurrency(customer.total_spent)}

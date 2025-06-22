@@ -28,7 +28,7 @@ import PaymentIcon from '@mui/icons-material/Payment';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import {Invoice} from '../interfaces/Invoice';
-import {getInvoice, downloadInvoicePdf, deleteInvoice, emailInvoice} from '../services/invoiceService';
+import {getInvoice, downloadInvoicePdf, deleteInvoice, emailInvoice} from '../services/InvoiceService.ts';
 
 const InvoiceDetails: React.FC = () => {
     const {uuid} = useParams<{ uuid: string }>();

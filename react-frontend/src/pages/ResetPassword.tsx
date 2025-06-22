@@ -10,7 +10,7 @@ import {
 } from '@mui/material';
 import {Link as RouterLink, useNavigate, useSearchParams} from 'react-router-dom';
 import AuthLayout from '../components/layout/AuthLayout';
-import {resetPassword} from "../services/authService";
+import {resetPassword} from "../services/AuthService.ts";
 
 const ResetPassword: React.FC = () => {
     const [password, setPassword] = useState('');

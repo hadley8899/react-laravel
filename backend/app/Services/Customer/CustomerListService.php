@@ -11,15 +11,21 @@ class CustomerListService extends CustomerService
      * @param int $companyId
      * @param bool $showInactive
      * @param string|null $search
+     * @param string[] $tagIds
      * @return Builder
      */
-    public static function listCustomers(int $companyId, bool $showInactive = false, ?string $search = null): Builder
+    public static function listCustomers(int $companyId, bool $showInactive = false, ?string $search = null, $tagIds = []): Builder
     {
         $customersQuery = Customer::query()
+            ->with(['tags'])
             ->where('company_id',$companyId);
 
         if (!$showInactive) {
             $customersQuery->where('status', '!=', 'Inactive');
+        }
+
+        if (count($tagIds) > 0) {
+            $customersQuery->whereHas('tags', fn($q) => $q->whereIn('uuid', $tagIds));
         }
 
         if ($search) {

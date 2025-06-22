@@ -10,7 +10,7 @@ import {
 } from '@mui/material';
 import {Link as RouterLink} from 'react-router-dom';
 import AuthLayout from '../components/layout/AuthLayout';
-import {forgotPassword} from "../services/authService";
+import {forgotPassword} from "../services/AuthService.ts";
 
 const ForgotPassword: React.FC = () => {
     const [email, setEmail] = useState('');

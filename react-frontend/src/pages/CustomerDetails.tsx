@@ -17,7 +17,6 @@ import {getVehicles} from '../services/VehicleService';
 import VehiclesTable from '../components/vehicles/VehiclesTable';
 import {Vehicle} from "../interfaces/Vehicle.ts";
 
-
 const CustomerDetails: React.FC = () => {
     const {uuid} = useParams();
     const navigate = useNavigate();
@@ -105,7 +104,8 @@ const CustomerDetails: React.FC = () => {
                         loading={vehiclesLoading}
                         error={vehiclesError}
                         showSelectBoxes={false}
-                        onRowClick={() => {}}
+                        onRowClick={() => {
+                        }}
                     />
                 </Paper>
             </Container>

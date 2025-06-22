@@ -9,7 +9,7 @@ import {
     useTheme,
 } from '@mui/material';
 import { Link } from 'react-router-dom';
-import { hasPermission as can } from '../../services/authService';
+import { hasPermission as can } from '../../services/AuthService.ts';
 
 import DirectionsCarIcon   from '@mui/icons-material/DirectionsCar';
 import ReceiptLongIcon     from '@mui/icons-material/ReceiptLong';

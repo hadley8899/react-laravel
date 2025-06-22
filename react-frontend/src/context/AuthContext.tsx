@@ -1,5 +1,5 @@
 import React, {createContext, useState, useEffect, ReactNode, useContext} from 'react';
-import { getAuthUser, logout as logoutService } from '../services/authService';
+import {getAuthUser, logout as logoutService} from '../services/AuthService.ts';
 import User from '../interfaces/User';
 
 interface AuthContextType {
@@ -12,13 +12,15 @@ interface AuthContextType {
 export const AuthContext = createContext<AuthContextType>({
     user: null,
     loading: true,
-    setUser: () => {},
-    logout: () => {},
+    setUser: () => {
+    },
+    logout: () => {
+    },
 });
 
 export const useAuth = () => useContext(AuthContext);
 
-export const AuthProvider: React.FC<{children: ReactNode}> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({children}) => {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
 
@@ -29,13 +31,15 @@ export const AuthProvider: React.FC<{children: ReactNode}> = ({ children }) => {
                 const userData = await getAuthUser();
                 setUser(userData);
             } catch (error) {
+                console.error(error);
                 setUser(null);
             } finally {
                 setLoading(false);
             }
         };
 
-        checkAuth();
+        checkAuth().then(() => {
+        });
     }, []);
 
     const logout = () => {
@@ -51,7 +55,7 @@ export const AuthProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, loading, setUser, logout }}>
+        <AuthContext.Provider value={{user, loading, setUser, logout}}>
             {children}
         </AuthContext.Provider>
     );

@@ -6,7 +6,7 @@ import {
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import MarkEmailReadIcon from '@mui/icons-material/MarkEmailRead';
 import AuthLayout from '../components/layout/AuthLayout';
-import { registerUser } from '../services/authService';
+import { registerUser } from '../services/AuthService.ts';
 import { useNotifier } from '../context/NotificationContext.tsx';
 import { Turnstile } from '@marsidev/react-turnstile';
 

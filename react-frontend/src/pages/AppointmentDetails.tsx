@@ -24,9 +24,9 @@ import DeleteIcon from '@mui/icons-material/Delete';
 
 import {useNavigate, useParams} from 'react-router-dom';
 import {Appointment} from "../interfaces/Appointment.ts";
-import {deleteAppointment, getAppointment} from "../services/appointmentService.ts";
+import {deleteAppointment, getAppointment} from "../services/AppointmentService.ts";
 import MainLayout from '../components/layout/MainLayout.tsx';
-import {hasPermission} from "../services/authService.ts";
+import {hasPermission} from "../services/AuthService.ts";
 
 const statusChip = (s: Appointment['status']) => {
     const map = {

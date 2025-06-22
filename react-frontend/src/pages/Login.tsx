@@ -9,7 +9,7 @@ import {
 } from '@mui/material';
 import {Link as RouterLink, useNavigate} from 'react-router-dom';
 import AuthLayout from '../components/layout/AuthLayout';
-import {loginUser, getAuthUser} from "../services/authService.ts";
+import {loginUser, getAuthUser} from "../services/AuthService.ts";
 import {AuthContext} from "../context/AuthContext.tsx";
 
 const Login: React.FC = () => {

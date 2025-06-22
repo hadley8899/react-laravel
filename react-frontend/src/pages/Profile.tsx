@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import MainLayout from '../components/layout/MainLayout';
 import ProfileForm from '../components/profile/ProfileForm';
 import ProfileChangePassword from '../components/profile/ProfileChangePassword';
-import { logout } from '../services/authService';
+import { logout } from '../services/AuthService.ts';
 import { getCurrentUser, updateUser } from '../services/UserService';
 import User from '../interfaces/User';
 

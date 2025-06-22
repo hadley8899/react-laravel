@@ -18,7 +18,7 @@ import AddIcon from "@mui/icons-material/Add";
 
 // Import service and interface
 import {Invoice} from "../interfaces/Invoice";
-import {getInvoices, downloadInvoicePdf} from "../services/invoiceService";
+import {getInvoices, downloadInvoicePdf} from "../services/InvoiceService.ts";
 import InvoicesTable from "../components/invoices/InvoicesTable.tsx";
 
 type Order = 'asc' | 'desc';
