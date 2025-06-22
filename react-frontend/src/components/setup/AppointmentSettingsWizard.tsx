@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
     Box,
     Grid,
@@ -13,7 +13,7 @@ import {
     Paper,
 } from '@mui/material';
 import EventNoteIcon from '@mui/icons-material/EventNote';
-import { Company } from '../../interfaces/Company';
+import {Company} from '../../interfaces/Company';
 
 type ReminderTiming = '1h' | '3h' | '12h' | '24h' | '48h';
 type ReminderTimingState = ReminderTiming | '';
@@ -23,14 +23,14 @@ interface Props {
     setCompany: React.Dispatch<React.SetStateAction<Company | null>>;
 }
 
-const AppointmentSettingsWizard: React.FC<Props> = ({ company, setCompany }) => {
+const AppointmentSettingsWizard: React.FC<Props> = ({company, setCompany}) => {
     /* -------------------- local state -------------------- */
     const [defaultDuration, setDefaultDuration] = useState<number>(60);
     const [enableOnlineBooking, setEnableOnlineBooking] = useState<boolean>(true);
     const [sendReminders, setSendReminders] = useState<boolean>(true);
     const [reminderTiming, setReminderTiming] = useState<ReminderTimingState>('24h');
-    const [bufferTime, setBufferTime] = useState<number>(0);
-    const [minNoticeHours, setMinNoticeHours] = useState<number>(24);
+    const [bufferTime, setBufferTime] = useState<number | ''>(0);
+    const [minNoticeHours, setMinNoticeHours] = useState<number | ''>(24);
     const [errors, setErrors] = useState({
         defaultDuration: '',
         bufferTime: '',
@@ -48,13 +48,21 @@ const AppointmentSettingsWizard: React.FC<Props> = ({ company, setCompany }) => 
         setReminderTiming(
             (company.appointment_reminder_timing as ReminderTiming) || '24h',
         );
-        setBufferTime(company.appointment_buffer_time ?? 0);
-        setMinNoticeHours(company.min_booking_notice_hours ?? 24);
+        setBufferTime(
+            company.appointment_buffer_time === null || company.appointment_buffer_time === undefined
+                ? ''
+                : company.appointment_buffer_time
+        );
+        setMinNoticeHours(
+            company.min_booking_notice_hours === null || company.min_booking_notice_hours === undefined
+                ? ''
+                : company.min_booking_notice_hours
+        );
     }, [company]);
 
     /* ---------------- propagate up ----------------------- */
     const update = (field: keyof Company, value: any) =>
-        setCompany(c => (c ? { ...c, [field]: value } as Company : c));
+        setCompany(c => (c ? {...c, [field]: value} as Company : c));
 
     // Validation logic
     const validateField = (field: keyof typeof errors, value: any) => {
@@ -94,12 +102,12 @@ const AppointmentSettingsWizard: React.FC<Props> = ({ company, setCompany }) => 
             field === 'defaultDuration'
                 ? 'default_appointment_duration'
                 : field === 'bufferTime'
-                ? 'appointment_buffer_time'
-                : field === 'minNoticeHours'
-                ? 'min_booking_notice_hours'
-                : field === 'reminderTiming'
-                ? 'appointment_reminder_timing'
-                : (field as keyof Company),
+                    ? 'appointment_buffer_time'
+                    : field === 'minNoticeHours'
+                        ? 'min_booking_notice_hours'
+                        : field === 'reminderTiming'
+                            ? 'appointment_reminder_timing'
+                            : (field as keyof Company),
             value
         );
         setErrors(prev => ({
@@ -119,17 +127,17 @@ const AppointmentSettingsWizard: React.FC<Props> = ({ company, setCompany }) => 
                     borderRadius: 2,
                     overflow: 'hidden',
                     mb: 3,
-                    p: { xs: 2, sm: 3 },
+                    p: {xs: 2, sm: 3},
                     // Match CompanyInfoWizard: remove custom background color
                 }}
             >
-                <Typography variant="h6" mb={2} sx={{ display: 'flex', alignItems: 'center' }}>
-                    <EventNoteIcon sx={{ mr: 1 }} />
+                <Typography variant="h6" mb={2} sx={{display: 'flex', alignItems: 'center'}}>
+                    <EventNoteIcon sx={{mr: 1}}/>
                     Appointment Settings
                 </Typography>
                 <Grid container spacing={3}>
                     {/* Default Duration */}
-                    <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                    <Grid size={{xs: 12, sm: 6, md: 4}}>
                         <FormControl fullWidth error={!!errors.defaultDuration}>
                             <InputLabel id="default-duration-label">Default Duration</InputLabel>
                             <Select
@@ -151,39 +159,85 @@ const AppointmentSettingsWizard: React.FC<Props> = ({ company, setCompany }) => 
                         </FormControl>
                     </Grid>
                     {/* Buffer Time */}
-                    <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                    <Grid size={{xs: 12, sm: 6, md: 4}}>
                         <TextField
                             fullWidth
                             type="number"
                             label="Booking Buffer (mins)"
-                            value={bufferTime}
-                            onChange={event => handleChange('bufferTime', Math.max(0, parseInt(event.target.value, 10) || 0), setBufferTime)}
-                            onBlur={() => handleBlur('bufferTime', bufferTime)}
+                            value={bufferTime === '' ? '' : bufferTime}
+                            onChange={event => {
+                                const val = event.target.value;
+                                if (val === '') {
+                                    setBufferTime('');
+                                    update('appointment_buffer_time', null);
+                                    setErrors(prev => ({
+                                        ...prev,
+                                        bufferTime: ''
+                                    }));
+                                } else {
+                                    const num = parseInt(val, 10);
+                                    setBufferTime(isNaN(num) ? '' : num);
+                                    update('appointment_buffer_time', isNaN(num) ? null : num);
+                                    setErrors(prev => ({
+                                        ...prev,
+                                        bufferTime: prev.bufferTime ? validateField('bufferTime', isNaN(num) ? '' : num) : ''
+                                    }));
+                                }
+                            }}
+                            onBlur={() => {
+                                setErrors(prev => ({
+                                    ...prev,
+                                    bufferTime: validateField('bufferTime', bufferTime === '' ? '' : bufferTime)
+                                }));
+                            }}
                             error={!!errors.bufferTime}
                             helperText={errors.bufferTime}
                             slotProps={{
-                                htmlInput: { min: 0, step: 5 }
+                                htmlInput: {min: 0, step: 5}
                             }}
                         />
                     </Grid>
                     {/* Min Notice */}
-                    <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                    <Grid size={{xs: 12, sm: 6, md: 4}}>
                         <TextField
                             fullWidth
                             type="number"
                             label="Min Booking Notice (h)"
-                            value={minNoticeHours}
-                            onChange={event => handleChange('minNoticeHours', Math.max(0, parseInt(event.target.value, 10) || 0), setMinNoticeHours)}
-                            onBlur={() => handleBlur('minNoticeHours', minNoticeHours)}
+                            value={minNoticeHours === '' ? '' : minNoticeHours}
+                            onChange={event => {
+                                const val = event.target.value;
+                                if (val === '') {
+                                    setMinNoticeHours('');
+                                    update('min_booking_notice_hours', null);
+                                    setErrors(prev => ({
+                                        ...prev,
+                                        minNoticeHours: ''
+                                    }));
+                                } else {
+                                    const num = parseInt(val, 10);
+                                    setMinNoticeHours(isNaN(num) ? '' : num);
+                                    update('min_booking_notice_hours', isNaN(num) ? null : num);
+                                    setErrors(prev => ({
+                                        ...prev,
+                                        minNoticeHours: prev.minNoticeHours ? validateField('minNoticeHours', isNaN(num) ? '' : num) : ''
+                                    }));
+                                }
+                            }}
+                            onBlur={() => {
+                                setErrors(prev => ({
+                                    ...prev,
+                                    minNoticeHours: validateField('minNoticeHours', minNoticeHours === '' ? '' : minNoticeHours)
+                                }));
+                            }}
                             error={!!errors.minNoticeHours}
                             helperText={errors.minNoticeHours}
                             slotProps={{
-                                htmlInput: { min: 0 }
+                                htmlInput: {min: 0}
                             }}
                         />
                     </Grid>
                     {/* Online Booking */}
-                    <Grid size={{ xs: 12, sm: 6, md: 4 }} display="flex" alignItems="center">
+                    <Grid size={{xs: 12, sm: 6, md: 4}} display="flex" alignItems="center">
                         <FormControlLabel
                             control={
                                 <Switch
@@ -198,7 +252,7 @@ const AppointmentSettingsWizard: React.FC<Props> = ({ company, setCompany }) => 
                         />
                     </Grid>
                     {/* Send Reminders */}
-                    <Grid size={{ xs: 12, sm: 6, md: 4 }} display="flex" alignItems="center">
+                    <Grid size={{xs: 12, sm: 6, md: 4}} display="flex" alignItems="center">
                         <FormControlLabel
                             control={
                                 <Switch
@@ -225,7 +279,7 @@ const AppointmentSettingsWizard: React.FC<Props> = ({ company, setCompany }) => 
                         />
                     </Grid>
                     {/* Reminder Timing */}
-                    <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                    <Grid size={{xs: 12, sm: 6, md: 4}}>
                         <FormControl fullWidth disabled={!sendReminders} error={!!errors.reminderTiming}>
                             <InputLabel id="reminder-timing-label">Reminder Timing</InputLabel>
                             <Select

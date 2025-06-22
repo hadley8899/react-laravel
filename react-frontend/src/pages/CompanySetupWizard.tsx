@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
     Box,
     Button,
@@ -28,6 +28,11 @@ const CompanySetupWizard: React.FC = () => {
     const [company, setCompany] = useState(user?.company ?? null);
     const [active, setActive] = useState(0);
     const [saving, setSaving] = useState(false);
+
+    useEffect(() => {
+        // Set the window title to "Company Setup"
+        document.title = 'Company Setup';
+    }, []);
 
     const next = () => setActive(p => p + 1);
     const back = () => setActive(p => p - 1);
