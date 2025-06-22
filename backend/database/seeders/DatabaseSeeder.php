@@ -169,5 +169,15 @@ class DatabaseSeeder extends Seeder
         ])->each(function ($customer) use ($company, $makesWithModels) {
             $this->createVehiclesAndAppointments($customer, $company, $makesWithModels);
         });
+
+        // Update company 1 to be active so we can login with our test users
+        $numberOneCompany = Company::query()->where('id', 1)->first();
+        if ($numberOneCompany) {
+            $numberOneCompany->status = 'Active';
+            $numberOneCompany->save();
+            $this->command->info('Updated company 1 to active status.');
+        } else {
+            $this->command->error('Company 1 not found, cannot update status.');
+        }
     }
 }
