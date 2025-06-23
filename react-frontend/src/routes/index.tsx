@@ -2,34 +2,34 @@ import React from 'react';
 import {Routes, Route, Navigate} from 'react-router-dom';
 import ProtectedRoute from '../components/ProtectedRoute';
 
-// Pages
 // Public pages
 import Login from '../pages/Login';
-import Register from "../pages/Register";
-import ForgotPassword from "../pages/ForgotPassword.tsx";
-import ResetPassword from "../pages/ResetPassword";
-import AcceptInvitation from "../pages/AcceptInvitation.tsx";
+import Register from '../pages/Register';
+import ForgotPassword from '../pages/ForgotPassword.tsx';
+import ResetPassword from '../pages/ResetPassword';
+import AcceptInvitation from '../pages/AcceptInvitation.tsx';
 
-//Protected pages
-import Dashboard from "../pages/Dashboard";
-import Vehicles from "../pages/Vehicles";
-import Customers from "../pages/Customers";
-import Invoices from "../pages/Invoices";
-import InvoiceDetails from "../pages/InvoiceDetails";
-import Appointments from "../pages/Appointments";
-import Profile from "../pages/Profile";
-import Settings from "../pages/Settings";
+// Protected pages
+import Dashboard from '../pages/Dashboard';
+import Vehicles from '../pages/Vehicles';
+import Customers from '../pages/Customers';
+import Invoices from '../pages/Invoices';
+import InvoiceDetails from '../pages/InvoiceDetails';
+import Appointments from '../pages/Appointments';
+import Profile from '../pages/Profile';
+import Settings from '../pages/Settings';
 import CustomerDetails from '../pages/CustomerDetails.tsx';
-import InvoiceCreate from "../pages/InvoiceCreate.tsx";
+import InvoiceCreate from '../pages/InvoiceCreate.tsx';
 import InvoiceEdit from '../pages/InvoiceEdit.tsx';
-import AppointmentCreate from "../pages/AppointmentCreate.tsx";
-import AppointmentDetails from "../pages/AppointmentDetails.tsx";
-import AppointmentEdit from "../pages/AppointmentEdit.tsx";
-import UserManagement from "../pages/UserManagement.tsx";
-import VehicleDetails from "../pages/VehicleDetails.tsx";
-import CompanySetupWizard from "../pages/CompanySetupWizard.tsx";
-import Admin from "../pages/Admin.tsx";
-import TagListPage from "../pages/tags/TagListPage.tsx";
+import AppointmentCreate from '../pages/AppointmentCreate.tsx';
+import AppointmentDetails from '../pages/AppointmentDetails.tsx';
+import AppointmentEdit from '../pages/AppointmentEdit.tsx';
+import UserManagement from '../pages/UserManagement.tsx';
+import VehicleDetails from '../pages/VehicleDetails.tsx';
+import CompanySetupWizard from '../pages/CompanySetupWizard.tsx';
+import Admin from '../pages/Admin.tsx';
+import TagListPage from '../pages/tags/TagListPage.tsx';
+import MediaLibrary from '../pages/MediaLibrary.tsx';
 
 const AppRoutes: React.FC = () => {
     return (
@@ -58,11 +58,11 @@ const AppRoutes: React.FC = () => {
                 <Route path="/appointments/:uuid" element={<AppointmentDetails/>}/>
                 <Route path="/appointments/:uuid/edit" element={<AppointmentEdit/>}/>
                 <Route path="/tags" element={<TagListPage/>}/>
+                <Route path="/media" element={<MediaLibrary/>}/>
                 <Route path="/profile" element={<Profile/>}/>
                 <Route path="/settings" element={<Settings/>}/>
                 <Route path="/user-management" element={<UserManagement/>}/>
                 <Route path="/admin" element={<Admin/>}/>
-
             </Route>
 
             <Route path="*" element={<Navigate to="/login" replace/>}/>

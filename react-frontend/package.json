@@ -33,6 +33,7 @@
     "@mui/system": "^7.0.1",
     "@mui/x-date-pickers": "^8.3.0",
     "@mui/x-date-pickers-pro": "^8.3.0",
+    "@mui/x-tree-view": "^8.5.3",
     "axios": "^1.8.4",
     "chart.js": "^4.4.8",
     "date-fns": "^4.1.0",

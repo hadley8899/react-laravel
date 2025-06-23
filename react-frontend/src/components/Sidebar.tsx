@@ -7,8 +7,8 @@ import {
     ListItemButton,
     ListItemIcon,
     ListItemText,
-    Typography
-} from "@mui/material";
+    Typography,
+} from '@mui/material';
 import {
     CalendarMonth,
     Dashboard as DashboardIcon,
@@ -16,15 +16,19 @@ import {
     Person,
     ReceiptLong,
     Settings,
-    Shield
-} from "@mui/icons-material";
-import React, {useEffect, useState} from "react";
-import {useLocation, useNavigate} from "react-router-dom";
-import PersonIcon from "@mui/icons-material/Person";
+    Shield,
+    PhotoLibrary as PhotoLibraryIcon,
+} from '@mui/icons-material';
+import React, {useEffect, useState} from 'react';
+import {useLocation, useNavigate} from 'react-router-dom';
+import PersonIcon from '@mui/icons-material/Person';
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
-import {getAuthUserLocal, hasPermission} from "../services/AuthService.ts";
-import SwitchCompanyModal from "./settings/SwitchCompany";
-import LocalOfferIcon from "@mui/icons-material/LocalOffer";
+import {
+    getAuthUserLocal,
+    hasPermission,
+} from '../services/AuthService.ts';
+import SwitchCompanyModal from './settings/SwitchCompany';
+import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 
 interface SidebarProps {
     mobileOpen: boolean;
@@ -38,7 +42,10 @@ interface SidebarItem {
     permissions?: string[];
 }
 
-const Sidebar: React.FC<SidebarProps> = ({mobileOpen, handleDrawerToggle}) => {
+const Sidebar: React.FC<SidebarProps> = ({
+                                             mobileOpen,
+                                             handleDrawerToggle,
+                                         }) => {
     const drawerWidth = 240;
     const location = useLocation();
     const navigate = useNavigate();
@@ -53,7 +60,7 @@ const Sidebar: React.FC<SidebarProps> = ({mobileOpen, handleDrawerToggle}) => {
             if (authUser) {
                 setAuthUser(authUser);
             }
-        }
+        };
 
         window.addEventListener('user-updated', handleUserUpdate);
 
@@ -63,21 +70,47 @@ const Sidebar: React.FC<SidebarProps> = ({mobileOpen, handleDrawerToggle}) => {
     }, []);
 
     const companyLogo = authUser?.company?.logo_url;
-    const companyName = authUser?.company?.name || "Company";
+    const companyName = authUser?.company?.name || 'Company';
 
     // Define navigation items
     const mainNavItems: SidebarItem[] = [
-        {title: "Dashboard", path: "/dashboard", icon: <DashboardIcon/>},
-        {title: "Customers", path: "/customers", icon: <PersonIcon/>, permissions: ['view_customers']},
-        {title: "Tags", path: "/tags", icon: <LocalOfferIcon/>},
-        {title: "Vehicles", path: "/vehicles", icon: <DirectionsCar/>, permissions: ['view_vehicles']},
-        {title: "Invoices", path: "/invoices", icon: <ReceiptLong/>, permissions: ['view_invoices']},
-        {title: "Appointments", path: "/appointments", icon: <CalendarMonth/>, permissions: ['view_appointments']},
+        {title: 'Dashboard', path: '/dashboard', icon: <DashboardIcon/>},
+        {
+            title: 'Customers',
+            path: '/customers',
+            icon: <PersonIcon/>,
+            permissions: ['view_customers'],
+        },
+        {title: 'Tags', path: '/tags', icon: <LocalOfferIcon/>},
+        {
+            title: 'Vehicles',
+            path: '/vehicles',
+            icon: <DirectionsCar/>,
+            permissions: ['view_vehicles'],
+        },
+        {
+            title: 'Invoices',
+            path: '/invoices',
+            icon: <ReceiptLong/>,
+            permissions: ['view_invoices'],
+        },
+        {
+            title: 'Appointments',
+            path: '/appointments',
+            icon: <CalendarMonth/>,
+            permissions: ['view_appointments'],
+        },
+        {
+            title: 'Media Library',
+            path: '/media',
+            icon: <PhotoLibraryIcon/>,
+            // permissions: [''], // adjust as soon as you add backend perms
+        },
     ];
 
     const secondaryNavItems: SidebarItem[] = [
-        {title: "Profile", path: "/profile", icon: <Person/>},
-        {title: "Settings", path: "/settings", icon: <Settings/>},
+        {title: 'Profile', path: '/profile', icon: <Person/>},
+        {title: 'Settings', path: '/settings', icon: <Settings/>},
     ];
 
     const handleNavigation = (path: string) => {
@@ -90,13 +123,15 @@ const Sidebar: React.FC<SidebarProps> = ({mobileOpen, handleDrawerToggle}) => {
     // Sidebar items
     const drawer = (
         <Box sx={{height: '100%', display: 'flex', flexDirection: 'column'}}>
-            <Box sx={{
-                p: 2,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                textAlign: 'center'
-            }}>
+            <Box
+                sx={{
+                    p: 2,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    textAlign: 'center',
+                }}
+            >
                 {companyLogo ? (
                     <Box
                         component="img"
@@ -107,7 +142,7 @@ const Sidebar: React.FC<SidebarProps> = ({mobileOpen, handleDrawerToggle}) => {
                             maxHeight: 80,
                             mb: 1,
                             borderRadius: 1,
-                            objectFit: 'contain'
+                            objectFit: 'contain',
                         }}
                     />
                 ) : (
@@ -116,7 +151,7 @@ const Sidebar: React.FC<SidebarProps> = ({mobileOpen, handleDrawerToggle}) => {
                             width: 80,
                             height: 80,
                             mb: 1,
-                            fontSize: '1.5rem'
+                            fontSize: '1.5rem',
                         }}
                     >
                         {companyName.charAt(0)}
@@ -130,7 +165,8 @@ const Sidebar: React.FC<SidebarProps> = ({mobileOpen, handleDrawerToggle}) => {
             <List>
                 {mainNavItems.map((item) => {
                     // If no permissions required or user has permission, show the item
-                    const showItem = !item.permissions || hasPermission(item.permissions);
+                    const showItem =
+                        !item.permissions || hasPermission(item.permissions);
 
                     return showItem ? (
                         <ListItemButton
@@ -138,9 +174,7 @@ const Sidebar: React.FC<SidebarProps> = ({mobileOpen, handleDrawerToggle}) => {
                             selected={location.pathname === item.path}
                             onClick={() => handleNavigation(item.path)}
                         >
-                            <ListItemIcon>
-                                {item.icon}
-                            </ListItemIcon>
+                            <ListItemIcon>{item.icon}</ListItemIcon>
                             <ListItemText primary={item.title}/>
                         </ListItemButton>
                     ) : null;
@@ -154,16 +188,12 @@ const Sidebar: React.FC<SidebarProps> = ({mobileOpen, handleDrawerToggle}) => {
                         selected={location.pathname === item.path}
                         onClick={() => handleNavigation(item.path)}
                     >
-                        <ListItemIcon>
-                            {item.icon}
-                        </ListItemIcon>
+                        <ListItemIcon>{item.icon}</ListItemIcon>
                         <ListItemText primary={item.title}/>
                     </ListItemButton>
                 ))}
-                {hasPermission("switch_companies") && (
-                    <ListItemButton
-                        onClick={() => setSwitchCompanyOpen(true)}
-                    >
+                {hasPermission('switch_companies') && (
+                    <ListItemButton onClick={() => setSwitchCompanyOpen(true)}>
                         <ListItemIcon>
                             <SwapHorizIcon/>
                         </ListItemIcon>
@@ -171,9 +201,7 @@ const Sidebar: React.FC<SidebarProps> = ({mobileOpen, handleDrawerToggle}) => {
                     </ListItemButton>
                 )}
                 {authUser?.role === 'Super Admin' && (
-                    <ListItemButton
-                        onClick={() => handleNavigation('/admin')}
-                    >
+                    <ListItemButton onClick={() => handleNavigation('/admin')}>
                         <ListItemIcon>
                             <Shield/>
                         </ListItemIcon>
@@ -181,7 +209,10 @@ const Sidebar: React.FC<SidebarProps> = ({mobileOpen, handleDrawerToggle}) => {
                     </ListItemButton>
                 )}
             </List>
-            <SwitchCompanyModal open={switchCompanyOpen} onClose={() => setSwitchCompanyOpen(false)}/>
+            <SwitchCompanyModal
+                open={switchCompanyOpen}
+                onClose={() => setSwitchCompanyOpen(false)}
+            />
         </Box>
     );
 
@@ -189,33 +220,28 @@ const Sidebar: React.FC<SidebarProps> = ({mobileOpen, handleDrawerToggle}) => {
         <Box
             component="nav"
             sx={{width: {sm: drawerWidth}, flexShrink: {sm: 0}}}
-            aria-label="mailbox folders"
+            aria-label="sidebar navigation"
         >
-            {/* Mobile drawer */}
+            {/* Mobile */}
             <Drawer
                 variant="temporary"
                 open={mobileOpen}
                 onClose={handleDrawerToggle}
-                ModalProps={{
-                    keepMounted: true
-                }}
+                ModalProps={{keepMounted: true}}
                 sx={{
                     display: {xs: 'block', sm: 'none'},
-                    '& .MuiDrawer-paper': {width: drawerWidth}
+                    '& .MuiDrawer-paper': {width: drawerWidth},
                 }}
             >
                 {drawer}
             </Drawer>
 
-            {/* Permanent drawer for desktop */}
+            {/* Desktop */}
             <Drawer
                 variant="permanent"
                 sx={{
                     display: {xs: 'none', sm: 'block'},
-                    '& .MuiDrawer-paper': {
-                        width: drawerWidth,
-                        boxSizing: 'border-box'
-                    }
+                    '& .MuiDrawer-paper': {width: drawerWidth, boxSizing: 'border-box'},
                 }}
                 open
             >

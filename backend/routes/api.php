@@ -8,6 +8,7 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CustomerTagController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\MediaLibraryController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\UserController;
@@ -131,5 +132,18 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{appointment:uuid}', [AppointmentController::class, 'show']);
         Route::put('/{appointment:uuid}', [AppointmentController::class, 'update']);
         Route::delete('/{appointment:uuid}', [AppointmentController::class, 'destroy']);
+    });
+
+    Route::prefix('/media')->group(function () {
+        Route::get('/directories', [MediaLibraryController::class, 'listDirectories']);
+        Route::post('/directories', [MediaLibraryController::class, 'storeDirectory']);
+        Route::patch('/directories/{directory:uuid}', [MediaLibraryController::class, 'updateDirectory']);
+        Route::delete('/directories/{directory:uuid}', [MediaLibraryController::class, 'destroyDirectory']);
+
+        Route::get('/assets', [MediaLibraryController::class, 'listAssets']);
+        Route::post('/assets', [MediaLibraryController::class, 'uploadAsset']);
+        Route::patch('/assets/{asset:uuid}', [MediaLibraryController::class, 'updateAsset']);
+        Route::delete('/assets/{asset:uuid}', [MediaLibraryController::class, 'destroyAsset']);
+        Route::post('/assets/{asset:uuid}/restore', [MediaLibraryController::class, 'restoreAsset']);
     });
 });
