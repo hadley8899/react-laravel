@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -11,12 +11,11 @@ use Illuminate\Support\Facades\Storage;
 
 class MediaAsset extends Model
 {
-    use HasFactory, HasUuids, SoftDeletes;
+    use HasFactory, HasUuid, SoftDeletes;
 
     protected $table = 'media_assets';
 
     protected $fillable = [
-        'uuid',
         'company_id',
         'directory_id',
         'uploaded_by',
@@ -55,6 +54,6 @@ class MediaAsset extends Model
 
     public function getUrlAttribute(): string
     {
-        return Storage::url($this->filename);
+        return Storage::disk('media')->url($this->filename);
     }
 }

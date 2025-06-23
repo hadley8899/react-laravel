@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,12 +12,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class MediaDirectory extends Model
 {
-    use HasFactory, HasUuids, SoftDeletes;
+    use HasFactory, HasUuid, SoftDeletes;
 
     protected $table = 'media_directories';
 
     protected $fillable = [
-        'uuid',
         'company_id',
         'parent_id',
         'created_by',

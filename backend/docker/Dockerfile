@@ -14,14 +14,22 @@ RUN apt-get update && apt-get install -y \
     libzstd-dev \
     pkg-config \
     gosu \
+    libpng-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
+    libonig-dev \
     && docker-php-ext-install \
         pdo_mysql \
         zip \
+        gd \
     && pecl install memcached xdebug \
     && docker-php-ext-enable memcached xdebug
 
 RUN echo "upload_max_filesize = 100M" > /usr/local/etc/php/conf.d/uploads.ini && \
     echo "post_max_size = 100M" >> /usr/local/etc/php/conf.d/uploads.ini
+
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install gd
 
 # Copy custom Xdebug config
 COPY docker/xdebug.ini /usr/local/etc/php/conf.d/xdebug.ini

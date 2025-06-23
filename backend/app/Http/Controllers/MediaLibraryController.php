@@ -2,73 +2,70 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Media\ListAssetsRequest;
+use App\Http\Requests\Media\StoreDirectoryRequest;
+use App\Http\Requests\Media\UpdateAssetRequest;
+use App\Http\Requests\Media\UpdateDirectoryRequest;
+use App\Http\Requests\Media\UploadAssetRequest;
+use App\Http\Resources\MediaAssetResource;
+use App\Http\Resources\MediaDirectoryResource;
 use App\Models\MediaAsset;
 use App\Models\MediaDirectory;
-use Illuminate\Http\Request;
+use App\Models\User;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Intervention\Image\ImageManager;
-
-// composer require intervention/image ^3
+use Intervention\Image\Drivers\Gd\Driver;
 
 class MediaLibraryController extends Controller
 {
-    /* -----------------------------------------------------------------
-     |  Convenience
-     |----------------------------------------------------------------- */
-    private function company()
+    public function __construct()
     {
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
-        return $user->company;           // adjust if your relationship differs
+        $this->authorizeResource(MediaAsset::class, 'asset');
     }
 
-    /* -----------------------------------------------------------------
-     |  DIRECTORY ENDPOINTS
-     |----------------------------------------------------------------- */
-
-    /** GET /api/media/directories (flat list or tree) */
-    public function listDirectories(): Response
+    private function company()
     {
-        $dirs = MediaDirectory::where('company_id', $this->company()->id)
+        /** @var User $user */
+        $user = Auth::user();
+        return $user->company;
+    }
+
+    public function listDirectories(): AnonymousResourceCollection
+    {
+        $dirs = MediaDirectory::query()->where('company_id', $this->company()->id)
             ->with('children')
             ->get();
 
-        return response($dirs);
+        return MediaDirectoryResource::collection($dirs);
     }
 
-    /** POST /api/media/directories */
-    public function storeDirectory(Request $req): Response
+    public function storeDirectory(StoreDirectoryRequest $storeDirectoryRequest): MediaDirectoryResource
     {
-        $data = $req->validate([
-            'name' => 'required|string|max:255',
-            'parent_uuid' => 'nullable|uuid|exists:media_directories,uuid',
-        ]);
+        $validated = $storeDirectoryRequest->validated();
 
-        $parent = $data['parent_uuid']
-            ? MediaDirectory::where('uuid', $data['parent_uuid'])
+        $parent = $validated['parent_uuid']
+            ? MediaDirectory::query()->where('uuid', $validated['parent_uuid'])
                 ->where('company_id', $this->company()->id)
                 ->firstOrFail()
             : null;
 
-        $dir = MediaDirectory::create([
-            'uuid' => (string)\Illuminate\Support\Str::uuid(),
+        $dir = MediaDirectory::query()->create([
             'company_id' => $this->company()->id,
             'parent_id' => $parent?->id,
             'created_by' => Auth::id(),
-            'name' => $data['name'],
+            'name' => $validated['name'],
         ]);
 
-        return response($dir, 201);
+        return new MediaDirectoryResource($dir);
     }
 
-    /** PATCH /api/media/directories/{uuid} */
-    public function updateDirectory(Request $req, string $uuid): Response
+    public function updateDirectory(UpdateDirectoryRequest $req, string $uuid): Response
     {
-        $dir = MediaDirectory::where('uuid', $uuid)
+        $dir = MediaDirectory::query()->where('uuid', $uuid)
             ->where('company_id', $this->company()->id)
             ->firstOrFail();
 
@@ -78,7 +75,7 @@ class MediaLibraryController extends Controller
                 'sometimes',
                 'nullable',
                 'uuid',
-                Rule::notIn([$uuid]), // prevent setting parent to itself
+                Rule::notIn([$uuid]),
             ],
         ]);
 
@@ -88,7 +85,8 @@ class MediaLibraryController extends Controller
 
         if (array_key_exists('parent_uuid', $data)) {
             $newParent = $data['parent_uuid']
-                ? MediaDirectory::where('uuid', $data['parent_uuid'])
+                ? MediaDirectory::query()
+                    ->where('uuid', $data['parent_uuid'])
                     ->where('company_id', $this->company()->id)
                     ->firstOrFail()
                 : null;
@@ -101,36 +99,25 @@ class MediaLibraryController extends Controller
         return response($dir);
     }
 
-    /** DELETE /api/media/directories/{uuid} (soft) */
     public function destroyDirectory(string $uuid): Response
     {
-        $dir = MediaDirectory::where('uuid', $uuid)
+        $dir = MediaDirectory::query()->where('uuid', $uuid)
             ->where('company_id', $this->company()->id)
             ->firstOrFail();
 
-        $dir->delete(); // cascades via FK to children & assets
+        $dir->delete();
         return response()->noContent();
     }
 
-    /* -----------------------------------------------------------------
-     |  ASSET ENDPOINTS
-     |----------------------------------------------------------------- */
-
-    /** GET /api/media/assets */
-    public function listAssets(Request $req): Response
+    public function listAssets(ListAssetsRequest $req): AnonymousResourceCollection
     {
-        $req->validate([
-            'directory_uuid' => 'nullable|uuid',
-            'search' => 'nullable|string|max:100',
-            'page' => 'nullable|integer|min:1',
-            'per_page' => 'nullable|integer|min:1|max:100',
-        ]);
+        $req->validated();
 
-        $query = MediaAsset::where('company_id', $this->company()->id)
+        $query = MediaAsset::query()->where('company_id', $this->company()->id)
             ->latest('created_at');
 
         if ($req->directory_uuid) {
-            $dir = MediaDirectory::where('uuid', $req->directory_uuid)
+            $dir = MediaDirectory::query()->where('uuid', $req->directory_uuid)
                 ->where('company_id', $this->company()->id)
                 ->firstOrFail();
 
@@ -139,52 +126,46 @@ class MediaLibraryController extends Controller
 
         if ($req->search) {
             $query->where(function ($q) use ($req) {
-                $q->where('original_name', 'like', "%{$req->search}%")
-                    ->orWhere('alt', 'like', "%{$req->search}%");
+                $q->where('original_name', 'like', "%$req->search%")
+                    ->orWhere('alt', 'like', "%$req->search%");
             });
         }
 
         $perPage = $req->per_page ?? 40;
 
-        return response($query->paginate($perPage));
+        $results = $query->paginate($perPage);
+
+        return MediaAssetResource::collection($results);
     }
 
-    /** POST /api/media/assets (multipart/form-data) */
-    public function uploadAsset(Request $req): Response
+    public function uploadAsset(UploadAssetRequest $req): MediaAssetResource
     {
-        $data = $req->validate([
-            'file' => 'required|file|max:51200', // ≤ 50 MB
-            'directory_uuid' => 'nullable|uuid',
-            'alt' => 'nullable|string|max:255',
-        ]);
+        $data = $req->validated();
 
         $dir = $data['directory_uuid']
-            ? MediaDirectory::where('uuid', $data['directory_uuid'])
+            ? MediaDirectory::query()->where('uuid', $data['directory_uuid'])
                 ->where('company_id', $this->company()->id)
                 ->firstOrFail()
             : null;
 
         $file = $data['file'];
 
-        // Build storage path: media/company-{id}/{uuid}.{ext}
-        $uuid = (string)\Illuminate\Support\Str::uuid();
+        $uuid = (string)Str::uuid();
         $ext = $file->getClientOriginalExtension();
-        $path = "company-{$this->company()->id}/{$uuid}.{$ext}";
+        $path = "company-{$this->company()->uuid}/$uuid.$ext";
 
-        // Store original file
-        $file->storeAs($path, '', ['disk' => 'media']); // 'media' disk in config/filesystems.php
-
-        // Optional image dimensions (skip if not image)
         [$width, $height] = [null, null];
         if (str_starts_with($file->getMimeType(), 'image/')) {
-            $manager = ImageManager::withDrivers(['gd']);
+            $manager = new ImageManager(new Driver());
             $img = $manager->read($file->getPathname());
             $width = $img->width();
             $height = $img->height();
         }
 
-        $asset = MediaAsset::create([
-            'uuid' => $uuid,
+        // Store original file
+        $file->storeAs($path, '', ['disk' => 'media']);
+
+        $asset = MediaAsset::query()->create([
             'company_id' => $this->company()->id,
             'directory_id' => $dir?->id,
             'uploaded_by' => Auth::id(),
@@ -197,20 +178,16 @@ class MediaLibraryController extends Controller
             'alt' => $data['alt'] ?? null,
         ]);
 
-        return response($asset, 201);
+        return new MediaAssetResource($asset);
     }
 
-    /** PATCH /api/media/assets/{uuid} (rename, alt, move) */
-    public function updateAsset(Request $req, string $uuid): Response
+    public function updateAsset(UpdateAssetRequest $req, string $uuid): MediaAssetResource
     {
-        $asset = MediaAsset::where('uuid', $uuid)
+        $asset = MediaAsset::query()->where('uuid', $uuid)
             ->where('company_id', $this->company()->id)
             ->firstOrFail();
 
-        $data = $req->validate([
-            'alt' => 'sometimes|nullable|string|max:255',
-            'directory_uuid' => 'sometimes|nullable|uuid',
-        ]);
+        $data = $req->validated();
 
         if (array_key_exists('alt', $data)) {
             $asset->alt = $data['alt'];
@@ -218,7 +195,8 @@ class MediaLibraryController extends Controller
 
         if (array_key_exists('directory_uuid', $data)) {
             $newDir = $data['directory_uuid']
-                ? MediaDirectory::where('uuid', $data['directory_uuid'])
+                ? MediaDirectory::query()
+                    ->where('uuid', $data['directory_uuid'])
                     ->where('company_id', $this->company()->id)
                     ->firstOrFail()
                 : null;
@@ -227,13 +205,13 @@ class MediaLibraryController extends Controller
 
         $asset->save();
 
-        return response($asset);
+        return new MediaAssetResource($asset);
     }
 
-    /** DELETE /api/media/assets/{uuid} (soft delete) */
     public function destroyAsset(string $uuid): Response
     {
-        $asset = MediaAsset::where('uuid', $uuid)
+        $asset = MediaAsset::query()
+            ->where('uuid', $uuid)
             ->where('company_id', $this->company()->id)
             ->firstOrFail();
 
@@ -242,8 +220,7 @@ class MediaLibraryController extends Controller
         return response()->noContent();
     }
 
-    /** POST /api/media/assets/{uuid}/restore */
-    public function restoreAsset(string $uuid): Response
+    public function restoreAsset(string $uuid): MediaAssetResource
     {
         $asset = MediaAsset::onlyTrashed()
             ->where('uuid', $uuid)
@@ -252,6 +229,6 @@ class MediaLibraryController extends Controller
 
         $asset->restore();
 
-        return response($asset);
+        return new MediaAssetResource($asset);
     }
 }

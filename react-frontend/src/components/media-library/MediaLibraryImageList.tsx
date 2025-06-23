@@ -1,11 +1,11 @@
 import { Box, ImageList, ImageListItem, ImageListItemBar, Typography } from '@mui/material';
 import React from 'react';
-import type { MediaItem } from '../../pages/MediaLibrary';
+import { MediaAsset } from '../../interfaces/MediaAsset';
 
 interface Props {
-    groupedByDate: Record<string, MediaItem[]>;
+    groupedByDate: Record<string, MediaAsset[]>;
     cols: number;
-    onItemClick: (item: MediaItem) => void;
+    onItemClick: (item: MediaAsset) => void;
 }
 
 const MediaLibraryImageList: React.FC<Props> = ({ groupedByDate, cols, onItemClick }) => (
@@ -19,7 +19,7 @@ const MediaLibraryImageList: React.FC<Props> = ({ groupedByDate, cols, onItemCli
                 <ImageList variant="masonry" cols={cols} gap={12}>
                     {group.map((item) => (
                         <ImageListItem
-                            key={item.id}
+                            key={item.uuid}
                             sx={{
                                 cursor: 'pointer',
                                 borderRadius: 2,
@@ -38,7 +38,7 @@ const MediaLibraryImageList: React.FC<Props> = ({ groupedByDate, cols, onItemCli
                                     transition: 'transform 0.3s',
                                 }}
                             />
-                            <ImageListItemBar title={item.name} />
+                            <ImageListItemBar title={item.original_name} />
                         </ImageListItem>
                     ))}
                 </ImageList>

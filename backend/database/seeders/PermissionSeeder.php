@@ -53,6 +53,13 @@ class PermissionSeeder extends Seeder
             'create_vehicles',
             'delete_vehicles',
 
+            // Media Library
+            'view_media',
+            'create_media',
+            'update_media',
+            'delete_media',
+            'manage_media',   // shorthand “all-access” if you want to gate the whole feature
+
             // Reports
             'view_reports',
 
@@ -105,6 +112,12 @@ class PermissionSeeder extends Seeder
             'view_vehicles',
             'create_vehicles',
             'update_vehicles',
+
+            // Media Library
+            'view_media',
+            'create_media',
+            'update_media',
+            'delete_media',
         ]);
 
         $role = Role::create(['name' => 'User']);
@@ -125,6 +138,12 @@ class PermissionSeeder extends Seeder
 
             // Vehicles
             'view_vehicles',
+
+            // Media Library
+            'view_media',
+            'create_media',
+            'update_media',
+            'delete_media',
         ]);
     }
 }

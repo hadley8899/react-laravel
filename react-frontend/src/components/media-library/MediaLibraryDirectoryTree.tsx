@@ -11,11 +11,11 @@ interface Props {
 }
 
 const MediaLibraryDirectoryTree: React.FC<Props> = ({
-                                                        onAddFolder,
-                                                        selectedId,
-                                                        onSelect,
-                                                        root,
-                                                    }) => (
+    onAddFolder,
+    selectedId,
+    onSelect,
+    root,
+}) => (
     <Grid size={{ xs: 12, md: 3 }}>
         <Stack direction="row" justifyContent="space-between" mb={2}>
             <Typography variant="h6">Folders</Typography>
@@ -30,7 +30,15 @@ const MediaLibraryDirectoryTree: React.FC<Props> = ({
                 onSelect(Array.isArray(id) ? id[0] : (id as string))
             }
             defaultExpandedItems={['root']}
-            sx={{ maxHeight: '70vh', overflowY: 'auto' }}
+            sx={{
+                maxHeight: '70vh',
+                overflowY: 'auto',
+                ['& .MuiTreeItem-root.Mui-selected > .MuiTreeItem-content']: {
+                    bgcolor: 'primary.main',
+                    color: 'primary.contrastText',
+                    '& svg': { color: 'inherit' },
+                },
+            }}
         >
             {root}
         </SimpleTreeView>

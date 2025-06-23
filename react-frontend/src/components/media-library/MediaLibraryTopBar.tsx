@@ -12,45 +12,39 @@ import {
 } from '@mui/material';
 import { Home, PhotoCamera } from '@mui/icons-material';
 import SearchIcon from '@mui/icons-material/Search';
-import type { Directory } from '../../pages/MediaLibrary';
+import type { MediaDirectory } from '../../interfaces/MediaDirectory';
 
 interface Props {
+    breadcrumbPath: MediaDirectory[];
     onNavigateRoot: () => void;
-    breadcrumbPath: Directory[];
-    onBreadcrumbClick: (dir: Directory) => void;
-
+    onBreadcrumbClick: (dir: MediaDirectory) => void;
     search: string;
     onSearchChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-
     cols: number;
-    onColsChange: (value: number) => void;
-
-    fileInputRef: React.RefObject<HTMLInputElement>;
-    onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-    onUploadClick: () => void;
+    onColsChange: (n: number) => void;
+    onOpenUpload: () => void;
+    currentDir: MediaDirectory | undefined;
 }
 
 const MediaLibraryTopBar: React.FC<Props> = ({
-                                                 onNavigateRoot,
                                                  breadcrumbPath,
+                                                 onNavigateRoot,
                                                  onBreadcrumbClick,
                                                  search,
                                                  onSearchChange,
                                                  cols,
                                                  onColsChange,
-                                                 fileInputRef,
-                                                 onFileChange,
-                                                 onUploadClick,
+                                                 onOpenUpload,
+                                                 currentDir,
                                              }) => (
     <Stack spacing={2} mb={3}>
-        {/* Breadcrumbs */}
         <Breadcrumbs aria-label="breadcrumb">
             <IconButton size="small" onClick={onNavigateRoot}>
                 <Home fontSize="small" />
             </IconButton>
             {breadcrumbPath.slice(1).map((dir) => (
                 <Button
-                    key={dir.id}
+                    key={dir.uuid}
                     color="inherit"
                     onClick={() => onBreadcrumbClick(dir)}
                     sx={{ textTransform: 'none', minWidth: 0 }}
@@ -60,7 +54,6 @@ const MediaLibraryTopBar: React.FC<Props> = ({
             ))}
         </Breadcrumbs>
 
-        {/* Toolbar */}
         <Stack
             direction={{ xs: 'column', sm: 'row' }}
             justifyContent="space-between"
@@ -73,12 +66,14 @@ const MediaLibraryTopBar: React.FC<Props> = ({
                     placeholder="Search…"
                     value={search}
                     onChange={onSearchChange}
-                    InputProps={{
-                        startAdornment: (
-                            <InputAdornment position="start">
-                                <SearchIcon fontSize="small" />
-                            </InputAdornment>
-                        ),
+                    slotProps={{
+                        input: {
+                            startAdornment: (
+                                <InputAdornment position="start">
+                                    <SearchIcon fontSize="small" />
+                                </InputAdornment>
+                            ),
+                        }
                     }}
                 />
 
@@ -97,15 +92,12 @@ const MediaLibraryTopBar: React.FC<Props> = ({
             </Stack>
 
             <Box>
-                <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    hidden
-                    onChange={onFileChange}
-                />
-                <Button variant="contained" startIcon={<PhotoCamera />} onClick={onUploadClick}>
-                    Upload
+                <Button
+                    variant="contained"
+                    startIcon={<PhotoCamera />}
+                    onClick={onOpenUpload}
+                >
+                    Upload to {currentDir?.name ?? 'Root'}
                 </Button>
             </Box>
         </Stack>
