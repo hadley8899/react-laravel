@@ -176,7 +176,7 @@ class DatabaseSeeder extends Seeder
             });
 
             // Update company 1 to be active so we can login with our test users
-            $numberOneCompany = Company::query()->where('id', 1)->first();
+            $numberOneCompany = Company::query()->where('id', '=', 1)->first();
             if ($numberOneCompany) {
                 $numberOneCompany->status = 'Active';
                 $numberOneCompany->save();

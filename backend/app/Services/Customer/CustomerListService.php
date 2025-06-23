@@ -25,7 +25,7 @@ class CustomerListService extends CustomerService
         }
 
         if (count($tagIds) > 0) {
-            $customersQuery->whereHas('tags', fn($q) => $q->whereIn('uuid', $tagIds));
+            $customersQuery->whereHas('tags', fn($q) => $q->whereIn('tags.uuid', $tagIds));
         }
 
         if ($search) {

@@ -27,7 +27,7 @@ const CustomerDetailsCard: React.FC<CustomerDetailsCardProps> = ({
             color = 'success';
             variant = 'filled';
         }
-        return <Chip label={status} color={color} size="small" variant={variant} />;
+        return <Chip label={status} color={color} size="small" variant={variant} onClick={() => {}} />;
     };
 
     const formatCurrency = (value: number, currencyCode = 'GBP') => {
@@ -51,19 +51,24 @@ const CustomerDetailsCard: React.FC<CustomerDetailsCardProps> = ({
                 >
                     {getStatusChip(customer.status)}
                     {customer.tags && customer.tags.length > 0 && (
-                        <Box
-                            sx={{
-                                mt: 2,
-                                display: 'flex',
-                                flexWrap: 'wrap',
-                                gap: 0.75,
-                                justifyContent: 'center',
-                            }}
-                        >
-                            {customer.tags.map((tag) => (
-                                <TagChip key={tag.uuid} tag={tag} />
-                            ))}
-                        </Box>
+                        <>
+                            <Typography variant="h5" sx={{ mt: 2 }}>
+                                Tags
+                            </Typography>
+                            <Box
+                                sx={{
+                                    mt: 2,
+                                    display: 'flex',
+                                    flexWrap: 'wrap',
+                                    gap: 0.75,
+                                    justifyContent: 'center',
+                                }}
+                            >
+                                {customer.tags.map((tag) => (
+                                    <TagChip key={tag.uuid} tag={tag} />
+                                ))}
+                            </Box>
+                        </>
                     )}
                 </Box>
             </Grid>

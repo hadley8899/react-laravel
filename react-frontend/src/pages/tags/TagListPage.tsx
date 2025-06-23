@@ -69,7 +69,7 @@ const TagListPage: React.FC = () => {
 
     return (
         <MainLayout title="Tags">
-            <Container maxWidth="md">
+            <Container maxWidth="md" sx={{mb: 4}}>
                 <Box
                     sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}
                 >

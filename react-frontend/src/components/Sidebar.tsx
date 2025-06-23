@@ -68,9 +68,9 @@ const Sidebar: React.FC<SidebarProps> = ({mobileOpen, handleDrawerToggle}) => {
     // Define navigation items
     const mainNavItems: SidebarItem[] = [
         {title: "Dashboard", path: "/dashboard", icon: <DashboardIcon/>},
+        {title: "Customers", path: "/customers", icon: <PersonIcon/>, permissions: ['view_customers']},
         {title: "Tags", path: "/tags", icon: <LocalOfferIcon/>},
         {title: "Vehicles", path: "/vehicles", icon: <DirectionsCar/>, permissions: ['view_vehicles']},
-        {title: "Customers", path: "/customers", icon: <PersonIcon/>, permissions: ['view_customers']},
         {title: "Invoices", path: "/invoices", icon: <ReceiptLong/>, permissions: ['view_invoices']},
         {title: "Appointments", path: "/appointments", icon: <CalendarMonth/>, permissions: ['view_appointments']},
     ];
