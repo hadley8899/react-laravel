@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\Vehicle;
 use App\Models\VehicleMake;
 use Carbon\Carbon;
+use Exception;
 use Faker\Factory as Faker;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Seeder;
@@ -158,29 +159,33 @@ class DatabaseSeeder extends Seeder
      */
     private function createCompanyData($company, Collection $makesWithModels): void
     {
-        User::factory(random_int(5, 100))->create([
-            'company_id' => $company->id
-        ])->each(function ($user) use ($company) {
-            $roles = ['Admin', 'Manager', 'User'];
-            $randomRole = $roles[array_rand($roles)];
-            $this->command->info('Assigning role ' . $randomRole . ' to user ' . $user->email . ' in company ' . $company->name);
-            $user->assignRole($randomRole);
-        });
+        try {
+            User::factory(random_int(5, 100))->create([
+                'company_id' => $company->id,
+            ])->each(function ($user) use ($company) {
+                $roles = ['Admin', 'Manager', 'User'];
+                $randomRole = $roles[array_rand($roles)];
+                $this->command->info('Assigning role ' . $randomRole . ' to user ' . $user->email . ' in company ' . $company->name);
+                $user->assignRole($randomRole);
+            });
 
-        Customer::factory(random_int(100, 1000))->create([
-            'company_id' => $company->id
-        ])->each(function ($customer) use ($company, $makesWithModels) {
-            $this->createVehiclesAndAppointments($customer, $company, $makesWithModels);
-        });
+            Customer::factory(random_int(100, 1000))->create([
+                'company_id' => $company->id,
+            ])->each(function ($customer) use ($company, $makesWithModels) {
+                $this->createVehiclesAndAppointments($customer, $company, $makesWithModels);
+            });
 
-        // Update company 1 to be active so we can login with our test users
-        $numberOneCompany = Company::query()->where('id', 1)->first();
-        if ($numberOneCompany) {
-            $numberOneCompany->status = 'Active';
-            $numberOneCompany->save();
-            $this->command->info('Updated company 1 to active status.');
-        } else {
-            $this->command->error('Company 1 not found, cannot update status.');
+            // Update company 1 to be active so we can login with our test users
+            $numberOneCompany = Company::query()->where('id', 1)->first();
+            if ($numberOneCompany) {
+                $numberOneCompany->status = 'Active';
+                $numberOneCompany->save();
+                $this->command->info('Updated company 1 to active status.');
+            } else {
+                $this->command->error('Company 1 not found, cannot update status.');
+            }
+        } catch (Exception) {
+
         }
     }
 }

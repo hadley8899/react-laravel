@@ -4,20 +4,41 @@ namespace Database\Seeders;
 
 use App\Models\Company;
 use App\Models\Tag;
+use Faker\Factory as Faker;
 use Illuminate\Database\Seeder;
-use Random\RandomException;
 
 class TagSeeder extends Seeder
 {
+    /**
+     * @return void
+     */
     public function run(): void
     {
-        Company::all()->each(/**
-         * @throws RandomException
-         */ function ($company) {
-            Tag::factory()
-                ->count(random_int(6, 15))
-                ->state(['company_id' => $company->id])
-                ->create();
-        });
+        $faker = Faker::create();
+        $exampleTags = [
+            'VIP',
+            'New Customer',
+            'High Priority',
+            'Follow Up',
+            'Newsletter Subscriber',
+            'Loyal Customer',
+            'Inactive',
+            'Prospect',
+            'Referral',
+            'Feedback Received',
+        ];
+
+        Company::all()->each(
+            function ($company) use ($exampleTags, $faker) {
+                foreach ($exampleTags as $exampleTag) {
+                    Tag::query()->create([
+                        'company_id' => $company->id,
+                        'name' => $exampleTag,
+                        'color' => $faker->boolean(60)
+                            ? $faker->safeHexColor()  // #a3e635
+                            : null,
+                    ]);
+                }
+            });
     }
 }
