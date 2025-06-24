@@ -27,7 +27,7 @@ export async function getDirectories() {
 }
 
 export async function createDirectory(p: CreateDirectoryPayload): Promise<MediaDirectory> {
-    const {data} = await api.post<{data: MediaDirectory}>('/media/directories', p);
+    const {data} = await api.post<{ data: MediaDirectory }>('/media/directories', p);
     return data.data;
 }
 

@@ -60,7 +60,8 @@ const MediaLibraryTopBar: React.FC<Props> = ({
             alignItems={{ xs: 'stretch', sm: 'center' }}
             spacing={2}
         >
-            <Stack direction="row" spacing={2} alignItems="center">
+            {/* search + (maybe) slider */}
+            <Stack direction="row" alignItems="center" spacing={2}>
                 <TextField
                     size="small"
                     placeholder="Search…"
@@ -73,11 +74,17 @@ const MediaLibraryTopBar: React.FC<Props> = ({
                                     <SearchIcon fontSize="small" />
                                 </InputAdornment>
                             ),
-                        }
+                        },
                     }}
                 />
 
-                <Stack direction="row" alignItems="center" spacing={1}>
+                {/* hide slider below md */}
+                <Stack
+                    direction="row"
+                    alignItems="center"
+                    spacing={1}
+                    sx={{ display: { xs: 'none', md: 'flex' } }}
+                >
                     <Typography variant="body2">Columns</Typography>
                     <Slider
                         size="small"
@@ -91,6 +98,7 @@ const MediaLibraryTopBar: React.FC<Props> = ({
                 </Stack>
             </Stack>
 
+            {/* upload */}
             <Box>
                 <Button
                     variant="contained"

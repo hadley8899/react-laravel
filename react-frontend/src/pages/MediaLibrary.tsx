@@ -1,9 +1,4 @@
-import React, {
-    useCallback,
-    useEffect,
-    useMemo,
-    useState,
-} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {
     Box,
     CircularProgress,
@@ -14,7 +9,7 @@ import {
 } from '@mui/material';
 import dayjs from 'dayjs';
 import MainLayout from '../components/layout/MainLayout';
-import { useNotifier } from '../context/NotificationContext.tsx';
+import {useNotifier} from '../context/NotificationContext.tsx';
 import {
     getDirectories,
     createDirectory,
@@ -22,21 +17,23 @@ import {
     uploadAsset,
     updateAsset,
     deleteAsset,
+    deleteDirectory,
 } from '../services/mediaLibrary.ts';
-import type { MediaDirectory } from '../interfaces/MediaDirectory.ts';
-import type { MediaAsset } from '../interfaces/MediaAsset.ts';
+import type {MediaDirectory} from '../interfaces/MediaDirectory.ts';
+import type {MediaAsset} from '../interfaces/MediaAsset.ts';
 import MediaLibraryDirectoryTree from '../components/media-library/MediaLibraryDirectoryTree.tsx';
 import MediaLibraryTopBar from '../components/media-library/MediaLibraryTopBar.tsx';
 import MediaLibraryImageList from '../components/media-library/MediaLibraryImageList.tsx';
 import MediaLibraryUpdateFile from '../components/media-library/MediaLibraryUpdateFile.tsx';
 import UploadModal from '../components/media-library/UploadModal.tsx';
 import NewFolderModal from '../components/media-library/NewFolderModal.tsx';
-import { TreeItem } from '@mui/x-tree-view';
+import TreeItemRender from '../components/media-library/TreeItemRender.tsx';
+import DeleteConfirmDialog from '../components/media-library/DeleteConfirmDialog.tsx';
 
 const ROOT_ID = 'root';
 
 const MediaLibrary: React.FC = () => {
-    const { showNotification } = useNotifier();
+    const {showNotification} = useNotifier();
     const theme = useTheme();
     const downMd = useMediaQuery(theme.breakpoints.down('md'));
 
@@ -53,14 +50,28 @@ const MediaLibrary: React.FC = () => {
     // modals
     const [uploadOpen, setUploadOpen] = useState(false);
     const [newFolderOpen, setNewFolderOpen] = useState(false);
+    const [dirToDelete, setDirToDelete] = useState<MediaDirectory | null>(null);
 
-    // fetch dirs
+    // ──────────────────────────────────────────────────────────
+    // helpers
+    const findDir = (id: string) => directories.find((d) => d.uuid === id);
+
+    const gatherDescendants = (id: string): string[] => {
+        const direct = directories.filter((d) => d.parent_uuid === id).map((d) => d.uuid);
+        return direct.reduce<string[]>(
+            (acc, childId) => [...acc, ...gatherDescendants(childId)],
+            [id],
+        );
+    };
+
+    // ──────────────────────────────────────────────────────────
+    // API calls
     const loadDirectories = useCallback(async () => {
         setLoadingDirs(true);
         try {
             const res = await getDirectories();
             const mapped: MediaDirectory[] = [
-                { uuid: ROOT_ID, name: 'Root', parent_uuid: null, created_at: '', updated_at: '' },
+                {uuid: ROOT_ID, name: 'Root', parent_uuid: null, created_at: '', updated_at: ''},
                 ...res.map((d) => ({
                     ...d,
                     parent_uuid: d.parent_uuid ?? ROOT_ID,
@@ -74,7 +85,6 @@ const MediaLibrary: React.FC = () => {
         }
     }, [showNotification]);
 
-    // fetch assets
     const loadAssets = useCallback(
         async (dirId: string) => {
             setLoadingAssets(true);
@@ -101,13 +111,9 @@ const MediaLibrary: React.FC = () => {
     useEffect(() => {
         loadDirectories();
     }, [loadDirectories]);
-
     useEffect(() => {
         loadAssets(currentDirId);
     }, [currentDirId, loadAssets]);
-
-    // helpers
-    const findDir = (id: string) => directories.find((d) => d.uuid === id);
 
     const breadcrumbPath = useMemo(() => {
         const chain: MediaDirectory[] = [];
@@ -137,7 +143,6 @@ const MediaLibrary: React.FC = () => {
         return out;
     }, [items, currentDirId, search]);
 
-    // directory CRUD (modal)
     const handleCreateFolder = async (name: string) => {
         try {
             const dir = await createDirectory({
@@ -146,7 +151,7 @@ const MediaLibrary: React.FC = () => {
             });
             setDirectories((prev) => [
                 ...prev,
-                { ...dir, parent_uuid: dir.parent_uuid ?? ROOT_ID },
+                {...dir, parent_uuid: dir.parent_uuid ?? ROOT_ID},
             ]);
             setCurrentDirId(dir.uuid);
             showNotification('Folder created');
@@ -155,15 +160,29 @@ const MediaLibrary: React.FC = () => {
         }
     };
 
-    // upload
+    /** actual deletion after confirmation */
+    const handleDeleteDirectory = async (dir: MediaDirectory) => {
+        try {
+            await deleteDirectory(dir.uuid);
+            const idsToRemove = gatherDescendants(dir.uuid);
+            setDirectories((prev) => prev.filter((d) => !idsToRemove.includes(d.uuid)));
+            setItems((prev) =>
+                prev.filter((a) => !idsToRemove.includes(a.directory_uuid ?? ROOT_ID)),
+            );
+            if (idsToRemove.includes(currentDirId)) setCurrentDirId(ROOT_ID);
+            showNotification('Folder deleted');
+        } catch {
+            showNotification('Error deleting folder', 'error');
+        }
+    };
+
+    const requestDeleteDirectory = (dir: MediaDirectory) => setDirToDelete(dir);
+
     const handleUploadFiles = async (files: File[]) => {
         const dirUuid = currentDirId === ROOT_ID ? null : currentDirId;
-
-        console.log(dirUuid);
-
         for (const file of files) {
             try {
-                const uploaded = await uploadAsset({ file, directory_uuid: dirUuid });
+                const uploaded = await uploadAsset({file, directory_uuid: dirUuid});
                 const mapped: MediaAsset = {
                     ...uploaded,
                     directory_uuid: uploaded.directory_uuid ?? ROOT_ID,
@@ -177,7 +196,6 @@ const MediaLibrary: React.FC = () => {
         showNotification('Upload complete');
     };
 
-    // rename & delete
     const handleRename = async () => {
         if (!selected) return;
         try {
@@ -186,7 +204,7 @@ const MediaLibrary: React.FC = () => {
             });
             setItems((prev) =>
                 prev.map((i) =>
-                    i.uuid === selected.uuid ? { ...i, alt: updated.alt } : i,
+                    i.uuid === selected.uuid ? {...i, alt: updated.alt} : i,
                 ),
             );
             setIsEditingName(false);
@@ -206,12 +224,10 @@ const MediaLibrary: React.FC = () => {
         }
     };
 
-    // keyboard nav in preview
     useEffect(() => {
         if (!selected) return;
         const list = items.filter((i) => i.directory_uuid === currentDirId);
         const idx = list.findIndex((i) => i.uuid === selected.uuid);
-
         const onKey = (e: KeyboardEvent) => {
             if (e.key === 'ArrowRight' && idx < list.length - 1) {
                 setSelected(list[idx + 1]);
@@ -235,19 +251,21 @@ const MediaLibrary: React.FC = () => {
                         onSelect={setCurrentDirId}
                         root={
                             loadingDirs || !rootDir ? (
-                                <CircularProgress size={20} />
+                                <CircularProgress size={20}/>
                             ) : (
                                 <TreeItemRender
                                     node={rootDir}
                                     directories={directories}
                                     currentDirId={currentDirId}
+                                    onDeleteDir={requestDeleteDirectory}
+                                    rootId={ROOT_ID}
                                 />
                             )
                         }
                         onAddFolder={() => setNewFolderOpen(true)}
                     />
 
-                    <Grid size={{ xs: 12, md: 9 }}>
+                    <Grid size={{xs: 12, md: 9}}>
                         <MediaLibraryTopBar
                             breadcrumbPath={breadcrumbPath}
                             onNavigateRoot={() => setCurrentDirId(ROOT_ID)}
@@ -261,8 +279,8 @@ const MediaLibrary: React.FC = () => {
                         />
 
                         {loadingAssets ? (
-                            <Box sx={{ textAlign: 'center', mt: 8 }}>
-                                <CircularProgress />
+                            <Box sx={{textAlign: 'center', mt: 8}}>
+                                <CircularProgress/>
                             </Box>
                         ) : (
                             <MediaLibraryImageList
@@ -278,20 +296,19 @@ const MediaLibrary: React.FC = () => {
                 </Grid>
             </Container>
 
+            {/* modals */}
             <UploadModal
                 open={uploadOpen}
                 onClose={() => setUploadOpen(false)}
                 onUpload={handleUploadFiles}
                 currentDir={findDir(currentDirId)}
             />
-
             <NewFolderModal
                 open={newFolderOpen}
                 onClose={() => setNewFolderOpen(false)}
                 onCreate={handleCreateFolder}
                 currentDir={findDir(currentDirId)}
             />
-
             <MediaLibraryUpdateFile
                 selected={selected}
                 setSelected={setSelected}
@@ -300,36 +317,21 @@ const MediaLibrary: React.FC = () => {
                 handleRename={handleRename}
                 handleDelete={handleDelete}
             />
+
+            {/* delete confirmation */}
+            {dirToDelete && (
+                <DeleteConfirmDialog
+                    open
+                    name={dirToDelete.name}
+                    onCancel={() => setDirToDelete(null)}
+                    onConfirm={() => {
+                        handleDeleteDirectory(dirToDelete);
+                        setDirToDelete(null);
+                    }}
+                />
+            )}
         </MainLayout>
     );
 };
-
-// internal recursive tree item (with bold selected)
-const TreeItemRender: React.FC<{
-    node: MediaDirectory;
-    directories: MediaDirectory[];
-    currentDirId: string;
-}> = ({ node, directories, currentDirId }) => (
-    <TreeItem
-        key={node.uuid}
-        itemId={node.uuid}
-        label={
-            <span style={{ fontWeight: node.uuid === currentDirId ? 600 : 400 }}>
-        {node.name}
-      </span>
-        }
-    >
-        {directories
-            .filter((d) => d.parent_uuid === node.uuid)
-            .map((child) => (
-                <TreeItemRender
-                    key={child.uuid}
-                    node={child}
-                    directories={directories}
-                    currentDirId={currentDirId}
-                />
-            ))}
-    </TreeItem>
-);
 
 export default MediaLibrary;

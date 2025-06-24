@@ -64,7 +64,6 @@ const UploadModal: React.FC<Props> = ({ open, onClose, onUpload, currentDir }) =
                         id="upload-input"
                         multiple
                         type="file"
-                        accept="image/*"
                         hidden
                         onChange={(e) => addFiles(e.target.files)}
                     />
@@ -90,7 +89,7 @@ const UploadModal: React.FC<Props> = ({ open, onClose, onUpload, currentDir }) =
                         clear();
                     }}
                 >
-                    Upload ({files.length})
+                    Upload&nbsp;({files.length})
                 </Button>
             </DialogActions>
         </Dialog>
