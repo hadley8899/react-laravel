@@ -1,13 +1,15 @@
-import React from "react";
-import MainLayout from "../components/layout/MainLayout.tsx";
+import React from 'react';
+import { useParams } from 'react-router-dom';
+import MainLayout from '../components/layout/MainLayout';
 import EmailEditor from "../components/email-editor/EmailEditor.tsx";
 
-const Editor: React.FC = () => {
+const EditorPage: React.FC = () => {
+    const { uuid } = useParams(); // undefined when creating a new template
     return (
         <MainLayout>
-            <EmailEditor />
+            <EmailEditor templateUuid={uuid} />
         </MainLayout>
-    )
-}
+    );
+};
 
-export default Editor;
+export default EditorPage;

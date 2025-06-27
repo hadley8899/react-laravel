@@ -87,7 +87,6 @@ const EmailTemplatesPage: React.FC = () => {
         }
     };
 
-    /* ---------------- render ---------------- */
     return (
         <MainLayout>
             <EmailTemplatesTopBar
@@ -96,7 +95,7 @@ const EmailTemplatesPage: React.FC = () => {
                     setSearch(e.target.value);
                     setPage(0);
                 }}
-                onAdd={() => navigate('/editor')}
+                onAdd={() => navigate('/email-templates/editor')}
                 onRefresh={fetch}
                 selectedCount={selected.length}
                 onDeleteSelected={() => {

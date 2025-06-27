@@ -14,27 +14,27 @@ export async function getTemplates(params?: {
     per_page?: number;
     search?: string;
 }) {
-    const { data } = await api.get<PaginatedResponse<EmailTemplate>>(
+    const {data} = await api.get<PaginatedResponse<EmailTemplate>>(
         '/templates',
-        { params }
+        {params}
     );
     return data;
 }
 
 export async function getTemplate(uuid: string) {
-    const {data} = await api.get<EmailTemplate>(`/templates/${uuid}`);
-    return data;
+    const {data} = await api.get<{ data: EmailTemplate }>(`/templates/${uuid}`);
+    return data.data;
 }
 
 /** POST /templates */
 export async function createTemplate(p: CreateTemplatePayload) {
-    const {data} = await api.post<EmailTemplate>('/templates', p);
-    return data;
+    const {data} = await api.post<{ data: EmailTemplate }>('/templates', p);
+    return data.data;
 }
 
 export async function updateTemplate(uuid: string, p: UpdateTemplatePayload) {
-    const {data} = await api.put<EmailTemplate>(`/templates/${uuid}`, p);
-    return data;
+    const {data} = await api.put<{ data: EmailTemplate }>(`/templates/${uuid}`, p);
+    return data.data;
 }
 
 export async function deleteTemplate(uuid: string) {
@@ -47,7 +47,7 @@ export async function duplicateTemplate(uuid: string) {
 }
 
 export async function previewTemplate(uuid: string) {
-    const {data} = await api.get<{html: string; text: string}>(`/templates/${uuid}/preview`);
+    const {data} = await api.get<{ html: string; text: string }>(`/templates/${uuid}/preview`);
     return data;
 }
 

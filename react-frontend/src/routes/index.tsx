@@ -61,12 +61,14 @@ const AppRoutes: React.FC = () => {
                 <Route path="/appointments/:uuid/edit" element={<AppointmentEdit/>}/>
                 <Route path="/tags" element={<TagListPage/>}/>
                 <Route path="/media" element={<MediaLibrary/>}/>
-                <Route path="email-templates" element={<EmailTemplates/>}/>
                 <Route path="/profile" element={<Profile/>}/>
                 <Route path="/settings" element={<Settings/>}/>
                 <Route path="/user-management" element={<UserManagement/>}/>
                 <Route path="/admin" element={<Admin/>}/>
-                <Route path="/editor" element={<Editor/>}/>
+
+                <Route path="/email-templates" element={<EmailTemplates/>}/>
+                <Route path="/email-templates/editor" element={<Editor/>}/>
+                <Route path="/email-templates/editor/:uuid" element={<Editor />} />
             </Route>
 
             <Route path="*" element={<Navigate to="/login" replace/>}/>

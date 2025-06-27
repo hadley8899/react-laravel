@@ -18,7 +18,8 @@ import {
 } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { EmailTemplate } from '../../interfaces/EmailTemplate';
+import {EmailTemplate} from '../../interfaces/EmailTemplate';
+import {useNavigate} from "react-router-dom";
 
 interface Props {
     templates: EmailTemplate[];
@@ -51,10 +52,12 @@ const EmailTemplatesTable: React.FC<Props> = ({
                                               }) => {
     const isSelected = (uuid: string) => selected.includes(uuid);
 
+    const navigate = useNavigate();
+
     if (loading) {
         return (
-            <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
-                <CircularProgress />
+            <Box sx={{display: 'flex', justifyContent: 'center', py: 6}}>
+                <CircularProgress/>
             </Box>
         );
     }
@@ -66,13 +69,13 @@ const EmailTemplatesTable: React.FC<Props> = ({
     return (
         <TableContainer component={Paper} variant="outlined">
             {empty ? (
-                <Box sx={{ py: 4, textAlign: 'center' }}>
+                <Box sx={{py: 4, textAlign: 'center'}}>
                     <Typography color="text.secondary">No templates found.</Typography>
                 </Box>
             ) : (
                 <>
                     <Table>
-                        <TableHead sx={{ backgroundColor: t => t.palette.action.hover }}>
+                        <TableHead sx={{backgroundColor: t => t.palette.action.hover}}>
                             <TableRow>
                                 <TableCell padding="checkbox">
                                     <Checkbox
@@ -96,12 +99,12 @@ const EmailTemplatesTable: React.FC<Props> = ({
                                         hover
                                         key={tpl.uuid}
                                         selected={sel}
-                                        sx={{ cursor: 'pointer' }}
+                                        sx={{cursor: 'pointer'}}
                                     >
                                         <TableCell padding="checkbox" onClick={() => onRowClick(tpl.uuid)}>
-                                            <Checkbox checked={sel} />
+                                            <Checkbox checked={sel}/>
                                         </TableCell>
-                                        <TableCell sx={{ fontWeight: 500 }} onClick={() => onRowClick(tpl.uuid)}>
+                                        <TableCell sx={{fontWeight: 500}} onClick={() => onRowClick(tpl.uuid)}>
                                             {tpl.name}
                                         </TableCell>
                                         <TableCell onClick={() => onRowClick(tpl.uuid)}>
@@ -117,9 +120,9 @@ const EmailTemplatesTable: React.FC<Props> = ({
                                             <Tooltip title="Preview">
                                                 <IconButton
                                                     size="small"
-                                                    onClick={() => window.open(`/templates/${tpl.uuid}/preview`, '_blank')}
+                                                    onClick={() => navigate(`/email-templates/editor/${tpl.uuid}`)}
                                                 >
-                                                    <VisibilityIcon />
+                                                    <VisibilityIcon/>
                                                 </IconButton>
                                             </Tooltip>
                                             <Tooltip title="Delete">
@@ -131,7 +134,7 @@ const EmailTemplatesTable: React.FC<Props> = ({
                                                         onDelete(tpl);
                                                     }}
                                                 >
-                                                    <DeleteIcon />
+                                                    <DeleteIcon/>
                                                 </IconButton>
                                             </Tooltip>
                                         </TableCell>
@@ -141,7 +144,7 @@ const EmailTemplatesTable: React.FC<Props> = ({
                         </TableBody>
                     </Table>
 
-                    <Box sx={{ px: 2, pb: 2 }}>
+                    <Box sx={{px: 2, pb: 2}}>
                         <TablePagination
                             rowsPerPageOptions={[5, 10, 25]}
                             component="div"
