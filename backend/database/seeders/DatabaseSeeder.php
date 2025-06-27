@@ -5,6 +5,9 @@ namespace Database\Seeders;
 use App\Models\Appointment;
 use App\Models\Company;
 use App\Models\Customer;
+use App\Models\EmailTemplate;
+use App\Models\EmailTemplateRevision;
+use App\Models\Tag;
 use App\Models\User;
 use App\Models\Vehicle;
 use App\Models\VehicleMake;
@@ -105,6 +108,14 @@ class DatabaseSeeder extends Seeder
         $vehicleCount = random_int(1, 25);
         $vehicles = [];
         $faker = Faker::create();
+
+        // get all tags
+        $tags = Tag::query()->where('company_id', $company->id)->get();
+        // Assign random tags to the customer
+        $customer->tags()->sync(
+            $tags->random(random_int(1, min(5, $tags->count())))->pluck('id')->toArray()
+        );
+
         for ($i = 0; $i < $vehicleCount; $i++) {
             // Get a random make from the preloaded makes
             $make = $makesWithModels->random();
@@ -160,7 +171,7 @@ class DatabaseSeeder extends Seeder
     private function createCompanyData($company, Collection $makesWithModels): void
     {
         try {
-            User::factory(random_int(5, 100))->create([
+            $users = User::factory(random_int(5, 100))->create([
                 'company_id' => $company->id,
             ])->each(function ($user) use ($company) {
                 $roles = ['Admin', 'Manager', 'User'];
@@ -174,6 +185,29 @@ class DatabaseSeeder extends Seeder
             ])->each(function ($customer) use ($company, $makesWithModels) {
                 $this->createVehiclesAndAppointments($customer, $company, $makesWithModels);
             });
+
+            $templateCount = random_int(3, 8);
+
+            $this->command->info("Creating {$templateCount} email templates for {$company->name}");
+
+            $templates = EmailTemplate::factory()
+                ->count($templateCount)
+                ->state(fn () => [
+                    'company_id' => $company->id,
+                    'created_by' => $users->random()->id,
+                ])
+                ->create();
+
+            foreach ($templates as $tpl) {
+                EmailTemplateRevision::factory()->create([
+                    'template_id' => $tpl->id,
+                    'layout_json' => $tpl->layout_json,
+                    'html_cached' => $tpl->html_cached,
+                    'text_cached' => $tpl->text_cached,
+                    'created_by'  => $tpl->created_by,
+                    'created_at'  => now(),
+                ]);
+            }
 
             // Update company 1 to be active so we can login with our test users
             $numberOneCompany = Company::query()->where('id', '=', 1)->first();

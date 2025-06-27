@@ -52,8 +52,6 @@ const MediaLibrary: React.FC = () => {
     const [newFolderOpen, setNewFolderOpen] = useState(false);
     const [dirToDelete, setDirToDelete] = useState<MediaDirectory | null>(null);
 
-    // ──────────────────────────────────────────────────────────
-    // helpers
     const findDir = (id: string) => directories.find((d) => d.uuid === id);
 
     const gatherDescendants = (id: string): string[] => {
@@ -64,8 +62,6 @@ const MediaLibrary: React.FC = () => {
         );
     };
 
-    // ──────────────────────────────────────────────────────────
-    // API calls
     const loadDirectories = useCallback(async () => {
         setLoadingDirs(true);
         try {

@@ -7,6 +7,7 @@ use App\Http\Controllers\CompanyUserManagementController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CustomerTagController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\EmailTemplateController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\MediaLibraryController;
 use App\Http\Controllers\NotificationController;
@@ -145,5 +146,15 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('/assets/{asset:uuid}', [MediaLibraryController::class, 'updateAsset']);
         Route::delete('/assets/{asset:uuid}', [MediaLibraryController::class, 'destroyAsset']);
         Route::post('/assets/{asset:uuid}/restore', [MediaLibraryController::class, 'restoreAsset']);
+    });
+
+    Route::prefix('/templates')->group(function () {
+        Route::get('/', [EmailTemplateController::class, 'index']);
+        Route::post('/', [EmailTemplateController::class, 'store']);
+        Route::get('/{template:uuid}', [EmailTemplateController::class, 'show']);
+        Route::put('/{template:uuid}', [EmailTemplateController::class, 'update']);
+        Route::delete('/{template:uuid}', [EmailTemplateController::class, 'destroy']);
+        Route::post('/{template:uuid}/duplicate', [EmailTemplateController::class, 'duplicate']);
+        Route::get('/{template:uuid}/preview', [EmailTemplateController::class, 'preview']);
     });
 });

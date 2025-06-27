@@ -16,7 +16,6 @@ export type CreateVehiclePayload = {
 
 export type UpdateVehiclePayload = Partial<CreateVehiclePayload>;
 
-/* ---------- CRUD ---------- */
 export async function getVehicles(
     page = 1,
     perPage = 1000,

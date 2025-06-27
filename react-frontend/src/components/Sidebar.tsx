@@ -18,6 +18,7 @@ import {
     Settings,
     Shield,
     PhotoLibrary as PhotoLibraryIcon,
+    Campaign as CampaignIcon,
 } from '@mui/icons-material';
 import React, {useEffect, useState} from 'react';
 import {useLocation, useNavigate} from 'react-router-dom';
@@ -106,6 +107,11 @@ const Sidebar: React.FC<SidebarProps> = ({
             icon: <PhotoLibraryIcon/>,
             // permissions: [''], // adjust as soon as you add backend perms
         },
+        {
+            title: 'Email Templates',
+            path: '/email-templates',
+            icon: <CampaignIcon/>,
+        }
     ];
 
     const secondaryNavItems: SidebarItem[] = [

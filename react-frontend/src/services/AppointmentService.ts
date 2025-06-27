@@ -2,12 +2,11 @@ import {api} from './api';
 import {Appointment} from "../interfaces/Appointment.ts";
 import {PaginatedResponse} from "../interfaces/PaginatedResponse.ts";
 
-/* ---------- payloads ---------- */
 export type CreateAppointmentPayload = {
     customer_uuid: string;
     vehicle_uuid: string;
     service_type: Appointment['service_type'];
-    date_time: string;             // ISO
+    date_time: string;
     duration_minutes: number;
     status: Appointment['status'];
     mechanic_assigned?: string | null;
@@ -16,7 +15,6 @@ export type CreateAppointmentPayload = {
 
 export type UpdateAppointmentPayload = Partial<CreateAppointmentPayload>;
 
-/* ---------- calls ---------- */
 export async function getAppointments(params: {
     date_from: string;
     date_to: string;
