@@ -31,7 +31,7 @@ export const DEFAULT_SECTIONS = {
         type: SECTION_TYPES.IMAGE,
         title: 'Image Section',
         content: {
-            src: 'https://via.placeholder.com/600x300/1976d2/ffffff?text=Your+Image+Here',
+            src: 'https://placehold.co/600x400?text=Hello+World',
             alt: 'Placeholder image',
             width: '100%',
             caption: ''

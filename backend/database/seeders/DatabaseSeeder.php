@@ -186,7 +186,7 @@ class DatabaseSeeder extends Seeder
                 $this->createVehiclesAndAppointments($customer, $company, $makesWithModels);
             });
 
-            $templateCount = random_int(3, 8);
+            $templateCount = random_int(30, 60);
 
             $this->command->info("Creating {$templateCount} email templates for {$company->name}");
 

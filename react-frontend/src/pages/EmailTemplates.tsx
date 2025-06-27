@@ -4,8 +4,8 @@ import MainLayout from '../components/layout/MainLayout';
 import {EmailTemplate} from '../interfaces/EmailTemplate';
 import {useNotifier} from '../context/NotificationContext';
 import {deleteTemplate, getTemplates} from '../services/EmailTemplateService';
-import EmailTemplatesTopBar from '../components/emailTemplates/EmailTemplatesTopBar';
-import EmailTemplatesTable from '../components/emailTemplates/EmailTemplatesTable';
+import EmailTemplatesTopBar from '../components/email-templates/EmailTemplatesTopBar';
+import EmailTemplatesTable from '../components/email-templates/EmailTemplatesTable';
 import {
     Dialog,
     DialogTitle,
