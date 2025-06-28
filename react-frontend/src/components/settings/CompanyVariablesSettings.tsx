@@ -1,32 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
     Alert,
     Box,
-    Button,
     CircularProgress,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogTitle,
-    Grid,
-    IconButton,
-    MenuItem,
-    Paper,
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableRow,
-    TextField,
     Typography,
 } from '@mui/material';
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-import DeleteIcon from '@mui/icons-material/Delete';
-import EditIcon from '@mui/icons-material/Edit';
 import TuneIcon from '@mui/icons-material/Tune';
 
 import SettingsAccordionItem from '../layout/SettingsAccordionItem.tsx';
-import { useNotifier } from '../../context/NotificationContext.tsx';
+import {useNotifier} from '../../context/NotificationContext.tsx';
 import {
     CompanyVariable,
     CreateCompanyVariablePayload,
@@ -38,6 +20,8 @@ import {
     getCompanyVariables,
     updateCompanyVariable,
 } from '../../services/CompanyVariableService.ts';
+import VariableTable from "./company-variable-settings/VariableTable.tsx";
+import VariableCreateEditDialog from "./company-variable-settings/VariableCreateEditDialog.tsx";
 
 const EMPTY_PAYLOAD: CreateCompanyVariablePayload = {
     key: '',
@@ -53,7 +37,7 @@ const CompanyVariablesSettings: React.FC = () => {
     /* ------------------------------------------------------------------ */
     /* State & hooks                                                      */
     /* ------------------------------------------------------------------ */
-    const { showNotification } = useNotifier();
+    const {showNotification} = useNotifier();
 
     const [variables, setVariables] = useState<CompanyVariable[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -173,163 +157,44 @@ const CompanyVariablesSettings: React.FC = () => {
         }
     };
 
-    /* ------------------------------------------------------------------ */
-    /* Render                                                             */
-    /* ------------------------------------------------------------------ */
     return (
         <SettingsAccordionItem
             title="Company Variables"
-            icon={<TuneIcon />}
+            icon={<TuneIcon/>}
             isLoading={false}
             error={error}
         >
             {isLoading ? (
-                <Box sx={{ display: 'flex', alignItems: 'center', py: 3 }}>
-                    <CircularProgress size={20} sx={{ mr: 2 }} />
+                <Box sx={{display: 'flex', alignItems: 'center', py: 3}}>
+                    <CircularProgress size={20} sx={{mr: 2}}/>
                     <Typography>Loading variables…</Typography>
                 </Box>
             ) : (
                 <>
                     {variables.length === 0 && (
-                        <Alert severity="info" sx={{ mb: 2 }}>
+                        <Alert severity="info" sx={{mb: 2}}>
                             No variables yet. Click “Add Variable” to create your first one.
                         </Alert>
                     )}
-
-                    <Paper variant="outlined" sx={{ mb: 3 }}>
-                        <Table size="small">
-                            <TableHead>
-                                <TableRow>
-                                    <TableCell>Friendly Name</TableCell>
-                                    <TableCell>Key</TableCell>
-                                    <TableCell>Value</TableCell>
-                                    <TableCell>Type</TableCell>
-                                    <TableCell align="right">
-                                        <Button
-                                            variant="text"
-                                            startIcon={<AddCircleOutlineIcon />}
-                                            onClick={openCreateDialog}
-                                        >
-                                            Add Variable
-                                        </Button>
-                                    </TableCell>
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {variables.map((v) => (
-                                    <TableRow key={v.uuid}>
-                                        <TableCell>{v.friendly_name}</TableCell>
-                                        <TableCell>
-                                            <code>{`{{${v.key}}}`}</code>
-                                        </TableCell>
-                                        <TableCell sx={{ maxWidth: 250, wordBreak: 'break-all' }}>
-                                            {v.value}
-                                        </TableCell>
-                                        <TableCell>{v.type}</TableCell>
-                                        <TableCell align="right">
-                                            <IconButton
-                                                size="small"
-                                                onClick={() => openEditDialog(v)}
-                                            >
-                                                <EditIcon fontSize="small" />
-                                            </IconButton>
-                                            <IconButton
-                                                size="small"
-                                                onClick={() => handleDelete(v.uuid, v.can_be_deleted)}
-                                                disabled={!v.can_be_deleted}
-                                            >
-                                                <DeleteIcon fontSize="small" />
-                                            </IconButton>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </Paper>
+                    <VariableTable
+                        variables={variables}
+                        openCreateDialog={openCreateDialog}
+                        openEditDialog={openEditDialog}
+                        handleDelete={handleDelete}
+                    />
                 </>
             )}
 
-            {/* ---------------- Create / Edit Dialog ---------------- */}
-            <Dialog open={dialogOpen} onClose={closeDialog} fullWidth maxWidth="sm">
-                <DialogTitle>
-                    {dialogMode === 'create' ? 'Add Company Variable' : 'Edit Company Variable'}
-                </DialogTitle>
-                <DialogContent>
-                    <Box sx={{ mt: 1 }}>
-                        <Grid container spacing={2}>
-                            <Grid size={{ xs: 12 }}>
-                                <TextField
-                                    label="Friendly Name"
-                                    fullWidth
-                                    value={payload.friendly_name}
-                                    onChange={(e) =>
-                                        setPayload({ ...payload, friendly_name: e.target.value })
-                                    }
-                                    slotProps={{}}
-                                />
-                            </Grid>
+            <VariableCreateEditDialog
+                dialogOpen={dialogOpen}
+                closeDialog={closeDialog}
+                dialogMode={dialogMode}
+                payload={payload}
+                setPayload={setPayload}
+                handleSave={handleSave}
+                isSaving={isSaving}
 
-                            <Grid size={{ xs: 12 }}>
-                                <TextField
-                                    label="Key"
-                                    fullWidth
-                                    helperText="UPPER_SNAKE_CASE – used in templates like {{KEY}}"
-                                    value={payload.key}
-                                    onChange={(e) =>
-                                        setPayload({ ...payload, key: e.target.value.toUpperCase() })
-                                    }
-                                    disabled={dialogMode === 'edit'}
-                                    slotProps={{}}
-                                />
-                            </Grid>
-
-                            <Grid size={{ xs: 12 }}>
-                                <TextField
-                                    label="Value"
-                                    fullWidth
-                                    value={payload.value}
-                                    onChange={(e) =>
-                                        setPayload({ ...payload, value: e.target.value })
-                                    }
-                                    slotProps={{}}
-                                />
-                            </Grid>
-
-                            <Grid size={{ xs: 12 }}>
-                                <TextField
-                                    select
-                                    label="Type"
-                                    fullWidth
-                                    value={payload.type ?? ''}
-                                    onChange={(e) =>
-                                        setPayload({ ...payload, type: e.target.value })
-                                    }
-                                    slotProps={{}}
-                                >
-                                    <MenuItem value="">(none)</MenuItem>
-                                    <MenuItem value="text">Text</MenuItem>
-                                    <MenuItem value="color">Color</MenuItem>
-                                    <MenuItem value="url">URL</MenuItem>
-                                    <MenuItem value="image">Image URL</MenuItem>
-                                </TextField>
-                            </Grid>
-                        </Grid>
-                    </Box>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={closeDialog} disabled={isSaving}>
-                        Cancel
-                    </Button>
-                    <Button
-                        variant="contained"
-                        onClick={handleSave}
-                        disabled={isSaving}
-                        startIcon={isSaving && <CircularProgress size={16} />}
-                    >
-                        {isSaving ? 'Saving…' : 'Save'}
-                    </Button>
-                </DialogActions>
-            </Dialog>
+            />
         </SettingsAccordionItem>
     );
 };
