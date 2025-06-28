@@ -22,12 +22,11 @@ import {
 } from '../../services/EmailTemplateService';
 
 import {DEFAULT_SECTIONS, SECTION_TYPES} from '../../mock/editor/default-sections';
-import {renderEditForm} from '../../helpers/editor/renderEditForm';
 import EmailEditorSidebarItem from './EmailEditorSidebarItem';
 import EmailEditorPreviewSection from './EmailEditorPreviewSection';
+import SectionEditForm from "../emailEditor/SectionEditForm.tsx";
 
 interface Props {
-    /** undefined = new template */
     templateUuid?: string;
 }
 
@@ -89,16 +88,15 @@ const EmailEditor: React.FC<Props> = ({templateUuid}) => {
         } finally {
             setLoading(false);
         }
-    }, [templateUuid]);
+    }, [showNotification, templateUuid]);
 
     useEffect(() => {
-        loadTemplate();
+        loadTemplate().then(() => {});
     }, [loadTemplate]);
 
     /* ---------------- save ---------------- */
     const handleSave = async () => {
         if (!name.trim()) {
-            // brand new template, ask for meta first
             setInfoOpen(true);
             return;
         }
@@ -128,7 +126,17 @@ const EmailEditor: React.FC<Props> = ({templateUuid}) => {
         }
     };
 
-    /* ---------------- render ---------------- */
+    // Add this memoized function before the return statement
+    const handleUpdateContent = React.useCallback(
+        (field: string, value: any) => {
+            setEditingSection((prev: any) => ({
+                ...prev,
+                content: { ...prev.content, [field]: value },
+            }));
+        },
+        []
+    );
+
     if (loading) {
         return (
             <Box sx={{p: 4, textAlign: 'center'}}>
@@ -193,15 +201,18 @@ const EmailEditor: React.FC<Props> = ({templateUuid}) => {
                 />
 
                 {/* ---------- edit modal ---------- */}
-                <Dialog open={editOpen} onClose={() => setEditOpen(false)} maxWidth="sm" fullWidth>
+                <Dialog
+                    open={editOpen}
+                    onClose={() => setEditOpen(false)}
+                    maxWidth="md"
+                    fullWidth
+                >
                     <DialogTitle>Edit {editingSection?.title}</DialogTitle>
                     <DialogContent dividers sx={{pt: 2}}>
-                        {renderEditForm(editingSection, (field, value) =>
-                            setEditingSection((prev: any) => ({
-                                ...prev,
-                                content: {...prev.content, [field]: value},
-                            })),
-                        )}
+                        <SectionEditForm
+                            editingSection={editingSection}
+                            updateContent={handleUpdateContent}
+                        />
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={() => setEditOpen(false)} variant="outlined">
