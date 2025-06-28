@@ -15,7 +15,7 @@ import {Company} from "../interfaces/Company.ts";
 import {getMyCompany} from "../services/CompanyService.ts";
 import UserManagementLink from "../components/settings/UserManagementLink.tsx";
 import {hasPermission} from "../services/AuthService.ts";
-// import SwitchCompany from "../components/settings/SwitchCompany";
+import CompanyVariablesSettings from "../components/settings/CompanyVariablesSettings.tsx";
 // import Integrations from "../components/settings/Integrations.tsx";
 
 const Settings: React.FC = () => {
@@ -55,11 +55,12 @@ const Settings: React.FC = () => {
                 {hasPermission('update_invoice_settings') && (
                     <InvoiceAndPaymentSettings company={company} setCompany={setCompany}/>
                 )}
+                <CompanyVariablesSettings/>
                 {hasPermission('manage_users') && (<UserManagementLink/>)}
                 <NotificationPreferences/>
                 <SettingsThemeSwitcher/>
                 {/*<Integrations/>*/}
-            </Container>
+            </Container>ß
         </MainLayout>
     );
 };

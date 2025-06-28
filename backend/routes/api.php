@@ -4,6 +4,7 @@ use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\CompanyUserManagementController;
+use App\Http\Controllers\CompanyVariableController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CustomerTagController;
 use App\Http\Controllers\DashboardController;
@@ -156,5 +157,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/{template:uuid}', [EmailTemplateController::class, 'destroy']);
         Route::post('/{template:uuid}/duplicate', [EmailTemplateController::class, 'duplicate']);
         Route::get('/{template:uuid}/preview', [EmailTemplateController::class, 'preview']);
+    });
+
+    Route::prefix('/company-variables')->group(function () {
+        Route::get('/', [CompanyVariableController::class, 'index']);
+        Route::post('/', [CompanyVariableController::class, 'store']);
+        Route::get('/{variable:uuid}', [CompanyVariableController::class, 'show']);
+        Route::put('/{variable:uuid}', [CompanyVariableController::class, 'update']);
+        Route::delete('/{variable:uuid}', [CompanyVariableController::class, 'destroy']);
     });
 });

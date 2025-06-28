@@ -170,6 +170,7 @@ class DatabaseSeeder extends Seeder
      */
     private function createCompanyData($company, Collection $makesWithModels): void
     {
+        new CompanyVariableSeeder($company->id)->run();
         try {
             $users = User::factory(random_int(5, 100))->create([
                 'company_id' => $company->id,

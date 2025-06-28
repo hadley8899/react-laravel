@@ -122,18 +122,35 @@ class Company extends Model
         return $code;
     }
 
+    /**
+     * @return string|null
+     */
     public function getLogoUrlAttribute(): ?string
     {
         return $this->logo_path ? Storage::disk('public')->url($this->logo_path) : null;
     }
 
+    /**
+     * @return HasMany
+     */
     public function customers(): HasMany
     {
         return $this->hasMany(Customer::class);
     }
 
+    /**
+     * @return HasMany
+     */
     public function users(): HasMany
     {
         return $this->hasMany(User::class);
+    }
+
+    /**
+     * @return HasMany
+     */
+    public function variables(): HasMany
+    {
+        return $this->hasMany(CompanyVariable::class);
     }
 }
