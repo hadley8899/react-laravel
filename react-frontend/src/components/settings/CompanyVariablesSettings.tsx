@@ -34,30 +34,26 @@ const EMPTY_PAYLOAD: CreateCompanyVariablePayload = {
 type DialogMode = 'create' | 'edit';
 
 const CompanyVariablesSettings: React.FC = () => {
-    /* ------------------------------------------------------------------ */
-    /* State & hooks                                                      */
-    /* ------------------------------------------------------------------ */
     const {showNotification} = useNotifier();
 
     const [variables, setVariables] = useState<CompanyVariable[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
-    /* Dialog state */
     const [dialogOpen, setDialogOpen] = useState(false);
     const [dialogMode, setDialogMode] = useState<DialogMode>('create');
     const [payload, setPayload] = useState<CreateCompanyVariablePayload>(EMPTY_PAYLOAD);
     const [editingUuid, setEditingUuid] = useState<string | null>(null);
     const [isSaving, setIsSaving] = useState(false);
 
-    /* ------------------------------------------------------------------ */
-    /* Data fetching                                                      */
-    /* ------------------------------------------------------------------ */
     const fetchVariables = async () => {
         setIsLoading(true);
         setError(null);
         try {
             const list = await getCompanyVariables();
+
+            console.log(list);
+
             setVariables(list);
         } catch (err: any) {
             console.error(err);
@@ -71,9 +67,6 @@ const CompanyVariablesSettings: React.FC = () => {
         fetchVariables();
     }, []);
 
-    /* ------------------------------------------------------------------ */
-    /* Dialog helpers                                                     */
-    /* ------------------------------------------------------------------ */
     const openCreateDialog = () => {
         setDialogMode('create');
         setPayload(EMPTY_PAYLOAD);
@@ -86,10 +79,13 @@ const CompanyVariablesSettings: React.FC = () => {
         setEditingUuid(variable.uuid);
         setPayload({
             key: variable.key,
-            value: variable.value,
+            value: variable.type === 'image' ? (variable.url ?? '') : variable.value,
             friendly_name: variable.friendly_name ?? '',
             type: variable.type ?? '',
-            meta: variable.meta ?? {},
+            meta: {
+                ...variable.meta,
+                ...(variable.type === 'image' && variable.url ? { url: variable.url } : {}),
+            },
         });
         setDialogOpen(true);
     };
@@ -98,9 +94,6 @@ const CompanyVariablesSettings: React.FC = () => {
         if (!isSaving) setDialogOpen(false);
     };
 
-    /* ------------------------------------------------------------------ */
-    /* CRUD actions                                                       */
-    /* ------------------------------------------------------------------ */
     const handleSave = async () => {
         setIsSaving(true);
         try {

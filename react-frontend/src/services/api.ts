@@ -18,5 +18,11 @@ api.interceptors.request.use(config => {
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
     }
+
+    // If the request type is PUT then add _method override header
+    if (config.method?.toUpperCase() === 'PUT') {
+        config.headers['_method'] = 'PUT';
+    }
+
     return config;
 });

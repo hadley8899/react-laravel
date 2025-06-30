@@ -1,4 +1,4 @@
-import React, {useEffect, useState, useCallback} from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
     Box,
     Paper,
@@ -12,25 +12,28 @@ import {
     CircularProgress,
     useTheme,
 } from '@mui/material';
-import {useNavigate} from 'react-router-dom';
-import {useNotifier} from '../../context/NotificationContext';
+import { useNavigate } from 'react-router-dom';
+import { useNotifier } from '../../context/NotificationContext';
 
 import {
     createTemplate,
     updateTemplate,
     getTemplate,
+    previewTemplate, getSectionTemplates,
 } from '../../services/EmailTemplateService';
-
-import {DEFAULT_SECTIONS, SECTION_TYPES} from '../../mock/editor/default-sections';
+import { getCompanyVariables } from '../../services/CompanyVariableService';
 import EmailEditorSidebarItem from './EmailEditorSidebarItem';
 import EmailEditorPreviewSection from './EmailEditorPreviewSection';
-import SectionEditForm from "../emailEditor/SectionEditForm.tsx";
+import SectionEditForm from '../emailEditor/SectionEditForm';
+
+import { CompanyVariable } from '../../interfaces/CompanyVariable';
+import {EmailSectionTemplate} from "../../interfaces/EmailSectionTemplate.tsx";
 
 interface Props {
     templateUuid?: string;
 }
 
-const EmailEditor: React.FC<Props> = ({templateUuid}) => {
+const EmailEditor: React.FC<Props> = ({ templateUuid }) => {
     /* ---------------- state ---------------- */
     const [emailSections, setEmailSections] = useState<any[]>([]);
     const [editingSection, setEditingSection] = useState<any | null>(null);
@@ -43,37 +46,44 @@ const EmailEditor: React.FC<Props> = ({templateUuid}) => {
     const [preview, setPreview] = useState('');
     const [infoOpen, setInfoOpen] = useState(false);
 
+    /* catalogues */
+    const [variables, setVariables] = useState<CompanyVariable[]>([]);
+    const [sectionTemplates, setSectionTemplates] = useState<EmailSectionTemplate[]>([]);
+
     /* misc */
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
 
     const theme = useTheme();
     const navigate = useNavigate();
-    const {showNotification} = useNotifier();
+    const { showNotification } = useNotifier();
 
     /* ---------------- helpers ---------------- */
-    const addSection = (type: string) =>
+    const addSection = (tpl: EmailSectionTemplate) =>
         setEmailSections(prev => [
             ...prev,
-            {...DEFAULT_SECTIONS[type], id: Date.now() + Math.random()},
+            {
+                id: Date.now() + Math.random(),
+                type: tpl.type,
+                title: tpl.title,
+                content: JSON.parse(JSON.stringify(tpl.default_content)), // deep-copy
+            },
         ]);
 
     const removeSection = (id: number) =>
         setEmailSections(prev => prev.filter(s => s.id !== id));
 
     const openEditor = (section: any) => {
-        setEditingSection({...section});
+        setEditingSection({ ...section });
         setEditOpen(true);
     };
 
     const saveSection = () => {
-        setEmailSections(prev =>
-            prev.map(s => (s.id === editingSection!.id ? editingSection : s)),
-        );
+        setEmailSections(prev => prev.map(s => (s.id === editingSection!.id ? editingSection : s)));
         setEditOpen(false);
     };
 
-    /* ---------------- load existing ---------------- */
+    /* ---------------- load existing template ---------------- */
     const loadTemplate = useCallback(async () => {
         if (!templateUuid) return;
         setLoading(true);
@@ -90,11 +100,32 @@ const EmailEditor: React.FC<Props> = ({templateUuid}) => {
         }
     }, [showNotification, templateUuid]);
 
-    useEffect(() => {
-        loadTemplate().then(() => {});
-    }, [loadTemplate]);
+    useEffect(() => { loadTemplate(); }, [loadTemplate]);
 
-    /* ---------------- save ---------------- */
+    /* ---------------- load company variables ---------------- */
+    const loadVariables = useCallback(async () => {
+        try {
+            const data = await getCompanyVariables();
+            setVariables(data);
+        } catch {
+            showNotification('Could not load variables', 'error');
+        }
+    }, [showNotification]);
+
+    useEffect(() => { loadVariables(); }, [loadVariables]);
+
+    const loadSectionTemplates = useCallback(async () => {
+        try {
+            const data = await getSectionTemplates();
+            console.log(data);
+            setSectionTemplates(data);
+        } catch {
+            showNotification('Could not load section templates', 'error');
+        }
+    }, [showNotification]);
+
+    useEffect(() => { loadSectionTemplates(); }, [loadSectionTemplates]);
+
     const handleSave = async () => {
         if (!name.trim()) {
             setInfoOpen(true);
@@ -115,9 +146,8 @@ const EmailEditor: React.FC<Props> = ({templateUuid}) => {
                 showNotification('Template updated');
             } else {
                 tpl = await createTemplate(payload);
-                console.log(tpl);
                 showNotification('Template saved');
-                navigate(`/editor/${tpl.uuid}`, {replace: true});
+                navigate(`/email-templates/editor/${tpl.uuid}`, { replace: true });
             }
         } catch {
             showNotification('Save failed', 'error');
@@ -126,21 +156,33 @@ const EmailEditor: React.FC<Props> = ({templateUuid}) => {
         }
     };
 
-    // Add this memoized function before the return statement
-    const handleUpdateContent = React.useCallback(
-        (field: string, value: any) => {
-            setEditingSection((prev: any) => ({
-                ...prev,
-                content: { ...prev.content, [field]: value },
-            }));
-        },
-        []
-    );
+    const [previewHtml, setPreviewHtml] = useState<string | null>(null);
+    const handlePreview = async () => {
+        if (!templateUuid) {
+            showNotification('Save template first to preview', 'error');
+            return;
+        }
+        try {
+            const data = await previewTemplate(templateUuid);
+            setPreviewHtml(data.html);
+        } catch {
+            showNotification('Preview failed', 'error');
+        }
+    };
 
+    /* ---------------- inline content updater ---------------- */
+    const handleUpdateContent = useCallback((field: string, value: any) => {
+        setEditingSection((prev: any) => ({
+            ...prev,
+            content: { ...prev.content, [field]: value },
+        }));
+    }, []);
+
+    /* ---------------- render ---------------- */
     if (loading) {
         return (
-            <Box sx={{p: 4, textAlign: 'center'}}>
-                <CircularProgress/>
+            <Box sx={{ p: 4, textAlign: 'center' }}>
+                <CircularProgress />
             </Box>
         );
     }
@@ -174,20 +216,43 @@ const EmailEditor: React.FC<Props> = ({templateUuid}) => {
                         Click to add sections to your email
                     </Typography>
 
-                    {Object.entries(SECTION_TYPES).map(([, type]) => (
-                        <EmailEditorSidebarItem key={type} type={type} addSection={addSection}/>
+                    {sectionTemplates.map(tpl => (
+                        <EmailEditorSidebarItem key={tpl.uuid} template={tpl} addSection={addSection} />
                     ))}
 
                     {/* ------- save button ------- */}
                     <Button
                         fullWidth
                         variant="contained"
-                        sx={{mt: 3}}
+                        sx={{ mt: 3 }}
                         onClick={handleSave}
                         disabled={saving}
                     >
-                        {saving ? <CircularProgress size={22} sx={{color: '#fff'}}/> : 'Save'}
+                        {saving ? <CircularProgress size={22} sx={{ color: '#fff' }} /> : 'Save'}
                     </Button>
+
+                    <Button onClick={handlePreview} variant="outlined" sx={{ mt: 1 }}>
+                        Preview
+                    </Button>
+
+                    {/* preview dialog */}
+                    <Dialog
+                        open={Boolean(previewHtml)}
+                        onClose={() => setPreviewHtml(null)}
+                        maxWidth="md"
+                        fullWidth
+                    >
+                        <DialogTitle>Live Preview</DialogTitle>
+                        <DialogContent dividers sx={{ p: 0 }}>
+                            {previewHtml && (
+                                <iframe
+                                    title="preview"
+                                    srcDoc={previewHtml}
+                                    style={{ border: 0, width: '100%', height: '70vh' }}
+                                />
+                            )}
+                        </DialogContent>
+                    </Dialog>
                 </Paper>
 
                 {/* ---------- preview canvas ---------- */}
@@ -201,17 +266,13 @@ const EmailEditor: React.FC<Props> = ({templateUuid}) => {
                 />
 
                 {/* ---------- edit modal ---------- */}
-                <Dialog
-                    open={editOpen}
-                    onClose={() => setEditOpen(false)}
-                    maxWidth="md"
-                    fullWidth
-                >
+                <Dialog open={editOpen} onClose={() => setEditOpen(false)} maxWidth="md" fullWidth>
                     <DialogTitle>Edit {editingSection?.title}</DialogTitle>
-                    <DialogContent dividers sx={{pt: 2}}>
+                    <DialogContent dividers sx={{ pt: 2 }}>
                         <SectionEditForm
                             editingSection={editingSection}
                             updateContent={handleUpdateContent}
+                            variables={variables}
                         />
                     </DialogContent>
                     <DialogActions>
@@ -228,18 +289,14 @@ const EmailEditor: React.FC<Props> = ({templateUuid}) => {
             {/* ---------- first-time “template info” dialog ---------- */}
             <Dialog open={infoOpen} onClose={() => setInfoOpen(false)} maxWidth="sm" fullWidth>
                 <DialogTitle>Template Details</DialogTitle>
-                <DialogContent sx={{pt: 2, display: 'flex', flexDirection: 'column', gap: 2}}>
+                <DialogContent sx={{ pt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
                     <TextField
                         label="Name *"
                         value={name}
                         onChange={e => setName(e.target.value)}
                         required
                     />
-                    <TextField
-                        label="Subject"
-                        value={subject}
-                        onChange={e => setSubject(e.target.value)}
-                    />
+                    <TextField label="Subject" value={subject} onChange={e => setSubject(e.target.value)} />
                     <TextField
                         label="Preview text"
                         value={preview}

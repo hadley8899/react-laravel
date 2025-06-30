@@ -3,7 +3,8 @@ export interface CompanyVariable {
     company_id: number;
     friendly_name?: string | null;
     key: string;
-    value: string;
+    value: any;
+    url?: string | null;
     type?: string | null;
     meta?: Record<string, any> | null;
     can_be_deleted: boolean;
@@ -11,15 +12,12 @@ export interface CompanyVariable {
     updated_at: string;
 }
 
-/* ----------------------------------------------------------
-   Convenience payload types for create / update operations
----------------------------------------------------------- */
 export type CreateCompanyVariablePayload = Pick<
     CompanyVariable,
     'key' | 'value'
 > & {
     friendly_name?: string | null;
-    type?: string | null;
+    type?: any;
     meta?: Record<string, any> | null;
 };
 

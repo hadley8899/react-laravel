@@ -31,6 +31,8 @@ class DatabaseSeeder extends Seeder
         // Create permissions and roles first
         $this->call(PermissionSeeder::class);
 
+        $this->call(EmailSectionTemplateSeeder::class);
+
         // Create a bunch of companies
         $this->command->info('Seeding the companies');
         Company::factory()->count(10)->create();

@@ -40,8 +40,15 @@ return [
 
         'media' => [
             'driver' => 'local',
-            'root' => storage_path('app/public/media'),   // <- moved under "public"
-            'url'  => env('APP_URL').'/storage/media',
+            'root' => storage_path('app/public/media'),
+            'url' => env('APP_URL') . '/storage/media',
+            'visibility' => 'public',
+        ],
+
+        'variables' => [
+            'driver' => 'local',
+            'root' => storage_path('app/public/variables'),
+            'url' => env('APP_URL') . '/storage/variables',
             'visibility' => 'public',
         ],
 

@@ -8,6 +8,7 @@ use App\Http\Controllers\CompanyVariableController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CustomerTagController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\EmailSectionTemplateController;
 use App\Http\Controllers\EmailTemplateController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\MediaLibraryController;
@@ -162,8 +163,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('/company-variables')->group(function () {
         Route::get('/', [CompanyVariableController::class, 'index']);
         Route::post('/', [CompanyVariableController::class, 'store']);
-        Route::get('/{variable:uuid}', [CompanyVariableController::class, 'show']);
-        Route::put('/{variable:uuid}', [CompanyVariableController::class, 'update']);
-        Route::delete('/{variable:uuid}', [CompanyVariableController::class, 'destroy']);
+        Route::get('/{companyVariable:uuid}', [CompanyVariableController::class, 'show']);
+        Route::post('/{companyVariable:uuid}', [CompanyVariableController::class, 'update']);
+        Route::delete('/{companyVariable:uuid}', [CompanyVariableController::class, 'destroy']);
     });
+
+    Route::get('/section-templates', [EmailSectionTemplateController::class, 'index']);
 });

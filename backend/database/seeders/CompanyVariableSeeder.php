@@ -22,6 +22,7 @@ class CompanyVariableSeeder extends Seeder
         $defaults = [
             ['key' => 'PRIMARY_COLOR', 'value' => '#0A84FF', 'type' => 'color', 'friendly_name' => 'Primary Color'],
             ['key' => 'SECONDARY_COLOR', 'value' => '#FF7538', 'type' => 'color', 'friendly_name' => 'Secondary Color'],
+            ['key' => 'TEXT_COLOR', 'value' => '#000000', 'type' => 'color', 'friendly_name' => 'Text Color'],
             ['key' => 'EMAIL_LOGO', 'value' => null, 'type' => 'image', 'friendly_name' => 'Email Logo'],
             ['key' => 'FACEBOOK_URL', 'value' => null, 'type' => 'url', 'friendly_name' => 'Facebook URL'],
             ['key' => 'INSTAGRAM_URL', 'value' => null, 'type' => 'url', 'friendly_name' => 'Instagram URL'],

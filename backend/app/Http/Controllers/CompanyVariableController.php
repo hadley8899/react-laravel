@@ -9,7 +9,7 @@ use App\Models\CompanyVariable;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Storage;
 
 class CompanyVariableController extends Controller
 {
@@ -26,15 +26,15 @@ class CompanyVariableController extends Controller
 
     public function store(StoreCompanyVariableRequest $request): CompanyVariableResource
     {
-        $company = $request->user()->company;
-
-        $validated = $request->validated();
+        $company    = $request->user()->company;
+        $validated  = $request->validated();
         $validated['company_id'] = $company->id;
 
-        $request->validate([
-            'key' => Rule::unique('company_variables', 'key')
-                ->where('company_id', $company->id),
-        ]);
+        if (($validated['type'] ?? null) === 'image' && $request->hasFile('value')) {
+            $path = $request->file('value')
+                ->store("company-$company->uuid", 'variables');
+            $validated['value'] = $path;
+        }
 
         $variable = CompanyVariable::query()->create($validated);
 
@@ -48,13 +48,30 @@ class CompanyVariableController extends Controller
         return new CompanyVariableResource($variable);
     }
 
-    public function update(UpdateCompanyVariableRequest $request, CompanyVariable $variable): CompanyVariableResource
-    {
-        $this->authorizeAccount($variable);
+    public function update(
+        UpdateCompanyVariableRequest $request,
+        CompanyVariable $companyVariable
+    ): CompanyVariableResource {
+        $this->authorizeAccount($companyVariable);
 
-        $variable->update($request->validated());
+        $data = $request->validated();
 
-        return new CompanyVariableResource($variable);
+        /* swap out file if a new image is uploaded  */
+        if (($companyVariable->type === 'image' || ($data['type'] ?? '') === 'image')
+            && $request->hasFile('value')) {
+
+            // delete old file if it exists
+            if ($companyVariable->value && Storage::disk('variables')->exists($companyVariable->value)) {
+                Storage::disk('variables')->delete($companyVariable->value);
+            }
+
+            $data['value'] = $request->file('value')
+                ->store("company-{$companyVariable->company->uuid}", 'variables');
+        }
+
+        $companyVariable->update($data);
+
+        return new CompanyVariableResource($companyVariable);
     }
 
     public function destroy(CompanyVariable $variable)
@@ -73,5 +90,4 @@ class CompanyVariableController extends Controller
             abort(403, 'This variable does not belong to your account.');
         }
     }
-
 }

@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Http\Resources\EmailTemplateResource;
 use App\Models\EmailTemplate;
 use App\Models\EmailTemplateRevision;
+use App\Services\EmailTemplate\LayoutRenderer;
+use App\Services\EmailTemplate\MjmlCompiler;
+use App\Services\EmailTemplate\VariableInterpolator;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -30,8 +33,8 @@ class EmailTemplateController extends Controller
             ->with('creator:id,name,email')
             ->latest()
             ->paginate(
-                perPage:  $request->integer('per_page', 15),
-                page:     $request->integer('page', 1)
+                perPage: $request->integer('per_page', 15),
+                page: $request->integer('page', 1)
             );
 
         return EmailTemplateResource::collection($templates);
@@ -40,21 +43,31 @@ class EmailTemplateController extends Controller
     public function store(Request $request): EmailTemplateResource
     {
         $data = $request->validate([
-            'name'         => 'required|string|max:255',
-            'subject'      => 'nullable|string|max:255',
+            'name' => 'required|string|max:255',
+            'subject' => 'nullable|string|max:255',
             'preview_text' => 'nullable|string|max:255',
-            'layout_json'  => 'required|array',
+            'layout_json' => 'required|array',
         ]);
 
-        $template = EmailTemplate::create($data + [
+        ['html' => $html, 'text' => $text] =
+            app(MjmlCompiler::class)->compile(
+                app(LayoutRenderer::class)
+                    ->toMjml($data['layout_json'] ?? [])
+            );
+
+        $template = EmailTemplate::query()->create($data + [
                 'company_id' => $request->user()->company_id,
                 'created_by' => $request->user()->id,
+                'html_cached' => $html,
+                'text_cached' => $text,
             ]);
 
         // Initial revision
         $template->revisions()->create([
             'layout_json' => $template->layout_json,
-            'created_by'  => $request->user()->id,
+            'html_cached' => $template->html_cached,
+            'text_cached' => $template->text_cached,
+            'created_by' => $request->user()->id,
         ]);
 
         return new EmailTemplateResource($template);
@@ -72,12 +85,12 @@ class EmailTemplateController extends Controller
         $this->authorize('update', $template);
 
         $data = $request->validate([
-            'name'         => 'sometimes|required|string|max:255',
-            'subject'      => 'sometimes|nullable|string|max:255',
+            'name' => 'sometimes|required|string|max:255',
+            'subject' => 'sometimes|nullable|string|max:255',
             'preview_text' => 'sometimes|nullable|string|max:255',
-            'layout_json'  => 'sometimes|required|array',
-            'html_cached'  => 'sometimes|nullable|string',
-            'text_cached'  => 'sometimes|nullable|string',
+            'layout_json' => 'sometimes|required|array',
+            'html_cached' => 'sometimes|nullable|string',
+            'text_cached' => 'sometimes|nullable|string',
         ]);
 
         DB::transaction(function () use ($template, $data, $request) {
@@ -86,8 +99,17 @@ class EmailTemplateController extends Controller
                 'layout_json' => $template->layout_json,
                 'html_cached' => $template->html_cached,
                 'text_cached' => $template->text_cached,
-                'created_by'  => $request->user()->id,
+                'created_by' => $request->user()->id,
             ]);
+
+            ['html' => $html, 'text' => $text] =
+                app(MjmlCompiler::class)->compile(
+                    app(LayoutRenderer::class)
+                        ->toMjml($template->layout_json)
+                );
+
+            $template->html_cached = $html;
+            $template->text_cached = $text;
 
             $template->update($data);
 
@@ -123,7 +145,7 @@ class EmailTemplateController extends Controller
             'html_cached',
             'text_cached',
         ]);
-        $clone->name       = $template->name . ' (copy)';
+        $clone->name = $template->name . ' (copy)';
         $clone->company_id = Auth::user()->company->company_id;
         $clone->created_by = Auth::id();
         $clone->push();
@@ -133,20 +155,30 @@ class EmailTemplateController extends Controller
             'layout_json' => $clone->layout_json,
             'html_cached' => $clone->html_cached,
             'text_cached' => $clone->text_cached,
-            'created_by'  => Auth::id(),
+            'created_by' => Auth::id(),
         ]);
 
         return new EmailTemplateResource($clone);
     }
 
-    public function preview(EmailTemplate $template): JsonResponse
-    {
-        // In the future we will need to merge in the company's variables, But no now...
+    public function preview(
+        EmailTemplate $template,
+        LayoutRenderer $renderer,
+        MjmlCompiler $mjml,
+        VariableInterpolator $vars
+    ): JsonResponse {
         $this->authorize('view', $template);
 
-        return response()->json([
-            'html'  => $template->html_cached,
-            'text'  => $template->text_cached,
-        ]);
+        // ① JSON → MJML
+        $mjmlMarkup = $renderer->toMjml($template->layout_json);
+
+        // ② Replace company tokens before compilation
+        $company    = $template->company;
+        $mjmlMarkup = $vars->interpolate($mjmlMarkup, $company);
+
+        // ③ MJML → HTML/text
+        ['html' => $html, 'text' => $text] = $mjml->compile($mjmlMarkup);
+
+        return response()->json(compact('html', 'text'));
     }
 }

@@ -60,7 +60,7 @@ const Settings: React.FC = () => {
                 <NotificationPreferences/>
                 <SettingsThemeSwitcher/>
                 {/*<Integrations/>*/}
-            </Container>ß
+            </Container>
         </MainLayout>
     );
 };

@@ -22,10 +22,22 @@ class UpdateCompanyVariableRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            'value' => ['sometimes', 'string'],
-            'type'  => ['sometimes', 'string', 'max:32'],
-            'meta'  => ['sometimes', 'array'],
+        $currentType = $this->route('companyVariable')->type;
+        $incomingType = $this->input('type', $currentType);
+
+        $rules = [
+            'type' => ['sometimes', 'string', 'max:32'],
+            // 'meta' => ['sometimes', 'array'], // Not currently being used
         ];
+
+        if ($incomingType === 'image') {
+            $rules['value'] = ['sometimes', 'file', 'image', 'max:5120'];
+        } elseif ($incomingType === 'color') {
+            $rules['value'] = ['sometimes', 'regex:/^#([A-Fa-f0-9]{3}|[A-Fa-f0-9]{6})$/'];
+        } else {
+            $rules['value'] = ['sometimes', 'string'];
+        }
+
+        return $rules;
     }
 }

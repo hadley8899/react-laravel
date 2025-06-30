@@ -2,6 +2,7 @@ import {api} from './api';
 import {EmailTemplate} from '../interfaces/EmailTemplate';
 import {EmailTemplateRevision} from '../interfaces/EmailTemplateRevision';
 import {PaginatedResponse} from '../interfaces/PaginatedResponse';
+import {EmailSectionTemplate} from "../interfaces/EmailSectionTemplate.tsx";
 
 export type CreateTemplatePayload = Pick<
     EmailTemplate,
@@ -66,4 +67,9 @@ export async function restoreTemplateRevision(
         `/templates/${uuid}/revisions/${revisionUuid}/restore`,
     );
     return data;
+}
+
+export async function getSectionTemplates(): Promise<EmailSectionTemplate[]> {
+    const { data } = await api.get<{data: EmailSectionTemplate[]}>('/section-templates');
+    return data.data;
 }
