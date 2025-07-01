@@ -13,6 +13,8 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Http\Requests\StoreEmailTemplateRequest;
+use App\Http\Requests\UpdateEmailTemplateRequest;
 
 class EmailTemplateController extends Controller
 {
@@ -40,14 +42,11 @@ class EmailTemplateController extends Controller
         return EmailTemplateResource::collection($templates);
     }
 
-    public function store(Request $request): EmailTemplateResource
+    public function store(StoreEmailTemplateRequest $request): EmailTemplateResource
     {
-        $data = $request->validate([
-            'name' => 'required|string|max:255',
-            'subject' => 'nullable|string|max:255',
-            'preview_text' => 'nullable|string|max:255',
-            'layout_json' => 'required|array',
-        ]);
+        $this->authorize('store', EmailTemplate::class);
+
+        $data = $request->validated();
 
         ['html' => $html, 'text' => $text] =
             app(MjmlCompiler::class)->compile(
@@ -80,18 +79,11 @@ class EmailTemplateController extends Controller
         return new EmailTemplateResource($template);
     }
 
-    public function update(Request $request, EmailTemplate $template): EmailTemplateResource
+    public function update(UpdateEmailTemplateRequest $request, EmailTemplate $template): EmailTemplateResource
     {
         $this->authorize('update', $template);
 
-        $data = $request->validate([
-            'name' => 'sometimes|required|string|max:255',
-            'subject' => 'sometimes|nullable|string|max:255',
-            'preview_text' => 'sometimes|nullable|string|max:255',
-            'layout_json' => 'sometimes|required|array',
-            'html_cached' => 'sometimes|nullable|string',
-            'text_cached' => 'sometimes|nullable|string',
-        ]);
+        $data = $request->validated();
 
         DB::transaction(function () use ($template, $data, $request) {
             EmailTemplateRevision::query()->create([
@@ -162,18 +154,17 @@ class EmailTemplateController extends Controller
     }
 
     public function preview(
-        EmailTemplate $template,
-        LayoutRenderer $renderer,
-        MjmlCompiler $mjml,
+        EmailTemplate        $template,
+        LayoutRenderer       $renderer,
+        MjmlCompiler         $mjml,
         VariableInterpolator $vars
-    ): JsonResponse {
+    ): JsonResponse
+    {
         $this->authorize('view', $template);
 
-        // ① JSON → MJML
         $mjmlMarkup = $renderer->toMjml($template->layout_json);
 
-        // ② Replace company tokens before compilation
-        $company    = $template->company;
+        $company = $template->company;
         $mjmlMarkup = $vars->interpolate($mjmlMarkup, $company);
 
         // ③ MJML → HTML/text

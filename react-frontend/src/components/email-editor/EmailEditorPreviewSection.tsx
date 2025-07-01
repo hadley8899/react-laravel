@@ -18,6 +18,7 @@ interface Props {
     removeSection: (id: number) => void;
     setDraggedIndex: React.Dispatch<React.SetStateAction<number | null>>;
     draggedIndex: number | null;
+    onSidebarSectionDrop?: (tpl: any, dropIndex?: number) => void;
 }
 
 const EmailEditorPreviewSection: React.FC<Props> = ({
@@ -27,22 +28,41 @@ const EmailEditorPreviewSection: React.FC<Props> = ({
     removeSection,
     setDraggedIndex,
     draggedIndex,
+    onSidebarSectionDrop,
 }) => {
     const theme = useTheme();
     const textSecondary = theme.palette.text.secondary;
 
-    /* which section is the current drop target? */
+    // Track which drop zone is active (between sections)
     const [overIndex, setOverIndex] = useState<number | null>(null);
 
-    /* reorder helper */
-    const handleDrop = (dropIndex: number) => {
-        if (draggedIndex === null) return;
-        const copy = [...emailSections];
-        const [moving] = copy.splice(draggedIndex, 1);
-        copy.splice(dropIndex, 0, moving);
-        setEmailSections(copy);
-        setDraggedIndex(null);
+    // Helper to handle drop from sidebar or internal drag
+    const handleDrop = (dropIndex: number, e: React.DragEvent) => {
+        e.preventDefault();
         setOverIndex(null);
+
+        // Sidebar drag
+        const tplStr = e.dataTransfer.getData('application/x-section-template');
+        if (tplStr && onSidebarSectionDrop) {
+            try {
+                const tpl = JSON.parse(tplStr);
+                onSidebarSectionDrop(tpl, dropIndex);
+                return;
+            } catch (error) {
+                console.error('Invalid section template data:', error);
+            }
+        }
+
+        // Internal drag
+        if (draggedIndex !== null && draggedIndex !== dropIndex) {
+            const copy = [...emailSections];
+            const [moving] = copy.splice(draggedIndex, 1);
+            // Adjust dropIndex if moving downwards
+            const insertAt = draggedIndex < dropIndex ? dropIndex - 1 : dropIndex;
+            copy.splice(insertAt, 0, moving);
+            setEmailSections(copy);
+            setDraggedIndex(null);
+        }
     };
 
     // Helper to render section preview, supporting async if needed
@@ -65,6 +85,61 @@ const EmailEditorPreviewSection: React.FC<Props> = ({
         loadPreviews();
         return () => { isMounted = false; };
     }, [emailSections]);
+
+    // Render drop zone between sections
+    const renderDropZone = (idx: number) => {
+        // Don't show drop zone if dragging this section to its own position
+        if (draggedIndex === idx || draggedIndex === idx - 1) {
+            return <Box key={`dropzone-${idx}`} sx={{ height: 12, my: 0.5 }} />;
+        }
+        return (
+            <Box
+                key={`dropzone-${idx}`}
+                onDragOver={e => {
+                    // Accept both sidebar and internal drags
+                    if (
+                        e.dataTransfer.types.includes('application/x-section-template') ||
+                        draggedIndex !== null
+                    ) {
+                        e.preventDefault();
+                        if (overIndex !== idx) setOverIndex(idx);
+                    }
+                }}
+                onDrop={e => handleDrop(idx, e)}
+                sx={{
+                    height: 36, // Increased height for easier aiming
+                    my: 1,
+                    borderRadius: 1,
+                    transition: 'background .15s, border .15s',
+                    background:
+                        overIndex === idx
+                            ? theme.palette.primary.main + '22'
+                            : 'transparent',
+                    border: overIndex === idx ? `2px solid ${theme.palette.primary.main}` : '2px solid transparent',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 10,
+                    position: 'relative',
+                    cursor: 'pointer',
+                    minHeight: 36,
+                }}
+            >
+                {overIndex === idx && (
+                    <Box
+                        sx={{
+                            width: '90%',
+                            height: 14, // Increased blue bar height
+                            bgcolor: 'primary.main',
+                            borderRadius: 1,
+                            boxShadow: 1,
+                            pointerEvents: 'none',
+                        }}
+                    />
+                )}
+            </Box>
+        );
+    };
 
     return (
         <Paper
@@ -118,121 +193,92 @@ const EmailEditorPreviewSection: React.FC<Props> = ({
                         <Typography variant="body2">
                             Add sections from the left panel to create your email
                         </Typography>
+                        {/* Allow drop at index 0 when empty */}
+                        {renderDropZone(0)}
                     </Box>
                 ) : (
-                    emailSections.map((section, idx) => (
-                        <React.Fragment key={section.id}>
-                            {/* blue bar ABOVE the card = drop target */}
-                            {overIndex === idx && draggedIndex !== idx && (
-                                <Box
-                                    sx={{
-                                        height: 6,
-                                        bgcolor: 'primary.main',
-                                        borderRadius: 1,
-                                        mb: 1,
-                                        transition: 'all .15s',
+                    <>
+                        {emailSections.map((section, idx) => (
+                            <React.Fragment key={section.id}>
+                                {/* Drop zone above each section */}
+                                {renderDropZone(idx)}
+                                <Paper
+                                    data-section-id={section.id}
+                                    variant="outlined"
+                                    draggable
+                                    onDragStart={e => {
+                                        setDraggedIndex(idx);
+                                        // For internal drag, clear any sidebar drag data
+                                        e.dataTransfer.setData('text/plain', '');
                                     }}
-                                />
-                            )}
-
-                            <Paper
-                                data-section-id={section.id}
-                                variant="outlined"
-                                draggable
-                                onDragStart={() => setDraggedIndex(idx)}
-                                onDragEnter={() =>
-                                    draggedIndex !== null && idx !== draggedIndex && setOverIndex(idx)
-                                }
-                                onDragOver={e => e.preventDefault()}
-                                onDragLeave={e => {
-                                    /* if we leave the current card completely, clear bar */
-                                    if (
-                                        (e.relatedTarget as HTMLElement | null)?.closest(
-                                            '[data-section-id]',
-                                        ) !== e.currentTarget
-                                    ) {
-                                        setOverIndex(null);
-                                    }
-                                }}
-                                onDrop={() => handleDrop(idx)}
-                                onClick={() => openEditor(section)}
-                                sx={{
-                                    mb: 1,
-                                    position: 'relative',
-                                    borderRadius: 2,
-                                    /* visual feedback while dragging */
-                                    opacity: draggedIndex === idx ? 0.4 : 1,
-                                    transform: draggedIndex === idx ? 'scale(.96)' : 'none',
-                                    /* highlight hovered target */
-                                    borderColor:
-                                        overIndex === idx && draggedIndex !== idx
-                                            ? 'primary.main'
-                                            : 'divider',
-                                    transition: 'all .15s',
-                                    '&:hover': {
-                                        borderColor: 'primary.main',
-                                        boxShadow: 2,
-                                    },
-                                }}
-                            >
-                                {/* floating controls (visible on hover) */}
-                                <Box
+                                    onDragEnd={() => setDraggedIndex(null)}
+                                    onClick={() => openEditor(section)}
                                     sx={{
-                                        position: 'absolute',
-                                        top: 8,
-                                        right: 8,
-                                        display: 'flex',
-                                        gap: 0.5,
-                                        opacity: 0,
-                                        transition: 'opacity .15s',
-                                        pointerEvents: 'none',
-                                        '.MuiPaper-root:hover &': {
-                                            opacity: 1,
-                                            pointerEvents: 'auto',
+                                        mb: 1,
+                                        position: 'relative',
+                                        borderRadius: 2,
+                                        opacity: draggedIndex === idx ? 0.4 : 1,
+                                        transform: draggedIndex === idx ? 'scale(.96)' : 'none',
+                                        borderColor:
+                                            overIndex === idx && draggedIndex !== idx
+                                                ? 'primary.main'
+                                                : 'divider',
+                                        transition: 'all .15s',
+                                        '&:hover': {
+                                            borderColor: 'primary.main',
+                                            boxShadow: 2,
                                         },
                                     }}
                                 >
-                                    <IconButton
-                                        size="small"
-                                        color="primary"
-                                        onClick={e => {
-                                            e.stopPropagation();
-                                            openEditor(section);
+                                    {/* floating controls (visible on hover) */}
+                                    <Box
+                                        sx={{
+                                            position: 'absolute',
+                                            top: 8,
+                                            right: 8,
+                                            display: 'flex',
+                                            gap: 0.5,
+                                            opacity: 0,
+                                            transition: 'opacity .15s',
+                                            pointerEvents: 'none',
+                                            '.MuiPaper-root:hover &': {
+                                                opacity: 1,
+                                                pointerEvents: 'auto',
+                                            },
                                         }}
                                     >
-                                        <EditIcon fontSize="inherit" />
-                                    </IconButton>
-                                    <IconButton
-                                        size="small"
-                                        color="error"
-                                        onClick={e => {
-                                            e.stopPropagation();
-                                            removeSection(section.id);
-                                        }}
-                                    >
-                                        <DeleteIcon fontSize="inherit" />
-                                    </IconButton>
-                                    <IconButton size="small" sx={{ cursor: 'grab' }}>
-                                        <DragIndicatorIcon fontSize="inherit" />
-                                    </IconButton>
-                                </Box>
+                                        <IconButton
+                                            size="small"
+                                            color="primary"
+                                            onClick={e => {
+                                                e.stopPropagation();
+                                                openEditor(section);
+                                            }}
+                                        >
+                                            <EditIcon fontSize="inherit" />
+                                        </IconButton>
+                                        <IconButton
+                                            size="small"
+                                            color="error"
+                                            onClick={e => {
+                                                e.stopPropagation();
+                                                removeSection(section.id);
+                                            }}
+                                        >
+                                            <DeleteIcon fontSize="inherit" />
+                                        </IconButton>
+                                        <IconButton size="small" sx={{ cursor: 'grab' }}>
+                                            <DragIndicatorIcon fontSize="inherit" />
+                                        </IconButton>
+                                    </Box>
 
-                                {previews[section.id] ?? null}
-                            </Paper>
-                        </React.Fragment>
-                    ))
-                )}
-
-                {/* drop at END of list */}
-                {overIndex === emailSections.length && (
-                    <Box
-                        sx={{
-                            height: 6,
-                            bgcolor: 'primary.main',
-                            borderRadius: 1,
-                            mt: 1,
-                        }}
-                    />
+                                    {previews[section.id] ?? null}
+                                </Paper>
+                            </React.Fragment>
+                        ))}
+                        {/* Drop zone at end */}
+                        {renderDropZone(emailSections.length)}
+                    </>
                 )}
             </Box>
         </Paper>

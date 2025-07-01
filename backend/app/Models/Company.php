@@ -153,4 +153,65 @@ class Company extends Model
     {
         return $this->hasMany(CompanyVariable::class);
     }
+
+    /**
+     * Returns the list of special company variable definitions.
+     * Each entry is an array with 'key', 'friendly_name', 'type', and optionally 'value'.
+     */
+    public static function specialVariableDefinitions(): array
+    {
+        return [
+            [
+                'key' => 'COMPANY_NAME',
+                'friendly_name' => 'Company Name',
+                'type' => 'text',
+            ],
+            [
+                'key' => 'COMPANY_ADDRESS',
+                'friendly_name' => 'Company Address',
+                'type' => 'text',
+            ],
+            [
+                'key' => 'COMPANY_PHONE',
+                'friendly_name' => 'Company Phone',
+                'type' => 'text',
+            ],
+            [
+                'key' => 'COMPANY_EMAIL',
+                'friendly_name' => 'Company Email',
+                'type' => 'text',
+            ],
+            [
+                'key' => 'COMPANY_WEBSITE',
+                'friendly_name' => 'Company Website',
+                'type' => 'text',
+            ],
+            [
+                'key' => 'COMPANY_COUNTRY',
+                'friendly_name' => 'Company Country',
+                'type' => 'text',
+            ],
+            [
+                'key' => 'COMPANY_REGISTRATION_NUMBER',
+                'friendly_name' => 'Company Registration Number',
+                'type' => 'text',
+            ],
+        ];
+    }
+
+    /**
+     * Returns the special variable values for this company as an array keyed by variable key.
+     */
+    public function specialVariableValues(): array
+    {
+        return [
+            'COMPANY_NAME' => $this->name,
+            'COMPANY_ADDRESS' => $this->address,
+            'COMPANY_PHONE' => $this->phone,
+            'COMPANY_EMAIL' => $this->email,
+            'COMPANY_WEBSITE' => $this->website,
+            'COMPANY_COUNTRY' => $this->country,
+            'COMPANY_REGISTRATION_NUMBER' => $this->registration_number,
+        ];
+    }
 }

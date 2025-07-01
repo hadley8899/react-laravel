@@ -2,6 +2,7 @@
 
 namespace App\Services\EmailTemplate;
 
+use RuntimeException;
 use Symfony\Component\Process\Process;
 
 class MjmlCompiler
@@ -13,7 +14,7 @@ class MjmlCompiler
         $process->run();
 
         if (!$process->isSuccessful()) {
-            throw new \RuntimeException('MJML compile failed: ' . $process->getErrorOutput());
+            throw new RuntimeException('MJML compile failed: ' . $process->getErrorOutput());
         }
 
         $html = $process->getOutput();

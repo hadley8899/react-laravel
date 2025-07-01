@@ -26,8 +26,8 @@ class CompanyVariableResource extends JsonResource
             'type' => $this->type,
             'meta' => $this->meta,
             'can_be_deleted' => $this->can_be_deleted,
-            'created_at' => $this->created_at->toDateTimeString(),
-            'updated_at' => $this->updated_at->toDateTimeString(),
+            'created_at' => $this->created_at ? $this->created_at->toDateTimeString() : null,
+            'updated_at' => $this->updated_at ? $this->updated_at->toDateTimeString() : null,
         ];
     }
 }

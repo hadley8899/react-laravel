@@ -6,12 +6,21 @@ import {EmailSectionTemplate} from "../../interfaces/EmailSectionTemplate.tsx";
 interface Props {
     template: EmailSectionTemplate;
     addSection: (tpl: EmailSectionTemplate) => void;
+    draggable?: boolean;
 }
 
-const EmailEditorSidebarItem: React.FC<Props> = ({ template, addSection }) => (
+const EmailEditorSidebarItem: React.FC<Props> = ({ template, addSection, draggable }) => (
     <Paper
         variant="outlined"
         onClick={() => addSection(template)}
+        draggable={draggable}
+        onDragStart={draggable
+            ? (e) => {
+                e.dataTransfer.effectAllowed = 'copy';
+                e.dataTransfer.setData('application/x-section-template', JSON.stringify(template));
+            }
+            : undefined
+        }
         sx={{
             display: 'flex',
             alignItems: 'center',
