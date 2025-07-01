@@ -9,14 +9,13 @@ import {
     Typography,
     Box,
     InputAdornment,
+    IconButton,
 } from '@mui/material';
 import { MuiColorInput } from 'mui-color-input';
 import InsertVariableMenu from '../email-editor/InsertVariableMenu';
 import { CompanyVariable } from '../../interfaces/CompanyVariable';
-
-/* ------------------------------------------------------------------ */
-/* helpers                                                            */
-/* ------------------------------------------------------------------ */
+import ImageIcon from '@mui/icons-material/Image';
+import AttachFileIcon from '@mui/icons-material/AttachFile';
 
 const ColorField = ({
                         label,
@@ -50,26 +49,24 @@ const buildSlotProps = (
     },
 });
 
-/* ------------------------------------------------------------------ */
-/* main component                                                     */
-/* ------------------------------------------------------------------ */
-
 interface Props {
     editingSection: any;
     updateContent: (field: string, value: any) => void;
     variables: CompanyVariable[];
+    openMediaLibrary: (field: string, type: 'image' | 'all') => void;
 }
 
-const SectionEditForm: React.FC<Props> = ({ editingSection, updateContent, variables }) => {
+const SectionEditForm: React.FC<Props> = ({
+    editingSection,
+    updateContent,
+    variables,
+    openMediaLibrary
+}) => {
     if (!editingSection) return null;
 
     const { type, content } = editingSection;
     const baseProps = { size: 'small' as const, fullWidth: true, sx: { mb: 2 } };
 
-    /* ======================================================================
-     * EXISTING BLOCKS (header / text / image / button / list / footer)
-     *  — unchanged except we key off string literals rather than SECTION_TYPES
-     * ==================================================================== */
     if (type === 'header')
         return (
             <Stack>
@@ -139,7 +136,21 @@ const SectionEditForm: React.FC<Props> = ({ editingSection, updateContent, varia
                     {...baseProps}
                     value={content.src}
                     onChange={e => updateContent('src', e.target.value)}
-                    slotProps={buildSlotProps('src', content.src, variables, updateContent)}
+                    slotProps={{
+                        input: {
+                            endAdornment: (
+                                <InputAdornment position="end">
+                                    <IconButton onClick={() => openMediaLibrary('src', 'image')}>
+                                        <ImageIcon />
+                                    </IconButton>
+                                    <InsertVariableMenu
+                                        variables={variables}
+                                        onInsert={token => updateContent('src', content.src + token)}
+                                    />
+                                </InputAdornment>
+                            ),
+                        }
+                    }}
                 />
                 <TextField
                     label="Alt text"
@@ -179,6 +190,17 @@ const SectionEditForm: React.FC<Props> = ({ editingSection, updateContent, varia
                     {...baseProps}
                     value={content.url}
                     onChange={e => updateContent('url', e.target.value)}
+                    slotProps={{
+                        input: {
+                            endAdornment: (
+                                <InputAdornment position="end">
+                                    <IconButton onClick={() => openMediaLibrary('url', 'all')}>
+                                        <AttachFileIcon />
+                                    </IconButton>
+                                </InputAdornment>
+                            ),
+                        }
+                    }}
                 />
                 <ColorField
                     label="Background"
@@ -268,11 +290,6 @@ const SectionEditForm: React.FC<Props> = ({ editingSection, updateContent, varia
             </Stack>
         );
 
-    /* ======================================================================
-     * NEW BLOCKS
-     * ==================================================================== */
-
-    /* -------- Divider -------- */
     if (type === 'divider')
         return (
             <Stack>
@@ -286,7 +303,6 @@ const SectionEditForm: React.FC<Props> = ({ editingSection, updateContent, varia
             </Stack>
         );
 
-    /* -------- Spacer -------- */
     if (type === 'spacer')
         return (
             <Stack>
@@ -324,7 +340,6 @@ const SectionEditForm: React.FC<Props> = ({ editingSection, updateContent, varia
             </Stack>
         );
 
-    /* -------- Two-column -------- */
     if (type === 'two_column')
         return (
             <Stack>
@@ -386,7 +401,6 @@ const SectionEditForm: React.FC<Props> = ({ editingSection, updateContent, varia
             </Stack>
         );
 
-    /* -------- Social links -------- */
     if (type === 'social')
         return (
             <Stack>
@@ -411,7 +425,6 @@ const SectionEditForm: React.FC<Props> = ({ editingSection, updateContent, varia
             </Stack>
         );
 
-    /* -------------------------------------------------------------------- */
     return <Typography color="text.secondary">No edit form available</Typography>;
 };
 

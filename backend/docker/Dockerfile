@@ -1,7 +1,7 @@
 FROM php:8.4-fpm
 
 RUN apt-get update \
- && apt-get install -y \
+ && apt-get install -y --no-install-recommends \
       curl gnupg \
       libmemcached-dev \
       libzip-dev \
@@ -9,7 +9,15 @@ RUN apt-get update \
       libssl-dev zlib1g-dev libzstd-dev \
       pkg-config gosu \
       libpng-dev libjpeg-dev libfreetype6-dev libonig-dev \
- && docker-php-ext-install pdo_mysql zip gd \
+      libwebp-dev libcurl4-openssl-dev libevent-dev \
+ && docker-php-ext-configure gd \
+      --with-freetype \
+      --with-jpeg \
+      --with-webp \
+ && docker-php-ext-install \
+      pdo_mysql \
+      zip \
+      gd \
  && pecl install memcached xdebug \
  && docker-php-ext-enable memcached xdebug
 

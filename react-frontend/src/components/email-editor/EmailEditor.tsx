@@ -28,6 +28,8 @@ import SectionEditForm from '../emailEditor/SectionEditForm';
 
 import {CompanyVariable} from '../../interfaces/CompanyVariable';
 import {EmailSectionTemplate} from "../../interfaces/EmailSectionTemplate.tsx";
+import {MediaAsset} from '../../interfaces/MediaAsset';
+import MediaLibrarySelector from "./MediaLibrarySelector.tsx";
 
 interface Props {
     templateUuid?: string;
@@ -49,6 +51,17 @@ const EmailEditor: React.FC<Props> = ({templateUuid}) => {
     /* catalogues */
     const [variables, setVariables] = useState<CompanyVariable[]>([]);
     const [sectionTemplates, setSectionTemplates] = useState<EmailSectionTemplate[]>([]);
+
+    /* media library selector */
+    const [mediaSelector, setMediaSelector] = useState<{
+        open: boolean;
+        field: string;
+        type: 'image' | 'all';
+    }>({
+        open: false,
+        field: '',
+        type: 'image',
+    });
 
     /* misc */
     const [loading, setLoading] = useState(false);
@@ -82,6 +95,20 @@ const EmailEditor: React.FC<Props> = ({templateUuid}) => {
     const saveSection = () => {
         setEmailSections(prev => prev.map(s => (s.id === editingSection!.id ? editingSection : s)));
         setEditOpen(false);
+    };
+
+    /* ---------------- media library ---------------- */
+    const openMediaLibrary = (field: string, type: 'image' | 'all' = 'image') => {
+        setMediaSelector({
+            open: true,
+            field,
+            type,
+        });
+    };
+
+    const handleMediaSelect = (asset: MediaAsset) => {
+        handleUpdateContent(mediaSelector.field, asset.url);
+        setMediaSelector({ ...mediaSelector, open: false });
     };
 
     /* ---------------- load existing template ---------------- */
@@ -362,6 +389,7 @@ const EmailEditor: React.FC<Props> = ({templateUuid}) => {
                             editingSection={editingSection}
                             updateContent={handleUpdateContent}
                             variables={variables}
+                            openMediaLibrary={openMediaLibrary}
                         />
                     </DialogContent>
                     <DialogActions>
@@ -373,9 +401,16 @@ const EmailEditor: React.FC<Props> = ({templateUuid}) => {
                         </Button>
                     </DialogActions>
                 </Dialog>
+
+                <MediaLibrarySelector
+                    open={mediaSelector.open}
+                    onClose={() => setMediaSelector({ ...mediaSelector, open: false })}
+                    onSelect={handleMediaSelect}
+                    fileType={mediaSelector.type}
+                />
             </Box>
 
-            {/* ---------- first-time “template info” dialog ---------- */}
+            {/* ---------- first-time "template info" dialog ---------- */}
             <Dialog open={infoOpen} onClose={() => setInfoOpen(false)} maxWidth="sm" fullWidth>
                 <DialogTitle>Template Details</DialogTitle>
                 <DialogContent sx={{pt: 2, display: 'flex', flexDirection: 'column', gap: 2}}>
