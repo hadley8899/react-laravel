@@ -35,7 +35,7 @@ class EmailSectionTemplateSeeder extends Seeder
                 'default_content' => [
                     'src' => 'https://placehold.co/600x400?text=Hello+World',
                     'alt' => 'Placeholder image',
-                    'width' => '100%',
+                    'width' => '600px',
                     'caption' => '',
                 ],
             ],

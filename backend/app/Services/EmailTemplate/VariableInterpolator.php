@@ -11,7 +11,6 @@ class VariableInterpolator
      */
     public function interpolate(string $content, Company $company): string
     {
-        // Build an array ['PRIMARY_COLOR' => '#123456', ...]
         $map = $company->variables()
             ->pluck('value', 'key')
             ->toArray();

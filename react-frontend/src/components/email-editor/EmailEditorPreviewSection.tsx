@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Box,
     IconButton,
@@ -21,13 +21,13 @@ interface Props {
 }
 
 const EmailEditorPreviewSection: React.FC<Props> = ({
-                                                        emailSections,
-                                                        setEmailSections,
-                                                        openEditor,
-                                                        removeSection,
-                                                        setDraggedIndex,
-                                                        draggedIndex,
-                                                    }) => {
+    emailSections,
+    setEmailSections,
+    openEditor,
+    removeSection,
+    setDraggedIndex,
+    draggedIndex,
+}) => {
     const theme = useTheme();
     const textSecondary = theme.palette.text.secondary;
 
@@ -44,6 +44,27 @@ const EmailEditorPreviewSection: React.FC<Props> = ({
         setDraggedIndex(null);
         setOverIndex(null);
     };
+
+    // Helper to render section preview, supporting async if needed
+    const [previews, setPreviews] = useState<Record<number, React.ReactNode>>({});
+
+    useEffect(() => {
+        let isMounted = true;
+        const loadPreviews = async () => {
+            const newPreviews: Record<number, React.ReactNode> = {};
+            for (const section of emailSections) {
+                const result = renderSectionPreview(section);
+                if (result instanceof Promise) {
+                    newPreviews[section.id] = await result;
+                } else {
+                    newPreviews[section.id] = result;
+                }
+            }
+            if (isMounted) setPreviews(newPreviews);
+        };
+        loadPreviews();
+        return () => { isMounted = false; };
+    }, [emailSections]);
 
     return (
         <Paper
@@ -196,7 +217,7 @@ const EmailEditorPreviewSection: React.FC<Props> = ({
                                     </IconButton>
                                 </Box>
 
-                                {renderSectionPreview(section)}
+                                {previews[section.id] ?? null}
                             </Paper>
                         </React.Fragment>
                     ))
