@@ -10,7 +10,11 @@ import {
     DialogActions,
     CircularProgress,
     useTheme,
+    Accordion,
+    AccordionSummary,
+    AccordionDetails,
 } from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {useNavigate} from 'react-router-dom';
 import {useNotifier} from '../../context/NotificationContext';
 import {groupBy} from 'lodash';
@@ -292,6 +296,21 @@ const EmailEditor: React.FC<Props> = ({templateUuid}) => {
         tpl => tpl.group || 'Other'
     );
 
+    // Track which sidebar group is expanded (only one at a time)
+    const [expandedGroup, setExpandedGroup] = useState<string | false>(false);
+
+    // Expand only the first group by default on first load
+    useEffect(() => {
+        const groupNames = Object.keys(groupedSectionTemplates);
+        setExpandedGroup(groupNames.length > 0 ? groupNames[0] : false);
+    }, [sectionTemplates.length]);
+
+    const handleAccordionToggle = (group: string) => {
+        setExpandedGroup(prev =>
+            prev === group ? false : group
+        );
+    };
+
     /* ---------------- render ---------------- */
     if (loading) {
         return (
@@ -330,20 +349,46 @@ const EmailEditor: React.FC<Props> = ({templateUuid}) => {
                         Click or drag to add sections to your email
                     </Typography>
 
+                    {/* Collapsible groups */}
                     {Object.entries(groupedSectionTemplates).map(([group, templates]) => (
-                        <Box key={group} sx={{ mb: 3 }}>
-                            <Typography variant="subtitle2" sx={{ mb: 1, mt: 2, fontWeight: 600 }}>
-                                {group}
-                            </Typography>
-                            {templates.map(tpl => (
-                                <EmailEditorSidebarItem
-                                    key={tpl.uuid}
-                                    template={tpl}
-                                    addSection={addSection}
-                                    draggable
-                                />
-                            ))}
-                        </Box>
+                        <Accordion
+                            key={group}
+                            expanded={expandedGroup === group}
+                            onChange={() => handleAccordionToggle(group)}
+                            disableGutters
+                            sx={{
+                                mb: 1.5,
+                                boxShadow: 'none',
+                                '&:before': { display: 'none' },
+                                borderRadius: 1,
+                                border: '1px solid',
+                                borderColor: 'divider',
+                                bgcolor: 'background.paper',
+                            }}
+                        >
+                            <AccordionSummary
+                                expandIcon={<ExpandMoreIcon />}
+                                sx={{
+                                    minHeight: 40,
+                                    '& .MuiAccordionSummary-content': { my: 0.5 },
+                                    fontWeight: 600,
+                                }}
+                            >
+                                <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                                    {group}
+                                </Typography>
+                            </AccordionSummary>
+                            <AccordionDetails sx={{ p: 0, pt: 0.5 }}>
+                                {templates.map(tpl => (
+                                    <EmailEditorSidebarItem
+                                        key={tpl.uuid}
+                                        template={tpl}
+                                        addSection={addSection}
+                                        draggable
+                                    />
+                                ))}
+                            </AccordionDetails>
+                        </Accordion>
                     ))}
 
                     <Button
@@ -356,8 +401,14 @@ const EmailEditor: React.FC<Props> = ({templateUuid}) => {
                         {saving ? <CircularProgress size={22} sx={{color: '#fff'}}/> : 'Save'}
                     </Button>
 
-                    <Button onClick={() => { void handlePreview(); }} variant="outlined" sx={{mt: 1}}>
-                        Preview
+                    <Button
+                        fullWidth
+                        onClick={() => { void handlePreview(); }}
+                        variant="outlined"
+                        disabled={saving}
+                        sx={{mt: 2}}
+                    >
+                        {saving ? <CircularProgress size={22} sx={{color: '#fff'}}/> : 'Preview'}
                     </Button>
 
                     {/* preview dialog */}

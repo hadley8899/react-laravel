@@ -24,21 +24,33 @@ class EmailSectionTemplateController extends Controller
 
         foreach ($sections as $section) {
             $defaultContent = $section->default_content;
-            foreach ($defaultContent as $key => $value) {
-                if (is_string($value) && preg_match('/{{(.*?)}}/', $value, $matches)) {
-                    $variableKey = trim($matches[1]);
-                    if (array_key_exists($variableKey, $companyVariablesArray)) {
-                        $defaultContent[$key] = str_replace(
-                            "{{" . $variableKey . "}}",
-                            $companyVariablesArray[$variableKey],
-                            $value
-                        );
-                    }
-                }
-            }
-            $section->default_content = $defaultContent;
+            $section->default_content = $this->replaceVariables($defaultContent, $companyVariablesArray);
         }
 
         return EmailSectionTemplateResource::collection($sections);
+    }
+
+    /**
+     * Recursively replace variables in the content array/object.
+     */
+    private function replaceVariables($content, $variables)
+    {
+        if (is_array($content)) {
+            foreach ($content as $key => $value) {
+                $content[$key] = $this->replaceVariables($value, $variables);
+            }
+        } elseif (is_string($content)) {
+            if (preg_match('/{{(.*?)}}/', $content, $matches)) {
+                $variableKey = trim($matches[1]);
+                if (array_key_exists($variableKey, $variables)) {
+                    return str_replace(
+                        "{{" . $variableKey . "}}",
+                        $variables[$variableKey],
+                        $content
+                    );
+                }
+            }
+        }
+        return $content;
     }
 }

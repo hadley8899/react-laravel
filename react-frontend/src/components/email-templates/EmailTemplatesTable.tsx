@@ -16,7 +16,7 @@ import {
     Box,
     Typography,
 } from '@mui/material';
-import VisibilityIcon from '@mui/icons-material/Visibility';
+import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import {EmailTemplate} from '../../interfaces/EmailTemplate';
 import {useNavigate} from "react-router-dom";
@@ -117,26 +117,28 @@ const EmailTemplatesTable: React.FC<Props> = ({
                                             {new Date(tpl.updated_at).toLocaleDateString()}
                                         </TableCell>
                                         <TableCell>
-                                            <Tooltip title="Preview">
-                                                <IconButton
-                                                    size="small"
-                                                    onClick={() => navigate(`/email-templates/editor/${tpl.uuid}`)}
-                                                >
-                                                    <VisibilityIcon/>
-                                                </IconButton>
-                                            </Tooltip>
-                                            <Tooltip title="Delete">
-                                                <IconButton
-                                                    size="small"
-                                                    color="error"
-                                                    onClick={e => {
-                                                        e.stopPropagation();
-                                                        onDelete(tpl);
-                                                    }}
-                                                >
-                                                    <DeleteIcon/>
-                                                </IconButton>
-                                            </Tooltip>
+                                            <Box sx={{display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
+                                                <Tooltip title="Edit">
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={() => navigate(`/email-templates/editor/${tpl.uuid}`)}
+                                                    >
+                                                        <EditIcon/>
+                                                    </IconButton>
+                                                </Tooltip>
+                                                <Tooltip title="Delete">
+                                                    <IconButton
+                                                        size="small"
+                                                        color="error"
+                                                        onClick={e => {
+                                                            e.stopPropagation();
+                                                            onDelete(tpl);
+                                                        }}
+                                                    >
+                                                        <DeleteIcon/>
+                                                    </IconButton>
+                                                </Tooltip>
+                                            </Box>
                                         </TableCell>
                                     </TableRow>
                                 );
