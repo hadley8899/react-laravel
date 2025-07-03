@@ -13,11 +13,8 @@ import {
     DialogContentText,
     DialogTitle,
 } from "@mui/material";
-// Import interface and service
 import {Customer} from "../interfaces/Customer";
 import {deleteCustomer, getCustomers} from "../services/CustomerService";
-
-// Import components
 import CustomerTable from "../components/customer/CustomerTable";
 import CustomerFormDialog from '../components/customer/CustomerFormDialog';
 import CustomerPageFilterBar from "../components/customer/CustomerPageFilterBar.tsx";

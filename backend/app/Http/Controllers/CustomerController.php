@@ -11,6 +11,7 @@ use App\Services\Customer\CustomerListService;
 use App\Services\Customer\CustomerStoreService;
 use App\Services\Customer\CustomerUpdateService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\Auth;
 use Psr\Container\ContainerExceptionInterface;
@@ -96,5 +97,19 @@ class CustomerController extends Controller
         CustomerDestroyService::destroyCustomer($customer);
 
         return response()->json(null, 204);
+    }
+
+    /**
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function countByTags(Request $request): JsonResponse
+    {
+        $tags = $request->get('tags');
+
+        // Get count of customers by the provided tags
+        $count = CustomerListService::countCustomersByTags(Auth::user()->company->id, $tags);
+
+        return response()->json(['count' => $count]);
     }
 }

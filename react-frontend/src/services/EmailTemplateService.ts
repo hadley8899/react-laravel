@@ -73,3 +73,25 @@ export async function getSectionTemplates(): Promise<EmailSectionTemplate[]> {
     const { data } = await api.get<{data: EmailSectionTemplate[]}>('/section-templates');
     return data.data;
 }
+
+// Fetch all tags for the current company
+export async function getTags() {
+    const { data } = await api.get<{ data: any[] }>('/tags');
+    return data.data;
+}
+
+// Get the count of customers matching a set of tag UUIDs
+export async function getCustomerCountByTags(tagUuids: string[]) {
+    const { data } = await api.post<{ count: number }>('/customers/count-by-tags', {
+        tags: tagUuids,
+    });
+    return data.count;
+}
+
+// Send a campaign to customers with the selected tags
+export async function sendCampaign(templateUuid: string, tagUuids: string[]) {
+    // This is a stub; you will need to implement the backend endpoint
+    // Example: POST /templates/{templateUuid}/send
+    // return await api.post(`/templates/${templateUuid}/send`, { tag_ids: tagUuids });
+    throw new Error('sendCampaign not implemented: backend route required');
+}

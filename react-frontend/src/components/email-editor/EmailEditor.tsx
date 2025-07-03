@@ -18,6 +18,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {useNavigate} from 'react-router-dom';
 import {useNotifier} from '../../context/NotificationContext';
 import {groupBy} from 'lodash';
+import SendIcon from '@mui/icons-material/Send';
 
 import {
     createTemplate,
@@ -261,6 +262,14 @@ const EmailEditor: React.FC<Props> = ({templateUuid}) => {
         }
     };
 
+    const handleSend = () => {
+        if (!templateUuid) {
+            showNotification('Save template first to send', 'error');
+            return;
+        }
+        navigate(`/email-templates/send/${templateUuid}`);
+    };
+
     /* ---------------- inline content updater ---------------- */
     const handleUpdateContent = useCallback((field: string, value: any) => {
         setEditingSection((prev: any) => ({
@@ -411,6 +420,17 @@ const EmailEditor: React.FC<Props> = ({templateUuid}) => {
                         {saving ? <CircularProgress size={22} sx={{color: '#fff'}}/> : 'Preview'}
                     </Button>
 
+                    <Button
+                        fullWidth
+                        onClick={handleSend}
+                        variant="contained"
+                        color="success"
+                        startIcon={<SendIcon />}
+                        sx={{mt: 2}}
+                        disabled={saving}
+                    >
+                        Send
+                    </Button>
                     {/* preview dialog */}
                     <Dialog
                         open={Boolean(previewHtml)}

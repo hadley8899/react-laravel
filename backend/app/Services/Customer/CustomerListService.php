@@ -41,4 +41,14 @@ class CustomerListService extends CustomerService
 
         return $customersQuery;
     }
+
+    public static function countCustomersByTags(int $companyId, array $tags):int
+    {
+        return Customer::query()
+            ->where('company_id', $companyId)
+            ->whereHas('tags', function ($query) use ($tags) {
+                $query->whereIn('tags.uuid', $tags);
+            })
+            ->count();
+    }
 }

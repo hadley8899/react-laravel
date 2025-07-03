@@ -32,6 +32,7 @@ import TagListPage from '../pages/tags/TagListPage.tsx';
 import MediaLibrary from '../pages/MediaLibrary.tsx';
 import EmailTemplates from "../pages/EmailTemplates.tsx";
 import Editor from "../pages/Editor.tsx";
+import EmailTemplateSend from "../pages/EmailTemplateSend.tsx";
 
 const AppRoutes: React.FC = () => {
     return (
@@ -69,6 +70,7 @@ const AppRoutes: React.FC = () => {
                 <Route path="/email-templates" element={<EmailTemplates/>}/>
                 <Route path="/email-templates/editor" element={<Editor/>}/>
                 <Route path="/email-templates/editor/:uuid" element={<Editor />} />
+                <Route path="/email-templates/send/:uuid" element={<EmailTemplateSend/>}/>
             </Route>
 
             <Route path="*" element={<Navigate to="/login" replace/>}/>

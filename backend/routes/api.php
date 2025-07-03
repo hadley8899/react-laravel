@@ -78,6 +78,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('/customers')->group(function () {
         Route::get('/', [CustomerController::class, 'index']);
         Route::post('/', [CustomerController::class, 'store']);
+        Route::post('/count-by-tags', [CustomerController::class, 'countByTags']);
         Route::get('/{customer:uuid}', [CustomerController::class, 'show']);
         Route::put('/{customer:uuid}', [CustomerController::class, 'update']);
         Route::delete('/{customer:uuid}', [CustomerController::class, 'destroy']);

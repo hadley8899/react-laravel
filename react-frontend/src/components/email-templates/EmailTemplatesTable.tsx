@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {
     Table,
     TableBody,
@@ -15,11 +15,17 @@ import {
     TablePagination,
     Box,
     Typography,
+    Dialog,
+    DialogTitle,
+    DialogContent,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import SendIcon from '@mui/icons-material/Send';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import {EmailTemplate} from '../../interfaces/EmailTemplate';
 import {useNavigate} from "react-router-dom";
+import {previewTemplate} from '../../services/EmailTemplateService';
 
 interface Props {
     templates: EmailTemplate[];
@@ -53,6 +59,22 @@ const EmailTemplatesTable: React.FC<Props> = ({
     const isSelected = (uuid: string) => selected.includes(uuid);
 
     const navigate = useNavigate();
+
+    // Preview dialog state
+    const [previewHtml, setPreviewHtml] = useState<string | null>(null);
+    const [previewLoading, setPreviewLoading] = useState(false);
+
+    const handlePreview = async (uuid: string) => {
+        setPreviewLoading(true);
+        try {
+            const data = await previewTemplate(uuid);
+            setPreviewHtml(data.html);
+        } catch {
+            setPreviewHtml('<div style="padding:2rem;color:red;">Preview failed</div>');
+        } finally {
+            setPreviewLoading(false);
+        }
+    };
 
     if (loading) {
         return (
@@ -126,6 +148,29 @@ const EmailTemplatesTable: React.FC<Props> = ({
                                                         <EditIcon/>
                                                     </IconButton>
                                                 </Tooltip>
+                                                <Tooltip title="Preview">
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={e => {
+                                                            e.stopPropagation();
+                                                            handlePreview(tpl.uuid);
+                                                        }}
+                                                    >
+                                                        <VisibilityIcon/>
+                                                    </IconButton>
+                                                </Tooltip>
+                                                <Tooltip title="Send">
+                                                    <IconButton
+                                                        size="small"
+                                                        color="success"
+                                                        onClick={e => {
+                                                            e.stopPropagation();
+                                                            navigate(`/email-templates/send/${tpl.uuid}`);
+                                                        }}
+                                                    >
+                                                        <SendIcon/>
+                                                    </IconButton>
+                                                </Tooltip>
                                                 <Tooltip title="Delete">
                                                     <IconButton
                                                         size="small"
@@ -145,7 +190,30 @@ const EmailTemplatesTable: React.FC<Props> = ({
                             })}
                         </TableBody>
                     </Table>
-
+                    {/* Preview Dialog */}
+                    <Dialog
+                        open={!!previewHtml}
+                        onClose={() => setPreviewHtml(null)}
+                        maxWidth="md"
+                        fullWidth
+                    >
+                        <DialogTitle>Template Preview</DialogTitle>
+                        <DialogContent dividers sx={{p: 0}}>
+                            {previewLoading ? (
+                                <Box sx={{p: 4, textAlign: 'center'}}>
+                                    <CircularProgress/>
+                                </Box>
+                            ) : (
+                                previewHtml && (
+                                    <iframe
+                                        title="preview"
+                                        srcDoc={previewHtml}
+                                        style={{border: 0, width: '100%', height: '70vh'}}
+                                    />
+                                )
+                            )}
+                        </DialogContent>
+                    </Dialog>
                     <Box sx={{px: 2, pb: 2}}>
                         <TablePagination
                             rowsPerPageOptions={[5, 10, 25]}
