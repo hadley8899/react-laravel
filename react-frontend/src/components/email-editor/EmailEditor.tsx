@@ -8,12 +8,12 @@ import {
     DialogTitle,
     DialogContent,
     DialogActions,
-    TextField,
     CircularProgress,
     useTheme,
 } from '@mui/material';
 import {useNavigate} from 'react-router-dom';
 import {useNotifier} from '../../context/NotificationContext';
+import {groupBy} from 'lodash';
 
 import {
     createTemplate,
@@ -24,8 +24,8 @@ import {
 import {getCompanyVariables} from '../../services/CompanyVariableService';
 import EmailEditorSidebarItem from './EmailEditorSidebarItem';
 import EmailEditorPreviewSection from './EmailEditorPreviewSection';
-import SectionEditForm from '../emailEditor/SectionEditForm';
-
+import SectionEditForm from './SectionEditForm';
+import EmailEditorSaveDialog from "./EmailEditorSaveDialog";
 import {CompanyVariable} from '../../interfaces/CompanyVariable';
 import {EmailSectionTemplate} from "../../interfaces/EmailSectionTemplate.tsx";
 import {MediaAsset} from '../../interfaces/MediaAsset';
@@ -35,8 +35,11 @@ interface Props {
     templateUuid?: string;
 }
 
+// Fix: add group property to EmailSectionTemplate type (if not already present)
+// If you control the EmailSectionTemplate interface, add this property there instead.
+type EmailSectionTemplateWithGroup = EmailSectionTemplate & { group?: string };
+
 const EmailEditor: React.FC<Props> = ({templateUuid}) => {
-    /* ---------------- state ---------------- */
     const [emailSections, setEmailSections] = useState<any[]>([]);
     const [editingSection, setEditingSection] = useState<any | null>(null);
     const [editOpen, setEditOpen] = useState(false);
@@ -108,11 +111,11 @@ const EmailEditor: React.FC<Props> = ({templateUuid}) => {
 
     const handleMediaSelect = (asset: MediaAsset) => {
         handleUpdateContent(mediaSelector.field, asset.url);
-        setMediaSelector({ ...mediaSelector, open: false });
+        setMediaSelector({...mediaSelector, open: false});
     };
 
     /* ---------------- load existing template ---------------- */
-    const loadTemplate = useCallback(async () => {
+    const loadTemplate = useCallback(async (): Promise<void> => {
         if (!templateUuid) return;
         setLoading(true);
         try {
@@ -129,11 +132,11 @@ const EmailEditor: React.FC<Props> = ({templateUuid}) => {
     }, [showNotification, templateUuid]);
 
     useEffect(() => {
-        loadTemplate();
+        void loadTemplate();
     }, [loadTemplate]);
 
     /* ---------------- load company variables ---------------- */
-    const loadVariables = useCallback(async () => {
+    const loadVariables = useCallback(async (): Promise<void> => {
         try {
             const data = await getCompanyVariables();
             setVariables(data);
@@ -143,10 +146,10 @@ const EmailEditor: React.FC<Props> = ({templateUuid}) => {
     }, [showNotification]);
 
     useEffect(() => {
-        loadVariables();
+        void loadVariables();
     }, [loadVariables]);
 
-    const loadSectionTemplates = useCallback(async () => {
+    const loadSectionTemplates = useCallback(async (): Promise<void> => {
         try {
             const data = await getSectionTemplates();
             console.log(data);
@@ -157,7 +160,7 @@ const EmailEditor: React.FC<Props> = ({templateUuid}) => {
     }, [showNotification]);
 
     useEffect(() => {
-        loadSectionTemplates();
+        void loadSectionTemplates();
     }, [loadSectionTemplates]);
 
     // Add this after sectionTemplates are loaded, and only for new templates
@@ -179,17 +182,17 @@ const EmailEditor: React.FC<Props> = ({templateUuid}) => {
             const button = sectionTemplates.find(
                 t => t.type.toLowerCase() === 'button'
             );
-
             const footer = sectionTemplates.find(
                 t => t.type.toLowerCase() === 'footer'
             );
+            // Filter out undefined before mapping
             const starterSections = [header, text, image, button, footer]
-                .filter(Boolean)
-                .map(tpl => ({
+                .filter((tpl): tpl is EmailSectionTemplate => Boolean(tpl))
+                .map((tpl: EmailSectionTemplate) => ({
                     id: Date.now() + Math.random(),
-                    type: tpl!.type,
-                    title: tpl!.title,
-                    content: JSON.parse(JSON.stringify(tpl!.default_content)),
+                    type: tpl.type,
+                    title: tpl.title,
+                    content: JSON.parse(JSON.stringify(tpl.default_content)),
                 }));
             if (starterSections.length > 0) {
                 setEmailSections(starterSections);
@@ -198,7 +201,7 @@ const EmailEditor: React.FC<Props> = ({templateUuid}) => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [sectionTemplates, templateUuid]);
 
-    const handleSave = async () => {
+    const handleSave = async (): Promise<void> => {
         if (!name.trim()) {
             setInfoOpen(true);
             setInfoErrors({});
@@ -241,7 +244,7 @@ const EmailEditor: React.FC<Props> = ({templateUuid}) => {
     };
 
     const [previewHtml, setPreviewHtml] = useState<string | null>(null);
-    const handlePreview = async () => {
+    const handlePreview = async (): Promise<void> => {
         if (!templateUuid) {
             showNotification('Save template first to preview', 'error');
             return;
@@ -283,6 +286,12 @@ const EmailEditor: React.FC<Props> = ({templateUuid}) => {
         });
     };
 
+    // Group section templates by group
+    const groupedSectionTemplates = groupBy(
+        sectionTemplates as EmailSectionTemplateWithGroup[],
+        tpl => tpl.group || 'Other'
+    );
+
     /* ---------------- render ---------------- */
     if (loading) {
         return (
@@ -321,27 +330,33 @@ const EmailEditor: React.FC<Props> = ({templateUuid}) => {
                         Click or drag to add sections to your email
                     </Typography>
 
-                    {sectionTemplates.map(tpl => (
-                        <EmailEditorSidebarItem
-                            key={tpl.uuid}
-                            template={tpl}
-                            addSection={addSection}
-                            draggable
-                        />
+                    {Object.entries(groupedSectionTemplates).map(([group, templates]) => (
+                        <Box key={group} sx={{ mb: 3 }}>
+                            <Typography variant="subtitle2" sx={{ mb: 1, mt: 2, fontWeight: 600 }}>
+                                {group}
+                            </Typography>
+                            {templates.map(tpl => (
+                                <EmailEditorSidebarItem
+                                    key={tpl.uuid}
+                                    template={tpl}
+                                    addSection={addSection}
+                                    draggable
+                                />
+                            ))}
+                        </Box>
                     ))}
 
-                    {/* ------- save button ------- */}
                     <Button
                         fullWidth
                         variant="contained"
                         sx={{mt: 3}}
-                        onClick={handleSave}
+                        onClick={() => { void handleSave(); }}
                         disabled={saving}
                     >
                         {saving ? <CircularProgress size={22} sx={{color: '#fff'}}/> : 'Save'}
                     </Button>
 
-                    <Button onClick={handlePreview} variant="outlined" sx={{mt: 1}}>
+                    <Button onClick={() => { void handlePreview(); }} variant="outlined" sx={{mt: 1}}>
                         Preview
                     </Button>
 
@@ -404,63 +419,28 @@ const EmailEditor: React.FC<Props> = ({templateUuid}) => {
 
                 <MediaLibrarySelector
                     open={mediaSelector.open}
-                    onClose={() => setMediaSelector({ ...mediaSelector, open: false })}
+                    onClose={() => setMediaSelector({...mediaSelector, open: false})}
                     onSelect={handleMediaSelect}
                     fileType={mediaSelector.type}
                 />
             </Box>
 
             {/* ---------- first-time "template info" dialog ---------- */}
-            <Dialog open={infoOpen} onClose={() => setInfoOpen(false)} maxWidth="sm" fullWidth>
-                <DialogTitle>Template Details</DialogTitle>
-                <DialogContent sx={{pt: 2, display: 'flex', flexDirection: 'column', gap: 2}}>
-                    <TextField
-                        label="Name *"
-                        value={name}
-                        onChange={e => setName(e.target.value)}
-                        required
-                        error={!!infoErrors.name}
-                        helperText={infoErrors.name ? infoErrors.name.join(' ') : ''}
-                    />
-                    <TextField
-                        label="Subject"
-                        value={subject}
-                        onChange={e => setSubject(e.target.value)}
-                        error={!!infoErrors.subject}
-                        helperText={infoErrors.subject ? infoErrors.subject.join(' ') : ''}
-                    />
-                    <TextField
-                        label="Preview text"
-                        value={preview}
-                        onChange={e => setPreview(e.target.value)}
-                        error={!!infoErrors.preview_text}
-                        helperText={infoErrors.preview_text ? infoErrors.preview_text.join(' ') : ''}
-                    />
-                    {infoErrors.layout_json && (
-                        <Typography color="error" variant="body2">
-                            {infoErrors.layout_json.join(' ')}
-                        </Typography>
-                    )}
-                    {infoErrors.message && (
-                        <Typography color="error" variant="body2">
-                            {infoErrors.message.join(' ')}
-                        </Typography>
-                    )}
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => setInfoOpen(false)}>Cancel</Button>
-                    <Button
-                        onClick={() => {
-                            setInfoOpen(false);
-                            handleSave();
-                        }}
-                        variant="contained"
-                        disabled={!name.trim()}
-                    >
-                        Save
-                    </Button>
-                </DialogActions>
-            </Dialog>
+            <EmailEditorSaveDialog
+                open={infoOpen}
+                onClose={() => setInfoOpen(false)}
+                onSave={() => {
+                    setInfoOpen(false);
+                    void handleSave();
+                }}
+                name={name}
+                setName={setName}
+                subject={subject}
+                setSubject={setSubject}
+                preview={preview}
+                setPreview={setPreview}
+                infoErrors={infoErrors}
+            />
         </>
     );
 };

@@ -1,238 +1,116 @@
-import React from 'react';
+import React from "react";
+import SectionPreviewHeader from "../../components/email-editor/preview-section-items/SectionPreviewHeader";
+import SectionPreviewText from "../../components/email-editor/preview-section-items/SectionPreviewText";
+import SectionPreviewMultiColText from "../../components/email-editor/preview-section-items/SectionPreviewMultiColText";
+import SectionPreviewTextImageTop from "../../components/email-editor/preview-section-items/SectionPreviewTextImageTop";
+import SectionPreviewImageWithLeftRightText from "../../components/email-editor/preview-section-items/SectionPreviewImageWithLeftRightText";
+import SectionPreviewImage from "../../components/email-editor/preview-section-items/SectionPreviewImage";
+import SectionPreviewButton from "../../components/email-editor/preview-section-items/SectionPreviewButton";
+import SectionPreviewMultiButtons from "../../components/email-editor/preview-section-items/SectionPreviewMultiButtons";
+import SectionPreviewFooter from "../../components/email-editor/preview-section-items/SectionPreviewFooter";
+import SectionPreviewList from "../../components/email-editor/preview-section-items/SectionPreviewList";
+import SectionPreviewProduct from "../../components/email-editor/preview-section-items/SectionPreviewProduct";
+import SectionPreviewImageMultiple from "../../components/email-editor/preview-section-items/SectionPreviewImageMultiple";
+import SectionPreviewDivider from "../../components/email-editor/preview-section-items/SectionPreviewDivider";
+import SectionPreviewSpacer from "../../components/email-editor/preview-section-items/SectionPreviewSpacer";
+import SectionPreviewQuote from "../../components/email-editor/preview-section-items/SectionPreviewQuote";
+import SectionPreviewTwoCol from "../../components/email-editor/preview-section-items/SectionPreviewTwoCol";
+import SectionPreviewTwoProducts from "../../components/email-editor/preview-section-items/SectionPreviewTwoProducts";
+import SectionPreviewVideo from "../../components/email-editor/preview-section-items/SectionPreviewVideo";
+import SectionPreviewSocial from "../../components/email-editor/preview-section-items/SectionPreviewSocial";
 
 /**
  * Lightweight visual for the drag-and-drop canvas.
  * Keep styling inline so we don’t pull extra CSS.
+ *
+ * NOTE: Any new template type added to `EmailSectionTemplateSeeder`
+ * must have a preview here (even if rudimentary) so the designer can
+ * see something while dragging.
  */
 export const renderSectionPreview: React.FC = (section: any) => {
-    const { type, content } = section;
+    const {type, content} = section;
 
     switch (type) {
-        /* ───────────────────────────────── HEADER ────────────────────────── */
-        case 'header':
-            return (
-                <div
-                    style={{
-                        backgroundColor: content.backgroundColor,
-                        color: content.textColor,
-                        padding: '24px',
-                        textAlign: 'center',
-                    }}
-                >
-                    <h2 style={{ margin: '0 0 8px 0', fontSize: '2rem' }}>{content.heading}</h2>
-                    <p style={{ margin: 0, fontSize: '1.1rem', opacity: 0.9 }}>{content.subheading}</p>
-                </div>
-            );
+        /* ───────────────���────────────── HEADER ─────────────────────────── */
+        case "header":
+            return <SectionPreviewHeader content={content}/>;
 
-        /* ───────────────────────────────── TEXT ───────────────────────────── */
-        case 'text':
-            return (
-                <div style={{ padding: '16px' }}>
-                    <p
-                        style={{
-                            fontSize: content.fontSize,
-                            textAlign: content.textAlign,
-                            margin: 0,
-                            lineHeight: 1.6,
-                        }}
-                    >
-                        {content.text}
-                    </p>
-                </div>
-            );
+        /* ─────────────────────────────── TEXT ──────────────────────────── */
+        case "text":
+            return <SectionPreviewText content={content}/>;
 
-        /* ───────────────────────────────── IMAGE ──────────────────────────── */
-        case 'image':
-            return (
-                <div style={{ padding: '16px', textAlign: 'center' }}>
-                    <img
-                        src={content.src}
-                        alt={content.alt}
-                        style={{ width: content.width, maxWidth: '100%', height: 'auto' }}
-                    />
-                    {content.caption && (
-                        <p
-                            style={{
-                                margin: '8px 0 0 0',
-                                fontSize: '0.875rem',
-                                color: '#666',
-                                fontStyle: 'italic',
-                            }}
-                        >
-                            {content.caption}
-                        </p>
-                    )}
-                </div>
-            );
+        /* ---------- 2 & 3 COLUMN TEXT ---------- */
+        case "two_col_text":
+        case "three_col_text":
+            return <SectionPreviewMultiColText content={content}/>;
 
-        /* ───────────────────────────────── BUTTON ─────────────────────────── */
-        case 'button':
-            return (
-                <div style={{ padding: '16px', textAlign: content.alignment }}>
-                    <button
-                        style={{
-                            backgroundColor: content.backgroundColor,
-                            color: content.textColor,
-                            border: 'none',
-                            padding: '12px 24px',
-                            borderRadius: '4px',
-                            fontSize: '16px',
-                            fontWeight: 'bold',
-                            cursor: 'pointer',
-                            textDecoration: 'none',
-                            display: 'inline-block',
-                        }}
-                    >
-                        {content.text}
-                    </button>
-                </div>
-            );
+        /* ─────────────── Text block WITH image on top ─────────────── */
+        case "text_image_top":
+            return <SectionPreviewTextImageTop content={content}/>;
 
-        /* ───────────────────────────────── LIST ───────────────────────────── */
-        case 'list':
-            return (
-                <div style={{ padding: '16px' }}>
-                    {content.listType === 'bullet' ? (
-                        <ul style={{ margin: 0, paddingLeft: '20px' }}>
-                            {content.items.map((item: string, i: number) => (
-                                <li key={i} style={{ marginBottom: 4 }}>
-                                    {item}
-                                </li>
-                            ))}
-                        </ul>
-                    ) : (
-                        <ol style={{ margin: 0, paddingLeft: '20px' }}>
-                            {content.items.map((item: string, i: number) => (
-                                <li key={i} style={{ marginBottom: 4 }}>
-                                    {item}
-                                </li>
-                            ))}
-                        </ol>
-                    )}
-                </div>
-            );
+        /* ─────────────────── Text-Left / Image-Right ─────────────────── */
+        case "text_left_image_right":
+        case "image_left_text_right":
+            return <SectionPreviewImageWithLeftRightText type={type} content={content}/>;
 
-        /* ───────────────────────────────── FOOTER ─────────────────────────── */
-        case 'footer':
-            return (
-                <div
-                    style={{
-                        backgroundColor: content.backgroundColor,
-                        color: content.textColor,
-                        padding: '16px',
-                        textAlign: 'center',
-                        fontSize: 14,
-                    }}
-                >
-                    <p style={{ margin: '0 0 4px 0', fontWeight: 700 }}>{content.companyName}</p>
-                    <p style={{ margin: '0 0 8px 0' }}>{content.address}</p>
-                    <p style={{ margin: 0, textDecoration: 'underline' }}>{content.unsubscribeText}</p>
-                </div>
-            );
+        /* ───────────────────────────── IMAGE ─────────────────────────── */
+        case "image":
+            return <SectionPreviewImage content={content}/>;
 
-        /* ──────────────────────────────── NEW BLOCKS ──────────────────────── */
-        case 'divider':
-            return <hr style={{ height: content.height, background: content.color, border: 'none' }} />;
+        /* ────────────────────────��──── BUTTON ────────────────────────── */
+        case "button":
+            return <SectionPreviewButton content={content}/>;
 
-        case 'spacer':
-            return <div style={{ height: content.height }} />;
+        /* ---------- 2-3 BUTTONS ---------- */
+        case "two_buttons":
+        case "three_buttons":
+            return <SectionPreviewMultiButtons content={content}/>;
 
-        case 'quote':
-            return (
-                <blockquote
-                    style={{
-                        margin: 0,
-                        padding: '24px',
-                        background: content.backgroundColor,
-                        color: content.textColor,
-                        fontStyle: 'italic',
-                    }}
-                >
-                    <p style={{ margin: 0 }}>{content.text}</p>
-                    <footer style={{ marginTop: 8, fontWeight: 700 }}>— {content.author}</footer>
-                </blockquote>
-            );
+        /* ───────────────────────────── LIST ──────────────────────────── */
+        case "list":
+            return <SectionPreviewList content={content}/>;
 
-        case 'two_column': {
-            const imageEl = (
-                <img
-                    src={content.image}
-                    alt={content.alt}
-                    style={{ width: '100%', maxWidth: 280, borderRadius: 4 }}
-                />
-            );
-            const textEl = (
-                <div style={{ padding: '0 16px' }}>
-                    <h3 style={{ margin: '0 0 8px 0' }}>{content.heading}</h3>
-                    <p style={{ margin: '0 0 12px 0' }}>{content.body}</p>
-                    <button
-                        style={{
-                            background: content.button.backgroundColor,
-                            color: content.button.textColor,
-                            border: 'none',
-                            padding: '10px 20px',
-                            borderRadius: 4,
-                            cursor: 'pointer',
-                        }}
-                    >
-                        {content.button.text}
-                    </button>
-                </div>
-            );
+        /* ───────────────────────────── FOOTER ─────────────────────────── */
+        case "footer":
+            return <SectionPreviewFooter content={content}/>;
 
-            return (
-                <div
-                    style={{
-                        display: 'flex',
-                        flexDirection: content.layout === 'image_right' ? 'row-reverse' : 'row',
-                        alignItems: 'center',
-                        padding: 16,
-                        gap: 16,
-                    }}
-                >
-                    {imageEl}
-                    {textEl}
-                </div>
-            );
-        }
+        /* ───────────────────────── NEW BASIC ELEMENTS ──────────────────── */
+        case "divider":
+            return <SectionPreviewDivider content={content}/>;
 
-        case 'social': {
-            const size = parseInt(content.iconSize, 10) || 24;
-            const links = [
-                { key: 'facebook', label: 'F' },
-                { key: 'instagram', label: 'I' },
-                { key: 'x', label: 'X' },
-                { key: 'linkedin', label: 'L' },
-            ].filter(l => content[l.key]);
-            return (
-                <div style={{ padding: 16, textAlign: 'center' }}>
-                    {links.map(l => (
-                        <a
-                            key={l.key}
-                            href={content[l.key]}
-                            style={{
-                                display: 'inline-block',
-                                width: size,
-                                height: size,
-                                lineHeight: `${size}px`,
-                                margin: '0 6px',
-                                borderRadius: '50%',
-                                background: content.iconColor,
-                                color: '#fff',
-                                fontWeight: 700,
-                                textDecoration: 'none',
-                                fontSize: size * 0.55,
-                            }}
-                        >
-                            {l.label}ß
-                        </a>
-                    ))}
-                </div>
-            );
-        }
+        case "spacer":
+            return <SectionPreviewSpacer content={content}/>;
 
-        /* ───────────────────────────────── FALLBACK ───────────────────────── */
+        case "quote":
+            return <SectionPreviewQuote content={content}/>;
+
+        case "two_column":
+            return <SectionPreviewTwoCol content={content}/>;
+
+        /* ─────────────────────────── TWO IMAGES ───────────────────────── */
+        case "two_images":
+            return <SectionPreviewImageMultiple content={content}/>;
+
+        /* ───────────────────────────── PRODUCT ─────────────────────────── */
+        case "product":
+            return <SectionPreviewProduct content={content}/>;
+
+        /* ──────────────���──────────── TWO PRODUCTS ──────────────────────── */
+        case "two_products":
+            return <SectionPreviewTwoProducts content={content}/>;
+
+        /* ───────────────────────────── VIDEO ───────────────────────────── */
+        case "video":
+            return <SectionPreviewVideo content={content}/>;
+
+        /* ──────────────────────────── SOCIAL ──────────────────────────── */
+        case "social":
+            return <SectionPreviewSocial content={content}/>;
+
+        /* ────────────────────��────── FALLBACK ─────────────────────────── */
         default:
-            return <div style={{ padding: 16, color: '#999' }}>Unknown section type</div>;
+            return (
+                <div style={{padding: 16, color: "#999"}}>Unknown section type</div>
+            );
     }
 };

@@ -11,9 +11,10 @@ return new class extends Migration
         Schema::create('email_section_templates', function (Blueprint $table) {
             $table->id();
             $table->uuid()->unique();
-            $table->string('type', 32)->unique();      // header, text, …
-            $table->string('title');                   // human-friendly
-            $table->json('default_content');           // JSON blob shown in the builder
+            $table->string('type', 32)->unique();
+            $table->string('title');
+            $table->string('group')->default('Basics');
+            $table->json('default_content');
             $table->timestamps();
         });
     }

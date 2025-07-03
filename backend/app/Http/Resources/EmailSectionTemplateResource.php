@@ -13,6 +13,7 @@ class EmailSectionTemplateResource extends JsonResource
             'uuid' => $this->uuid,
             'type' => $this->type,
             'title' => $this->title,
+            'group' => $this->group,
             'default_content' => $this->default_content,
         ];
     }
