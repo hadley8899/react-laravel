@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CampaignController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\CompanyUserManagementController;
 use App\Http\Controllers\CompanyVariableController;
@@ -10,13 +11,16 @@ use App\Http\Controllers\CustomerTagController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EmailSectionTemplateController;
 use App\Http\Controllers\EmailTemplateController;
+use App\Http\Controllers\FromAddressController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\MediaLibraryController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\SendingDomainController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VehicleController;
 use App\Http\Controllers\VehicleMakeModelController;
+use App\Http\Controllers\WebhookController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/login', [AuthController::class, 'login']);
@@ -25,6 +29,10 @@ Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])-
 Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.reset');
 Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->name('password.reset');
 Route::post('/accept-invitation', [AuthController::class, 'acceptInvitation'])->name('invitations.accept');
+
+/* Mailgun webhooks do NOT require auth; Mailgun cannot send a token. */
+Route::post('/webhooks/mailgun', [WebhookController::class, 'handle']);
+
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -170,4 +178,25 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::get('/section-templates', [EmailSectionTemplateController::class, 'index']);
+
+    Route::prefix('/campaigns')->group(function () {
+        Route::post('/', [CampaignController::class, 'store']);
+        Route::get('/', [CampaignController::class, 'index']);
+        Route::get('/{campaign:uuid}', [CampaignController::class, 'show']);
+    });
+
+    Route::prefix('/sending-domains')->group(function () {
+
+        Route::get('/', [SendingDomainController::class, 'index']);
+        Route::post('/', [SendingDomainController::class, 'store']);
+        Route::post('/{sendingDomain:uuid}/verify', [SendingDomainController::class, 'verify']);
+        Route::get('/verified', [SendingDomainController::class, 'verified']);
+
+        Route::prefix('/{sendingDomain:uuid}/from-addresses')->group(function () {
+            Route::get('/', [FromAddressController::class, 'index']);
+            Route::post('/', [FromAddressController::class, 'store']);
+        });
+    });
+
+    Route::get('/from-addresses/verified', [FromAddressController::class, 'verified']);
 });

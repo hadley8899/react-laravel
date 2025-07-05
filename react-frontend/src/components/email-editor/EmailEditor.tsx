@@ -32,7 +32,7 @@ import EmailEditorPreviewSection from './EmailEditorPreviewSection';
 import SectionEditForm from './SectionEditForm';
 import EmailEditorSaveDialog from "./EmailEditorSaveDialog";
 import {CompanyVariable} from '../../interfaces/CompanyVariable';
-import {EmailSectionTemplate} from "../../interfaces/EmailSectionTemplate.tsx";
+import {EmailSectionTemplate} from "../../interfaces/EmailSectionTemplate.ts";
 import {MediaAsset} from '../../interfaces/MediaAsset';
 import MediaLibrarySelector from "./MediaLibrarySelector.tsx";
 
@@ -157,7 +157,6 @@ const EmailEditor: React.FC<Props> = ({templateUuid}) => {
     const loadSectionTemplates = useCallback(async (): Promise<void> => {
         try {
             const data = await getSectionTemplates();
-            console.log(data);
             setSectionTemplates(data);
         } catch {
             showNotification('Could not load section templates', 'error');

@@ -19,4 +19,12 @@ trait HasUuid
     {
         return 'uuid';
     }
+
+    /**
+     * @return string
+     */
+    public static function generateUuid(): string
+    {
+        return (string)Str::uuid();
+    }
 }

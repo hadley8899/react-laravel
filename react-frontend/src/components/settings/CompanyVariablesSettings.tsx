@@ -51,9 +51,6 @@ const CompanyVariablesSettings: React.FC = () => {
         setError(null);
         try {
             const list = await getCompanyVariables();
-
-            console.log(list);
-
             setVariables(list);
         } catch (err: any) {
             console.error(err);

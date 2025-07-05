@@ -155,6 +155,30 @@ class Company extends Model
     }
 
     /**
+     * @return HasMany
+     */
+    public function sendingDomains(): HasMany
+    {
+        return $this->hasMany(SendingDomain::class);
+    }
+
+    /**
+     * @return HasMany
+     */
+    public function fromAddresses(): HasMany
+    {
+        return $this->hasMany(FromAddress::class);
+    }
+
+    /**
+     * @return HasMany
+     */
+    public function campaigns(): HasMany
+    {
+        return $this->hasMany(Campaign::class);
+    }
+
+    /**
      * Returns the list of special company variable definitions.
      * Each entry is an array with 'key', 'friendly_name', 'type', and optionally 'value'.
      */

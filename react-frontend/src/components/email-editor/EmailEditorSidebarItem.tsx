@@ -1,7 +1,7 @@
 import React from 'react';
 import { Paper, Typography, Box } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
-import {EmailSectionTemplate} from "../../interfaces/EmailSectionTemplate.tsx";
+import {EmailSectionTemplate} from "../../interfaces/EmailSectionTemplate.ts";
 
 interface Props {
     template: EmailSectionTemplate;

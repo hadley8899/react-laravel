@@ -108,6 +108,11 @@ const Sidebar: React.FC<SidebarProps> = ({
             // permissions: [''], // adjust as soon as you add backend perms
         },
         {
+            title: 'Campaigns',
+            path: '/campaigns',
+            icon: <CampaignIcon/>
+        },
+        {
             title: 'Email Templates',
             path: '/email-templates',
             icon: <CampaignIcon/>,

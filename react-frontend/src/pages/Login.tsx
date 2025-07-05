@@ -58,7 +58,6 @@ const Login: React.FC = () => {
             localStorage.setItem('user', JSON.stringify(userData));
             setUser(userData);
 
-            console.log(userData);
             if (!userData.company.setup_complete) {
                 navigate('/company-setup');
             } else {

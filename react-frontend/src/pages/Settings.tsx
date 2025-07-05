@@ -1,35 +1,32 @@
-import React, {useEffect, useState} from "react";
-import MainLayout from "../components/layout/MainLayout";
+import React, {useEffect, useState} from 'react';
+import MainLayout from '../components/layout/MainLayout';
 import {
     Typography,
     Container,
     Box,
-} from "@mui/material";
+} from '@mui/material';
 import SettingsIcon from '@mui/icons-material/Settings';
-import CompanyInfo from "../components/settings/CompanyInfo.tsx";
-import AppointmentSettings from "../components/settings/AppointmentSettings.tsx";
-import InvoiceAndPaymentSettings from "../components/settings/InvoiceAndPaymentSettings.tsx";
-import NotificationPreferences from "../components/settings/NotificationPreferences.tsx";
-import SettingsThemeSwitcher from "../components/settings/SettingsThemeSwitcher.tsx";
-import {Company} from "../interfaces/Company.ts";
-import {getMyCompany} from "../services/CompanyService.ts";
-import UserManagementLink from "../components/settings/UserManagementLink.tsx";
-import {hasPermission} from "../services/AuthService.ts";
-import CompanyVariablesSettings from "../components/settings/CompanyVariablesSettings.tsx";
-// import Integrations from "../components/settings/Integrations.tsx";
+import CompanyInfo from '../components/settings/CompanyInfo';
+import AppointmentSettings from '../components/settings/AppointmentSettings';
+import InvoiceAndPaymentSettings from '../components/settings/InvoiceAndPaymentSettings';
+import NotificationPreferences from '../components/settings/NotificationPreferences';
+import SettingsThemeSwitcher from '../components/settings/SettingsThemeSwitcher';
+import {Company} from '../interfaces/Company';
+import {getMyCompany} from '../services/CompanyService';
+import UserManagementLink from '../components/settings/UserManagementLink';
+import {hasPermission} from '../services/AuthService';
+import CompanyVariablesSettings from '../components/settings/CompanyVariablesSettings';
+import SendingDomainsSettings from '../components/settings/SendingDomainsSettings';
 
 const Settings: React.FC = () => {
-
     const [company, setCompany] = useState<Company | null>(null);
 
     useEffect(() => {
         (async () => {
             try {
                 const c = await getMyCompany();
-                if (c) {
-                    setCompany(c);
-                }
-            } catch (e: any) {
+                if (c) setCompany(c);
+            } catch (e) {
                 console.error(e);
             }
         })();
@@ -38,14 +35,20 @@ const Settings: React.FC = () => {
     return (
         <MainLayout title="Settings">
             <Container maxWidth="lg" sx={{py: 4}}>
-                <Box sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4}}>
-                    <Typography variant="h4" component="h1" fontWeight="bold">
+                <Box
+                    sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        mb: 4,
+                    }}
+                >
+                    <Typography variant="h4" fontWeight="bold">
                         <SettingsIcon sx={{mr: 1, verticalAlign: 'middle', fontSize: '2rem'}}/>
                         Application Settings
                     </Typography>
                 </Box>
 
-                {/* First accordion expanded by default */}
                 {hasPermission('update_company') && (
                     <CompanyInfo company={company} setCompany={setCompany}/>
                 )}
@@ -55,11 +58,13 @@ const Settings: React.FC = () => {
                 {hasPermission('update_invoice_settings') && (
                     <InvoiceAndPaymentSettings company={company} setCompany={setCompany}/>
                 )}
+
+                <SendingDomainsSettings/>
+
                 <CompanyVariablesSettings/>
-                {hasPermission('manage_users') && (<UserManagementLink/>)}
+                {hasPermission('manage_users') && <UserManagementLink/>}
                 <NotificationPreferences/>
                 <SettingsThemeSwitcher/>
-                {/*<Integrations/>*/}
             </Container>
         </MainLayout>
     );

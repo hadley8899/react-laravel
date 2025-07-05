@@ -58,7 +58,7 @@ const VariableTable: React.FC<VariableTableProps> = ({
 
                         <Stack spacing={2}>
                             {variables.map((v) => (
-                                <Paper key={v.uuid} variant="outlined" sx={{p: 2}}>
+                                <Paper key={v?.uuid?.toString() + Math.random().toString()} variant="outlined" sx={{p: 2}}>
                                     <Stack spacing={1}>
                                         <Box>
                                             <Typography variant="subtitle2" color="text.secondary">Friendly
@@ -162,7 +162,7 @@ const VariableTable: React.FC<VariableTableProps> = ({
                         </TableHead>
                         <TableBody>
                             {variables.map((v) => (
-                                <TableRow key={v.uuid}>
+                                <TableRow key={v.uuid?.toString() + Math.random().toString()}>
                                     <TableCell>{v.friendly_name}</TableCell>
                                     <TableCell>
                                         <code>{`{{${v.key}}}`}</code>

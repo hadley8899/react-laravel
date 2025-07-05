@@ -33,6 +33,8 @@ import MediaLibrary from '../pages/MediaLibrary.tsx';
 import EmailTemplates from "../pages/EmailTemplates.tsx";
 import Editor from "../pages/Editor.tsx";
 import EmailTemplateSend from "../pages/EmailTemplateSend.tsx";
+import Campaigns from "../pages/Campaigns.tsx";
+import CampaignDetail from "../pages/CampaignDetail.tsx";
 
 const AppRoutes: React.FC = () => {
     return (
@@ -66,6 +68,9 @@ const AppRoutes: React.FC = () => {
                 <Route path="/settings" element={<Settings/>}/>
                 <Route path="/user-management" element={<UserManagement/>}/>
                 <Route path="/admin" element={<Admin/>}/>
+
+                <Route path="/campaigns" element={<Campaigns/>}/>
+                <Route path="/campaigns/:uuid" element={<CampaignDetail />} />
 
                 <Route path="/email-templates" element={<EmailTemplates/>}/>
                 <Route path="/email-templates/editor" element={<Editor/>}/>

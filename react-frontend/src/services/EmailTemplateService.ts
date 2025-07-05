@@ -2,7 +2,7 @@ import {api} from './api';
 import {EmailTemplate} from '../interfaces/EmailTemplate';
 import {EmailTemplateRevision} from '../interfaces/EmailTemplateRevision';
 import {PaginatedResponse} from '../interfaces/PaginatedResponse';
-import {EmailSectionTemplate} from "../interfaces/EmailSectionTemplate.tsx";
+import {EmailSectionTemplate} from "../interfaces/EmailSectionTemplate.ts";
 
 export type CreateTemplatePayload = Pick<
     EmailTemplate,
@@ -88,10 +88,19 @@ export async function getCustomerCountByTags(tagUuids: string[]) {
     return data.count;
 }
 
-// Send a campaign to customers with the selected tags
-export async function sendCampaign(templateUuid: string, tagUuids: string[]) {
-    // This is a stub; you will need to implement the backend endpoint
-    // Example: POST /templates/{templateUuid}/send
-    // return await api.post(`/templates/${templateUuid}/send`, { tag_ids: tagUuids });
-    throw new Error('sendCampaign not implemented: backend route required');
+interface SendCampaignResp {
+    uuid: string;
+}
+
+export async function sendCampaign(payload: {
+    template_uuid: string;
+    subject: string;
+    preheader_text: string;
+    from_address_uuid: string;
+    reply_to: string | null;
+    tag_uuids: string[];
+    scheduled_at?: string | null;
+}) {
+    const { data } = await api.post<{ data: SendCampaignResp }>('/campaigns', payload);
+    return data.data;
 }
