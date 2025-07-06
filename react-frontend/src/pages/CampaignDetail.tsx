@@ -62,7 +62,6 @@ const CampaignDetail: React.FC = () => {
         load();
     }, [uuid]);
 
-    /* ─────────────────────────── render */
     return (
         <MainLayout title="Campaign details">
             <Container maxWidth="md" sx={{py: 4}}>
@@ -70,7 +69,7 @@ const CampaignDetail: React.FC = () => {
                     <Button
                         size="small"
                         startIcon={<ArrowBackIcon/>}
-                        onClick={() => navigate(-1)}
+                        onClick={() => navigate('/campaigns')}
                     >
                         Back
                     </Button>

@@ -22,7 +22,7 @@ class StoreCampaignRequest extends FormRequest
             'tag_uuids' => ['required', 'array', 'min:1'],
             'tag_uuids.*' => ['uuid', 'exists:tags,uuid'],
             // 2025-07-06T21:09:00.000Z
-            'scheduled_at' => ['nullable', 'date_format:Y-m-d\TH:i:s.v\Z', 'after_or_equal:now'],
+            'scheduled_at' => ['nullable', 'date_format:Y-m-d\TH:i:s.v\Z'],
         ];
     }
 }

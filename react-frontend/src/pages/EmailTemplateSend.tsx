@@ -79,9 +79,10 @@ const EmailTemplateSend: React.FC = () => {
     const [subject, setSubject] = useState('');
     const [preText, setPreText] = useState('');
 
-    /* Schedule defaults to “now” */
-    const [date, setDate] = useState<Dayjs | null>(dayjs());
-    const [time, setTime] = useState<Dayjs | null>(dayjs());
+    /* Schedule defaults to “now + 10min” */
+    const initialDateTime = dayjs().add(10, 'minute');
+    const [date, setDate] = useState<Dayjs | null>(initialDateTime);
+    const [time, setTime] = useState<Dayjs | null>(initialDateTime);
 
     /* ---------- fetch template + meta ---------- */
     useEffect(() => {
@@ -188,8 +189,7 @@ const EmailTemplateSend: React.FC = () => {
         selectedTags.length > 0 &&
         selectedFromUuid &&
         date &&
-        time &&
-        !scheduleIsPast;
+        time;
 
     /* ---------- render ---------- */
     if (loading) {
@@ -276,8 +276,8 @@ const EmailTemplateSend: React.FC = () => {
                     />
                 </Box>
                 {scheduleIsPast && (
-                    <Typography variant="caption" color="error">
-                        Scheduled time is in the past – adjust it or it will send immediately.
+                    <Typography variant="caption" sx={{ color: 'orange' }}>
+                        Scheduled time is in the past – it will send immediately.
                     </Typography>
                 )}
 
@@ -371,6 +371,11 @@ const EmailTemplateSend: React.FC = () => {
                         Audience: {customerCount ?? 0} customer
                         {customerCount === 1 ? '' : 's'}.
                     </Typography>
+                    {scheduleIsPast && (
+                        <Typography variant="caption" sx={{ color: 'orange' }}>
+                            Warning: Scheduled time is in the past – it will send immediately.
+                        </Typography>
+                    )}
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={() => setConfirmOpen(false)}>Cancel</Button>
