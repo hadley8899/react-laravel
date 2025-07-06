@@ -1,16 +1,16 @@
 import React from "react";
 import { Stack, TextField } from "@mui/material";
-import { CompanyVariable } from "../../../interfaces/CompanyVariable";
+import {TemplateVariable} from "../../../services/VariableCatalogueService.ts";
 
 interface Props {
     content: { url: string; caption: string };
     updateContent: (k: string, v: any) => void;
-    variables: CompanyVariable[];
+    variables: TemplateVariable[];
     baseProps: Record<string, any>;
     buildSlotProps: (
         k: string,
         v: string,
-        vars: CompanyVariable[],
+        vars: TemplateVariable[],
         update: (k: string, v: string) => void
     ) => Record<string, any>;
 }

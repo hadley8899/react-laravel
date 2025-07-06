@@ -17,6 +17,7 @@ class CompanyVariableController extends Controller
 {
     public function index(Request $request): AnonymousResourceCollection
     {
+        /** @var Company $company */
         $company = $request->user()->company;
 
         $variables = $company

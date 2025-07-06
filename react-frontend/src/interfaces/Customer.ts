@@ -11,4 +11,5 @@ export interface Customer {
     status: 'Active' | 'Inactive';
     total_spent: number;
     tags: Tag[];
+    custom_variables?: Record<string, string>;
 }

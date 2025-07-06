@@ -26,22 +26,19 @@ import {
     getTemplate,
     previewTemplate, getSectionTemplates,
 } from '../../services/EmailTemplateService';
-import {getCompanyVariables} from '../../services/CompanyVariableService';
 import EmailEditorSidebarItem from './EmailEditorSidebarItem';
 import EmailEditorPreviewSection from './EmailEditorPreviewSection';
 import SectionEditForm from './SectionEditForm';
 import EmailEditorSaveDialog from "./EmailEditorSaveDialog";
-import {CompanyVariable} from '../../interfaces/CompanyVariable';
 import {EmailSectionTemplate} from "../../interfaces/EmailSectionTemplate.ts";
 import {MediaAsset} from '../../interfaces/MediaAsset';
 import MediaLibrarySelector from "./MediaLibrarySelector.tsx";
+import {getTemplateVariables, TemplateVariable} from "../../services/VariableCatalogueService.ts";
 
 interface Props {
     templateUuid?: string;
 }
 
-// Fix: add group property to EmailSectionTemplate type (if not already present)
-// If you control the EmailSectionTemplate interface, add this property there instead.
 type EmailSectionTemplateWithGroup = EmailSectionTemplate & { group?: string };
 
 const EmailEditor: React.FC<Props> = ({templateUuid}) => {
@@ -57,7 +54,7 @@ const EmailEditor: React.FC<Props> = ({templateUuid}) => {
     const [infoOpen, setInfoOpen] = useState(false);
 
     /* catalogues */
-    const [variables, setVariables] = useState<CompanyVariable[]>([]);
+    const [variables, setVariables] = useState<TemplateVariable[]>([]);
     const [sectionTemplates, setSectionTemplates] = useState<EmailSectionTemplate[]>([]);
 
     /* media library selector */
@@ -143,7 +140,7 @@ const EmailEditor: React.FC<Props> = ({templateUuid}) => {
     /* ---------------- load company variables ---------------- */
     const loadVariables = useCallback(async (): Promise<void> => {
         try {
-            const data = await getCompanyVariables();
+            const data = await getTemplateVariables();
             setVariables(data);
         } catch {
             showNotification('Could not load variables', 'error');
@@ -367,7 +364,7 @@ const EmailEditor: React.FC<Props> = ({templateUuid}) => {
                             sx={{
                                 mb: 1.5,
                                 boxShadow: 'none',
-                                '&:before': { display: 'none' },
+                                '&:before': {display: 'none'},
                                 borderRadius: 1,
                                 border: '1px solid',
                                 borderColor: 'divider',
@@ -375,18 +372,18 @@ const EmailEditor: React.FC<Props> = ({templateUuid}) => {
                             }}
                         >
                             <AccordionSummary
-                                expandIcon={<ExpandMoreIcon />}
+                                expandIcon={<ExpandMoreIcon/>}
                                 sx={{
                                     minHeight: 40,
-                                    '& .MuiAccordionSummary-content': { my: 0.5 },
+                                    '& .MuiAccordionSummary-content': {my: 0.5},
                                     fontWeight: 600,
                                 }}
                             >
-                                <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                                <Typography variant="subtitle2" sx={{fontWeight: 600}}>
                                     {group}
                                 </Typography>
                             </AccordionSummary>
-                            <AccordionDetails sx={{ p: 0, pt: 0.5 }}>
+                            <AccordionDetails sx={{p: 0, pt: 0.5}}>
                                 {templates.map(tpl => (
                                     <EmailEditorSidebarItem
                                         key={tpl.uuid}
@@ -403,7 +400,9 @@ const EmailEditor: React.FC<Props> = ({templateUuid}) => {
                         fullWidth
                         variant="contained"
                         sx={{mt: 3}}
-                        onClick={() => { void handleSave(); }}
+                        onClick={() => {
+                            void handleSave();
+                        }}
                         disabled={saving}
                     >
                         {saving ? <CircularProgress size={22} sx={{color: '#fff'}}/> : 'Save'}
@@ -411,7 +410,9 @@ const EmailEditor: React.FC<Props> = ({templateUuid}) => {
 
                     <Button
                         fullWidth
-                        onClick={() => { void handlePreview(); }}
+                        onClick={() => {
+                            void handlePreview();
+                        }}
                         variant="outlined"
                         disabled={saving}
                         sx={{mt: 2}}
@@ -424,7 +425,7 @@ const EmailEditor: React.FC<Props> = ({templateUuid}) => {
                         onClick={handleSend}
                         variant="contained"
                         color="success"
-                        startIcon={<SendIcon />}
+                        startIcon={<SendIcon/>}
                         sx={{mt: 2}}
                         disabled={saving}
                     >

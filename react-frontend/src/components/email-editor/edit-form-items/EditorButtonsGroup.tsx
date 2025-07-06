@@ -7,7 +7,7 @@ import {
     Select,
     MenuItem,
 } from "@mui/material";
-import { CompanyVariable } from "../../../interfaces/CompanyVariable";
+import {TemplateVariable} from "../../../services/VariableCatalogueService.ts";
 
 interface Props {
     content: {
@@ -20,12 +20,12 @@ interface Props {
         alignment: string;
     };
     updateContent: (k: string, v: any) => void;
-    variables: CompanyVariable[];
+    variables: TemplateVariable[];
     baseProps: Record<string, any>;
     buildSlotProps: (
         k: string,
         v: string,
-        vars: CompanyVariable[],
+        vars: TemplateVariable[],
         update: (k: string, v: string) => void
     ) => Record<string, any>;
 }
@@ -43,7 +43,6 @@ const EditorButtonsGroup: React.FC<Props> = ({
         value: string
     ) => {
         const next = [...content.buttons];
-        // @ts-ignore
         next[idx][field] = value;
         updateContent("buttons", next);
     };

@@ -6,6 +6,7 @@ use App\Http\Controllers\CampaignController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\CompanyUserManagementController;
 use App\Http\Controllers\CompanyVariableController;
+use App\Http\Controllers\ContactCustomVariableController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CustomerTagController;
 use App\Http\Controllers\DashboardController;
@@ -92,6 +93,14 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/{customer:uuid}', [CustomerController::class, 'destroy']);
 
         Route::post('/{customer:uuid}/tags', [CustomerTagController::class, 'sync']);
+    });
+
+    Route::prefix('/contact-custom-variables')->group(function () {
+        Route::get('/', [ContactCustomVariableController::class, 'index']);
+        Route::post('/', [ContactCustomVariableController::class, 'store']);
+        Route::get('/{customVariable:uuid}', [ContactCustomVariableController::class, 'show']);
+        Route::post('/{customVariable:uuid}', [ContactCustomVariableController::class, 'update']);
+        Route::delete('/{customVariable:uuid}', [ContactCustomVariableController::class, 'destroy']);
     });
 
     Route::prefix('/tags')->group(function () {
@@ -199,4 +208,6 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::get('/from-addresses/verified', [FromAddressController::class, 'verified']);
+
+    Route::get('/template-variables', [\App\Http\Controllers\TemplateVariableController::class, 'index']);
 });

@@ -15,7 +15,6 @@ import {
     Alert,
     IconButton,
     Box,
-    FormHelperText,
     SelectChangeEvent,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
@@ -29,33 +28,32 @@ import {
     CreateCustomerPayload,
     UpdateCustomerPayload,
 } from '../../services/CustomerService';
-import {
-    syncCustomerTags,
-} from '../../services/TagService';
+import {syncCustomerTags} from '../../services/TagService';
 import CustomerTagSelect from './CustomerTagSelect.tsx';
 import {Tag} from '../../interfaces/Tag';
 import {useNotifier} from '../../context/NotificationContext';
+import useContactFieldDefs from '../../hooks/useContactFieldDefs.ts';
 
 type CustomerStatus = 'Active' | 'Inactive';
 const customerStatuses: CustomerStatus[] = ['Active', 'Inactive'];
 
-interface CustomerFormDialogProps {
+interface Props {
     open: boolean;
     onClose: () => void;
     onSaveSuccess: () => void;
     customerToEdit?: Customer | null;
 }
 
-const CustomerFormDialog: React.FC<CustomerFormDialogProps> = ({
-                                                                   open,
-                                                                   onClose,
-                                                                   onSaveSuccess,
-                                                                   customerToEdit = null,
-                                                               }) => {
-    const isEditMode = !!customerToEdit;
+const CustomerFormDialog: React.FC<Props> = ({
+                                                 open,
+                                                 onClose,
+                                                 onSaveSuccess,
+                                                 customerToEdit = null,
+                                             }) => {
+    const isEditMode = Boolean(customerToEdit);
     const {showNotification} = useNotifier();
 
-    /* -------- form state -------- */
+    /* ---------------- form state ---------------- */
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [email, setEmail] = useState('');
@@ -64,26 +62,33 @@ const CustomerFormDialog: React.FC<CustomerFormDialogProps> = ({
     const [status, setStatus] = useState<CustomerStatus>('Active');
     const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
 
-    /* -------- UI state -------- */
+    /* custom variables */
+    const fieldDefs = useContactFieldDefs();
+    const [customVars, setCustomVars] = useState<Record<string, string>>({});
+
+    /* ---------------- UI state ---------------- */
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
-    /* -------- initialise form -------- */
+    /* ---------------- initialise dialog ---------------- */
     useEffect(() => {
         if (open) {
             if (isEditMode && customerToEdit) {
+                setCustomVars(customerToEdit.custom_variables || {});
                 setFirstName(customerToEdit.first_name || '');
                 setLastName(customerToEdit.last_name || '');
                 setEmail(customerToEdit.email || '');
                 setPhone(customerToEdit.phone || '');
                 setAddress(customerToEdit.address || '');
-                const validStatus = customerStatuses.includes(customerToEdit.status)
-                    ? customerToEdit.status
-                    : 'Active';
-                setStatus(validStatus);
+                setStatus(
+                    customerStatuses.includes(customerToEdit.status as any)
+                        ? (customerToEdit.status as CustomerStatus)
+                        : 'Active',
+                );
                 setSelectedTags(customerToEdit.tags || []);
             } else {
+                setCustomVars({});
                 setFirstName('');
                 setLastName('');
                 setEmail('');
@@ -98,29 +103,25 @@ const CustomerFormDialog: React.FC<CustomerFormDialogProps> = ({
         }
     }, [open, customerToEdit, isEditMode]);
 
+    /* ---------------- validation ---------------- */
     const validateForm = (): boolean => {
         const errors: Record<string, string> = {};
         if (!firstName.trim()) errors.firstName = 'First name is required.';
         if (!lastName.trim()) errors.lastName = 'Last name is required.';
-        if (!email.trim()) {
-            errors.email = 'Email is required.';
-        } else if (!/\S+@\S+\.\S+/.test(email)) {
-            errors.email = 'Email address is invalid.';
-        }
+        if (!email.trim()) errors.email = 'Email is required.';
+        else if (!/\S+@\S+\.\S+/.test(email)) errors.email = 'Email address is invalid.';
         setFieldErrors(errors);
         return Object.keys(errors).length === 0;
     };
 
-    const handleSubmit = async (
-        event: React.FormEvent<HTMLFormElement>,
-    ) => {
-        event.preventDefault();
+    /* ---------------- submit ---------------- */
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
         setError(null);
-
         if (!validateForm()) return;
         setIsSubmitting(true);
 
-        const apiPayload = {
+        const corePayload = {
             first_name: firstName.trim(),
             last_name: lastName.trim(),
             email: email.trim(),
@@ -135,79 +136,58 @@ const CustomerFormDialog: React.FC<CustomerFormDialogProps> = ({
             if (isEditMode && customerToEdit) {
                 await updateCustomer(
                     customerToEdit.uuid,
-                    apiPayload as UpdateCustomerPayload,
+                    corePayload as UpdateCustomerPayload,
+                    customVars,
                 );
                 customerUuid = customerToEdit.uuid;
             } else {
                 const newCustomer = await createCustomer(
-                    apiPayload as CreateCustomerPayload,
+                    corePayload as CreateCustomerPayload,
+                    customVars,
                 );
                 customerUuid = newCustomer.uuid;
             }
 
-            // sync tags
             await syncCustomerTags(
                 customerUuid,
                 selectedTags.map((t) => t.uuid),
             );
 
-            showNotification(
-                `Customer ${isEditMode ? 'updated' : 'created'} successfully`,
-            );
+            showNotification(`Customer ${isEditMode ? 'updated' : 'created'} successfully`);
             onSaveSuccess();
             onClose();
         } catch (err: any) {
-            console.error(
-                `Failed to ${isEditMode ? 'update' : 'create'} customer:`,
-                err,
-            );
-            if (err.response && err.response.data && err.response.data.errors) {
+            console.error('Customer save failed:', err);
+            if (err?.response?.data?.errors) {
                 const apiErrors = err.response.data.errors;
-                const formattedErrors: Record<string, string> = {};
-                for (const key in apiErrors) {
-                    let frontendKey = key;
-                    if (key === 'first_name') frontendKey = 'firstName';
-                    if (key === 'last_name') frontendKey = 'lastName';
-                    formattedErrors[frontendKey] = apiErrors[key][0];
+                const formatted: Record<string, string> = {};
+                for (const k in apiErrors) {
+                    formatted[k.replace('first_name', 'firstName').replace('last_name', 'lastName')] =
+                        apiErrors[k][0];
                 }
-                setFieldErrors(formattedErrors);
+                setFieldErrors(formatted);
                 setError('Please correct the errors below.');
             } else {
-                setError(
-                    err.message ||
-                    `An unexpected error occurred. Could not ${
-                        isEditMode ? 'update' : 'add'
-                    } customer.`,
-                );
+                setError(err.message ?? 'Unexpected error.');
             }
         } finally {
             setIsSubmitting(false);
         }
     };
 
-    const handleStatusChange = (
-        event: SelectChangeEvent<CustomerStatus>,
-    ) => {
-        setStatus(event.target.value as CustomerStatus);
-    };
+    /* ---------------- helpers ---------------- */
+    const handleCustomVarChange = (uuid: string, val: string) =>
+        setCustomVars((prev) => ({...prev, [uuid]: val}));
 
+    const handleStatusChange = (e: SelectChangeEvent<CustomerStatus>) =>
+        setStatus(e.target.value as CustomerStatus);
+
+    /* ---------------- render ---------------- */
     return (
         <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-            <DialogTitle
-                sx={{
-                    m: 0,
-                    p: 2,
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                }}
-            >
+            <DialogTitle sx={{m: 0, p: 2, display: 'flex', justifyContent: 'space-between'}}>
                 {isEditMode ? 'Edit Customer' : 'Add New Customer'}
-                <IconButton
-                    aria-label="close"
-                    onClick={onClose}
-                    sx={{color: (theme) => theme.palette.grey[500]}}
-                >
+                <IconButton aria-label="close" onClick={onClose}>
                     <CloseIcon/>
                 </IconButton>
             </DialogTitle>
@@ -219,18 +199,17 @@ const CustomerFormDialog: React.FC<CustomerFormDialogProps> = ({
                             {error}
                         </Alert>
                     )}
+
                     <Grid container spacing={2}>
+                        {/* core fields */}
                         <Grid size={{xs: 12, sm: 6}}>
                             <TextField
                                 required
                                 autoFocus={!isEditMode}
                                 margin="dense"
                                 id="firstName"
-                                name="firstName"
                                 label="First Name"
-                                type="text"
                                 fullWidth
-                                variant="outlined"
                                 value={firstName}
                                 onChange={(e) => setFirstName(e.target.value)}
                                 error={!!fieldErrors.firstName}
@@ -243,11 +222,8 @@ const CustomerFormDialog: React.FC<CustomerFormDialogProps> = ({
                                 required
                                 margin="dense"
                                 id="lastName"
-                                name="lastName"
                                 label="Last Name"
-                                type="text"
                                 fullWidth
-                                variant="outlined"
                                 value={lastName}
                                 onChange={(e) => setLastName(e.target.value)}
                                 error={!!fieldErrors.lastName}
@@ -260,11 +236,9 @@ const CustomerFormDialog: React.FC<CustomerFormDialogProps> = ({
                                 required
                                 margin="dense"
                                 id="email"
-                                name="email"
                                 label="Email Address"
                                 type="email"
                                 fullWidth
-                                variant="outlined"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 error={!!fieldErrors.email}
@@ -272,54 +246,38 @@ const CustomerFormDialog: React.FC<CustomerFormDialogProps> = ({
                                 disabled={isSubmitting}
                             />
                         </Grid>
-
                         <Grid size={{xs: 12, sm: 6}}>
                             <TextField
                                 margin="dense"
                                 id="phone"
-                                name="phone"
                                 label="Phone Number"
-                                type="tel"
                                 fullWidth
-                                variant="outlined"
                                 value={phone}
                                 onChange={(e) => setPhone(e.target.value)}
-                                error={!!fieldErrors.phone}
-                                helperText={fieldErrors.phone || 'Optional'}
+                                helperText="Optional"
                                 disabled={isSubmitting}
                             />
                         </Grid>
                         <Grid size={{xs: 12, sm: 6}}>
-                            <FormControl
-                                fullWidth
-                                margin="dense"
-                                required
-                                variant="outlined"
-                                disabled={isSubmitting}
-                                error={!!fieldErrors.status}
-                            >
+                            <FormControl fullWidth margin="dense" required disabled={isSubmitting}>
                                 <InputLabel id="status-select-label">Status</InputLabel>
                                 <Select
                                     labelId="status-select-label"
                                     id="status"
-                                    name="status"
                                     value={status}
                                     label="Status"
                                     onChange={handleStatusChange}
                                 >
-                                    {customerStatuses.map((stat) => (
-                                        <MenuItem key={stat} value={stat}>
-                                            {stat}
+                                    {customerStatuses.map((s) => (
+                                        <MenuItem key={s} value={s}>
+                                            {s}
                                         </MenuItem>
                                     ))}
                                 </Select>
-                                {fieldErrors.status && (
-                                    <FormHelperText error>{fieldErrors.status}</FormHelperText>
-                                )}
                             </FormControl>
                         </Grid>
 
-                        {/* ------------ TAG SELECTOR ------------- */}
+                        {/* tags */}
                         <Grid size={12}>
                             <CustomerTagSelect
                                 value={selectedTags}
@@ -328,21 +286,39 @@ const CustomerFormDialog: React.FC<CustomerFormDialogProps> = ({
                             />
                         </Grid>
 
+                        {/* custom fields */}
+                        {fieldDefs.length > 0 && (
+                            <>
+                                <Grid size={12}>
+                                    <Box sx={{fontWeight: 600, mt: 1}}>Custom Fields</Box>
+                                </Grid>
+                                {fieldDefs.map((f) => (
+                                    <Grid size={{xs: 12, sm: 6}} key={f.uuid}>
+                                        <TextField
+                                            label={f.friendly_name}
+                                            value={customVars[f.uuid] ?? ''}
+                                            onChange={(e) => handleCustomVarChange(f.uuid, e.target.value)}
+                                            fullWidth
+                                            margin="dense"
+                                            disabled={isSubmitting}
+                                        />
+                                    </Grid>
+                                ))}
+                            </>
+                        )}
+
+                        {/* address */}
                         <Grid size={12}>
                             <TextField
                                 margin="dense"
                                 id="address"
-                                name="address"
                                 label="Address"
-                                type="text"
                                 fullWidth
-                                variant="outlined"
                                 multiline
                                 rows={3}
                                 value={address}
                                 onChange={(e) => setAddress(e.target.value)}
-                                error={!!fieldErrors.address}
-                                helperText={fieldErrors.address || 'Optional'}
+                                helperText="Optional"
                                 disabled={isSubmitting}
                             />
                         </Grid>
@@ -350,7 +326,7 @@ const CustomerFormDialog: React.FC<CustomerFormDialogProps> = ({
                 </DialogContent>
 
                 <DialogActions sx={{p: {xs: 2, sm: 3}}}>
-                    <Button onClick={onClose} disabled={isSubmitting} color="inherit">
+                    <Button onClick={onClose} disabled={isSubmitting}>
                         Cancel
                     </Button>
                     <Button

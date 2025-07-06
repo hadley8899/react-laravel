@@ -1,7 +1,6 @@
 import React from "react";
 import { Typography, InputAdornment } from "@mui/material";
 import InsertVariableMenu from "./InsertVariableMenu";
-import { CompanyVariable } from "../../interfaces/CompanyVariable";
 
 import EditorHeader from "./edit-form-items/EditorHeader";
 import EditorText from "./edit-form-items/EditorText";
@@ -23,11 +22,12 @@ import EditorTwoImages from "./edit-form-items/EditorTwoImages";
 import EditorProduct from "./edit-form-items/EditorProduct";
 import EditorTwoProducts from "./edit-form-items/EditorTwoProducts";
 import EditorVideo from "./edit-form-items/EditorVideo";
+import {TemplateVariable} from "../../services/VariableCatalogueService.ts";
 
 const buildSlotProps = (
     field: string,
     value: string,
-    vars: CompanyVariable[],
+    vars: TemplateVariable[],
     update: (f: string, v: string) => void
 ) => ({
     input: {
@@ -45,7 +45,7 @@ const buildSlotProps = (
 interface Props {
     editingSection: any;
     updateContent: (field: string, value: any) => void;
-    variables: CompanyVariable[];
+    variables: TemplateVariable[];
     openMediaLibrary: (field: string, type: "image" | "all") => void;
 }
 

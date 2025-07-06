@@ -2,7 +2,7 @@ import React from "react";
 import { Stack, TextField, InputAdornment, IconButton, FormControl, InputLabel, Select, MenuItem } from "@mui/material";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 import EditorColorPicker from "./EditorColorPicker.tsx";
-import { CompanyVariable } from "../../../interfaces/CompanyVariable";
+import {TemplateVariable} from "../../../services/VariableCatalogueService.ts";
 
 interface EditorButtonProps {
     content: {
@@ -13,12 +13,12 @@ interface EditorButtonProps {
         alignment: string;
     };
     updateContent: (key: string, value: string) => void;
-    variables: CompanyVariable[];
+    variables: TemplateVariable[];
     baseProps: Record<string, any>;
     buildSlotProps: (
         key: string,
         value: string,
-        variables: CompanyVariable[],
+        variables: TemplateVariable[],
         updateContent: (key: string, value: string) => void
     ) => Record<string, any>;
     openMediaLibrary: (field: string, type: 'image' | 'all') => void;

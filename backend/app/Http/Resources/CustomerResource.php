@@ -24,6 +24,11 @@ class CustomerResource extends JsonResource
             'status' => $this->status,
             'total_spent' => $this->total_spent,
             'tags' => TagResource::collection($this->tags),
+            'custom_variables' => $this->customVariableValues
+                ->loadMissing('variable:id,uuid,key,friendly_name')      // eager – 1 query
+                ->mapWithKeys(fn($row) => [
+                    $row->variable->uuid => $row->value,                 // uuid => value
+                ]),
             'created_at' => $this->created_at->toDateTimeString(),
             'updated_at' => $this->updated_at->toDateTimeString(),
         ];

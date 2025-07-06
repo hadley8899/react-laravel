@@ -54,7 +54,6 @@ class CustomerController extends Controller
     public function store(StoreCustomerRequest $request): CustomerResource
     {
         $validated = $request->validated();
-        // Add the company_id to the validated data
         $validated['company_id'] = Auth::user()->company->id;
 
         return new CustomerResource(CustomerStoreService::storeCustomer($validated));
@@ -65,7 +64,6 @@ class CustomerController extends Controller
      */
     public function show(Customer $customer): CustomerResource|JsonResponse
     {
-        // Make sure the users company_id matches the customer's company_id
         if ($customer->company_id !== Auth::user()->company->id) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
@@ -78,7 +76,6 @@ class CustomerController extends Controller
      */
     public function update(UpdateCustomerRequest $request, Customer $customer): CustomerResource|JsonResponse
     {
-        // Make sure the users company_id matches the customer's company_id
         if ($customer->company_id !== Auth::user()->company->id) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }

@@ -68,17 +68,24 @@ class SendCampaignJob implements ShouldQueue
             ->get();
 
         foreach ($contacts as $contact) {
+            // create fresh, contact-specific versions
+            $html = $vars->interpolate($htmlBase, null, $contact->customer);
+            $text = $vars->interpolate($textBase, null, $contact->customer);
+            $subject = $vars->interpolate($subjectBase, null, $contact->customer);
+
             try {
+                // Just before we send the email, Get rid of any remaining tags e.g {{TEST}}
+                $html = preg_replace('/\{\{.*?}}/', '', $html);
+                $text = preg_replace('/\{\{.*?}}/', '', $text);
+
                 $messageId = $mailer->send([
                     'from' => $fromAddress,
                     'to' => $contact->customer->email,
-                    'subject' => $subjectBase,
-                    'html' => $htmlBase,
-                    'text' => $textBase,
+                    'subject' => $subject,
+                    'html' => $html,
+                    'text' => $text,
                     'reply_to' => $this->campaign->reply_to,
-                    'meta' => [
-                        'v:campaign_contact_id' => (string)$contact->uuid,
-                    ],
+                    'meta' => ['v:campaign_contact_id' => (string)$contact->uuid],
                 ]);
 
                 $contact->update([

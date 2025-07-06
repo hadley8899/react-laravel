@@ -1,7 +1,7 @@
 import React from "react";
 import { Stack, TextField } from "@mui/material";
 import EditorColorPicker from "./EditorColorPicker";
-import { CompanyVariable } from "../../../interfaces/CompanyVariable";
+import {TemplateVariable} from "../../../services/VariableCatalogueService.ts";
 
 interface EditorQuoteProps {
     content: {
@@ -11,12 +11,12 @@ interface EditorQuoteProps {
         textColor: string;
     };
     updateContent: (key: string, value: string) => void;
-    variables: CompanyVariable[];
+    variables: TemplateVariable[];
     baseProps: Record<string, any>;
     buildSlotProps: (
         key: string,
         value: string,
-        variables: CompanyVariable[],
+        variables: TemplateVariable[],
         updateContent: (key: string, value: string) => void
     ) => Record<string, any>;
 }

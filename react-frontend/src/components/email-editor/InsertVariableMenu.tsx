@@ -1,10 +1,10 @@
 import React from 'react';
 import {Menu, MenuItem, IconButton, Tooltip} from '@mui/material';
 import CodeIcon from '@mui/icons-material/Code';
-import {CompanyVariable} from '../../interfaces/CompanyVariable';
+import {TemplateVariable} from "../../services/VariableCatalogueService.ts";
 
 interface Props {
-    variables: CompanyVariable[];
+    variables: TemplateVariable[];
     onInsert: (token: string) => void;
 }
 

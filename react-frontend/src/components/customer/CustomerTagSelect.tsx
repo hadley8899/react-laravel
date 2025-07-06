@@ -42,20 +42,26 @@ const CustomerTagSelect: React.FC<CustomerTagSelectProps> = ({
             onChange={(_e, v) => onChange(v)}
             loading={loading}
             disabled={disabled}
-            renderOption={(props, option) => (
-                <li {...props}>
-                    <TagChip tag={option} sx={{mr: 1}}/>
-                    {option.name}
-                </li>
-            )}
+            renderOption={(props, option) => {
+                const {key, ...rest} = props;
+                return (
+                    <li key={key} {...rest}>
+                        <TagChip tag={option} sx={{mr: 1}}/>
+                        {option.name}
+                    </li>
+                );
+            }}
             renderValue={(selected, getItemProps) =>
-                selected.map((tag, idx) => (
-                    <TagChip
-                        tag={tag}
-                        // key is handled by getItemProps
-                        {...getItemProps({index: idx})}
-                    />
-                ))
+                selected.map((tag, idx) => {
+                    const {key, ...itemProps} = getItemProps({index: idx});
+                    return (
+                        <TagChip
+                            tag={tag}
+                            key={key}
+                            {...itemProps}
+                        />
+                    );
+                })
             }
             renderInput={(params) => (
                 <TextField

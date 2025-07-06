@@ -14,7 +14,11 @@ class CustomerUpdateService extends CustomerService
      */
     public static function updateCustomer(Customer $customer, array $validated): Customer
     {
+        $customKv = $validated['custom_variables'] ?? [];
+        unset($validated['custom_variables']);
+
         $customer->update($validated);
-        return $customer;
+        self::syncCustomVariables($customer, $customKv);
+        return $customer->fresh('customVariableValues.variable');
     }
 }

@@ -35,13 +35,13 @@ export async function getCustomer(uuid: string): Promise<Customer> {
     return data.data;
 }
 
-export async function createCustomer(payload: CreateCustomerPayload) {
-    const {data} = await api.post<{ data: Customer }>('/customers', payload);
+export async function createCustomer(payload: CreateCustomerPayload, customVars: Record<string, string>) {
+    const {data} = await api.post<{ data: Customer }>('/customers', {...payload, custom_variables: customVars});
     return data.data;
 }
 
-export async function updateCustomer(uuid: string, payload: UpdateCustomerPayload) {
-    const {data} = await api.put<{ data: Customer }>(`/customers/${uuid}`, payload);
+export async function updateCustomer(uuid: string, payload: UpdateCustomerPayload, customVars: Record<string, string>) {
+    const {data} = await api.put<{ data: Customer }>(`/customers/${uuid}`, {...payload, custom_variables: customVars});
     return data.data;
 }
 

@@ -29,6 +29,8 @@ class UpdateCustomerRequest extends FormRequest
             'address' => ['sometimes', 'required', 'string', 'max:255'],
             'status' => ['sometimes', 'required', 'in:Active,Inactive'],
             'total_spent' => ['sometimes', 'required', 'numeric', 'min:0'],
+            'custom_variables' => ['sometimes', 'array'],
+            'custom_variables.*' => ['nullable', 'string', 'max:65535'],
         ];
     }
 }

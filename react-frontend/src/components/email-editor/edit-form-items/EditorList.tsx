@@ -1,6 +1,6 @@
 import React from "react";
 import { Stack, TextField, FormControl, InputLabel, Select, MenuItem } from "@mui/material";
-import { CompanyVariable } from "../../../interfaces/CompanyVariable";
+import {TemplateVariable} from "../../../services/VariableCatalogueService.ts";
 
 interface EditorListProps {
     content: {
@@ -8,7 +8,7 @@ interface EditorListProps {
         items: string[];
     };
     updateContent: (key: string, value: any) => void;
-    variables: CompanyVariable[];
+    variables: TemplateVariable[];
     baseProps: Record<string, any>;
 }
 

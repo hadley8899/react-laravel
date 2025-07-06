@@ -7,7 +7,7 @@ import {
 } from "@mui/material";
 import ImageIcon from "@mui/icons-material/Image";
 import InsertVariableMenu from "../InsertVariableMenu";
-import { CompanyVariable } from "../../../interfaces/CompanyVariable";
+import {TemplateVariable} from "../../../services/VariableCatalogueService.ts";
 
 interface Props {
     content: {
@@ -23,12 +23,12 @@ interface Props {
         };
     };
     updateContent: (k: string, v: any) => void;
-    variables: CompanyVariable[];
+    variables: TemplateVariable[];
     baseProps: Record<string, any>;
     buildSlotProps: (
         k: string,
         v: string,
-        vars: CompanyVariable[],
+        vars: TemplateVariable[],
         update: (k: string, v: string) => void
     ) => Record<string, any>;
     openMediaLibrary: (field: string, type: "image" | "all") => void;

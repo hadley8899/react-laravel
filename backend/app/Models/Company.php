@@ -178,6 +178,11 @@ class Company extends Model
         return $this->hasMany(Campaign::class);
     }
 
+    public function contactCustomVariables(): HasMany
+    {
+        return $this->hasMany(ContactCustomVariable::class);
+    }
+
     /**
      * Returns the list of special company variable definitions.
      * Each entry is an array with 'key', 'friendly_name', 'type', and optionally 'value'.

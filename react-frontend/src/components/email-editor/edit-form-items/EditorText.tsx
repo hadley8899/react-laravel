@@ -1,6 +1,6 @@
 import React from "react";
 import { Stack, TextField, FormControl, InputLabel, Select, MenuItem } from "@mui/material";
-import { CompanyVariable } from "../../../interfaces/CompanyVariable";
+import {TemplateVariable} from "../../../services/VariableCatalogueService.ts";
 
 interface TextProps {
     content: {
@@ -9,12 +9,12 @@ interface TextProps {
         textAlign: string;
     };
     updateContent: (key: string, value: string) => void;
-    variables: CompanyVariable[];
+    variables: TemplateVariable[];
     baseProps: Record<string, any>;
     buildSlotProps: (
         key: string,
         value: string,
-        variables: CompanyVariable[],
+        variables: TemplateVariable[],
         updateContent: (key: string, value: string) => void
     ) => Record<string, any>;
 }

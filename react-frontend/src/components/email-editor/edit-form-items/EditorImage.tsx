@@ -2,7 +2,7 @@ import React from "react";
 import { Stack, TextField, InputAdornment, IconButton } from "@mui/material";
 import ImageIcon from "@mui/icons-material/Image";
 import InsertVariableMenu from "../InsertVariableMenu";
-import { CompanyVariable } from "../../../interfaces/CompanyVariable";
+import {TemplateVariable} from "../../../services/VariableCatalogueService.ts";
 
 interface EditorImageProps {
     content: {
@@ -12,12 +12,12 @@ interface EditorImageProps {
         caption: string;
     };
     updateContent: (key: string, value: string) => void;
-    variables: CompanyVariable[];
+    variables: TemplateVariable[];
     baseProps: Record<string, any>;
     buildSlotProps: (
         key: string,
         value: string,
-        variables: CompanyVariable[],
+        variables: TemplateVariable[],
         updateContent: (key: string, value: string) => void
     ) => Record<string, any>;
     openMediaLibrary: (field: string, type: 'image' | 'all') => void;

@@ -3,28 +3,52 @@
 namespace App\Services\EmailTemplate;
 
 use App\Models\Company;
+use App\Models\Customer;
+use Illuminate\Support\Facades\Log;
 
 class VariableInterpolator
 {
-    /**
-     * Replace {{ VARIABLE_KEY }} tokens in $content using the
-     * company's variable set.  Unrecognised tokens are left intact
-     * so the editor can show “missing variable” warnings.
-     */
-    public function interpolate(string $content, Company $company): string
+    public function interpolate(string $content, ?Company $company = null, ?Customer $customer = null): string
     {
-        // Use the special variable values from the Company model
-        $companySettingsVariables = $company->specialVariableValues();
+        $map = [];
 
-        $map = $company->variables()
-            ->pluck('value', 'key')
-            ->toArray();
+        /* ---------- company ---------- */
+        if ($company) {
+            $map = array_merge(
+                $map,
+                $company->specialVariableValues(),
+                $company->variables()->pluck('value', 'key')->toArray(),
+            );
+        }
 
-        // Merge company settings variables into the map
-        $map = array_merge($companySettingsVariables, $map);
+        /* ---------- customer ---------- */
+        if ($customer) {
 
-        return preg_replace_callback('/\{\{\s*([A-Z0-9_]+)\s*}}/', function ($m) use ($map) {
-            return $map[$m[1]] ?? $m[0];   // fall back to original token
-        }, $content);
+            Log::info('Customer found', ['customer_id' => $customer->id]);
+
+            // built-ins
+            foreach ($customer->specialVariableValues() as $k => $v) {
+                $map["CUSTOMER.$k"] = $v;
+            }
+
+            // custom fields
+            $values = $customer->customVariableValues()
+                ->with('variable:id,key')
+                ->get()
+                ->pluck('value', 'variable.key')      // COUNT_OF_GOATS => "13"
+                ->toArray();
+
+            foreach ($values as $key => $value) {
+                $map["CUSTOMER.$key"] = $value;
+            }
+        }
+
+        Log::info('Variable map created', ['map' => $map]);
+
+        return preg_replace_callback(
+            '/\{\{\s*([A-Z0-9._]+)\s*}}/',
+            static fn($m) => $map[$m[1]] ?? $m[0],
+            $content
+        );
     }
 }
