@@ -35,7 +35,8 @@ import Editor from '../pages/Editor.tsx';
 import EmailTemplateSend from '../pages/EmailTemplateSend.tsx';
 import Campaigns from '../pages/Campaigns.tsx';
 import CampaignDetail from '../pages/CampaignDetail.tsx';
-import ContactCustomVariables from '../pages/ContactCustomVariables';  // ★ new
+import ContactCustomVariables from '../pages/ContactCustomVariables';
+import ImportJobs from '../pages/ImportJobs';                           /* ★ new */
 
 const AppRoutes: React.FC = () => (
     <Routes>
@@ -57,7 +58,7 @@ const AppRoutes: React.FC = () => (
             <Route path="/customers" element={<Customers/>}/>
             <Route path="/customers/:uuid" element={<CustomerDetails/>}/>
 
-            <Route path="/contact-fields" element={<ContactCustomVariables/>}/> {/* ★ new */}
+            <Route path="/contact-fields" element={<ContactCustomVariables/>}/>
 
             <Route path="/invoices" element={<Invoices/>}/>
             <Route path="/invoices/create" element={<InvoiceCreate/>}/>
@@ -71,6 +72,7 @@ const AppRoutes: React.FC = () => (
 
             <Route path="/tags" element={<TagListPage/>}/>
             <Route path="/media" element={<MediaLibrary/>}/>
+            <Route path="/imports" element={<ImportJobs/>}/>
 
             <Route path="/profile" element={<Profile/>}/>
             <Route path="/settings" element={<Settings/>}/>

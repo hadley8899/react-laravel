@@ -8,6 +8,7 @@ use App\Http\Controllers\CompanyUserManagementController;
 use App\Http\Controllers\CompanyVariableController;
 use App\Http\Controllers\ContactCustomVariableController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\CustomerImportController;
 use App\Http\Controllers\CustomerTagController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EmailSectionTemplateController;
@@ -18,6 +19,7 @@ use App\Http\Controllers\MediaLibraryController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\SendingDomainController;
 use App\Http\Controllers\TagController;
+use App\Http\Controllers\TemplateVariableController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VehicleController;
 use App\Http\Controllers\VehicleMakeModelController;
@@ -64,11 +66,9 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // Dashboard routes
-    Route::middleware('auth:sanctum')->prefix('dashboard')->group(function () {
-        Route::get('/overview', [DashboardController::class, 'overview']);
-        Route::get('/charts', [DashboardController::class, 'chartData']);
-        Route::get('/activity', [DashboardController::class, 'recentActivity']);
-    });
+    Route::get('/dashboard/overview', [DashboardController::class, 'overview']);
+    Route::get('/dashboard/charts', [DashboardController::class, 'chartData']);
+    Route::get('/dashboard/activity', [DashboardController::class, 'recentActivity']);
 
     // Role and Permission Routes
     Route::get('/company/roles', [CompanyUserManagementController::class, 'getAvailableRoles']);
@@ -101,6 +101,17 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{customVariable:uuid}', [ContactCustomVariableController::class, 'show']);
         Route::post('/{customVariable:uuid}', [ContactCustomVariableController::class, 'update']);
         Route::delete('/{customVariable:uuid}', [ContactCustomVariableController::class, 'destroy']);
+    });
+
+    Route::prefix('/customer-imports')->middleware('auth:sanctum')->group(function () {
+        Route::get('/template', [CustomerImportController::class, 'template']);   // ✅ first
+
+        Route::get('/', [CustomerImportController::class, 'index']);          // ✅ list
+        Route::post('/', [CustomerImportController::class, 'store']);
+
+        Route::patch('/{import:uuid}', [CustomerImportController::class, 'update'])->whereUuid('import');
+        Route::get('/{import:uuid}', [CustomerImportController::class, 'show'])->whereUuid('import');
+        Route::get('/{import:uuid}/failures', [CustomerImportController::class, 'downloadFailures'])->whereUuid('import');
     });
 
     Route::prefix('/tags')->group(function () {
@@ -209,5 +220,5 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/from-addresses/verified', [FromAddressController::class, 'verified']);
 
-    Route::get('/template-variables', [\App\Http\Controllers\TemplateVariableController::class, 'index']);
+    Route::get('/template-variables', [TemplateVariableController::class, 'index']);
 });

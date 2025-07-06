@@ -12,7 +12,7 @@ class CustomerStoreService extends CustomerService
         $customKv = $validated['custom_variables'] ?? [];
         unset($validated['custom_variables']);
 
-        $customer = Customer::create($validated);
+        $customer = Customer::query()->create($validated);
         self::syncCustomVariables($customer, $customKv);
         return $customer->fresh('customVariableValues.variable');
     }

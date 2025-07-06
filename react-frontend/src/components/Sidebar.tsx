@@ -1,10 +1,11 @@
 import {
-    Avatar, Box, Divider, Drawer, List, ListItemButton, ListItemIcon, ListItemText, Typography,
+    Avatar, Box, Divider, Drawer, List, ListItemButton, ListItemIcon, ListItemText,
+    ListSubheader, Typography,
 } from '@mui/material';
 import {
-    CalendarMonth, Dashboard as DashboardIcon, DirectionsCar, Person, ReceiptLong, Settings,
+    CalendarMonth, Dashboard as DashboardIcon, DirectionsCar, ReceiptLong, Settings,
     Shield, PhotoLibrary as PhotoLibraryIcon, Campaign as CampaignIcon,
-    DynamicForm as DynamicFormIcon, EmailOutlined,
+    DynamicForm as DynamicFormIcon, EmailOutlined, Person, CloudUpload,
 } from '@mui/icons-material';
 import React, {useEffect, useState} from 'react';
 import {useLocation, useNavigate} from 'react-router-dom';
@@ -26,6 +27,11 @@ interface SidebarItem {
     permissions?: string[];
 }
 
+interface SidebarGroup {
+    title: string;
+    items: SidebarItem[];
+}
+
 const Sidebar: React.FC<SidebarProps> = ({mobileOpen, handleDrawerToggle}) => {
     const drawerWidth = 240;
     const location = useLocation();
@@ -35,82 +41,107 @@ const Sidebar: React.FC<SidebarProps> = ({mobileOpen, handleDrawerToggle}) => {
     const [switchCompanyOpen, setSwitchCompanyOpen] = useState(false);
 
     useEffect(() => {
-        const handleUserUpdate = () => {
-            const au = getAuthUserLocal();
-            if (au) setAuthUser(au);
-        };
-        window.addEventListener('user-updated', handleUserUpdate);
-        return () => window.removeEventListener('user-updated', handleUserUpdate);
+        const h = () => setAuthUser(getAuthUserLocal());
+        window.addEventListener('user-updated', h);
+        return () => window.removeEventListener('user-updated', h);
     }, []);
 
     const companyLogo = authUser?.company?.logo_url;
     const companyName = authUser?.company?.name || 'Company';
 
-    /* ---------------- Main nav ---------------- */
-    const mainNavItems: SidebarItem[] = [
-        {title: 'Dashboard', path: '/dashboard', icon: <DashboardIcon/>},
-        {title: 'Customers', path: '/customers', icon: <PersonIcon/>, permissions: ['view_customers']},
-        {title: 'Contact Fields', path: '/contact-fields', icon: <DynamicFormIcon/>}, // ★ new
-        {title: 'Tags', path: '/tags', icon: <LocalOfferIcon/>},
-        {title: 'Vehicles', path: '/vehicles', icon: <DirectionsCar/>, permissions: ['view_vehicles']},
-        {title: 'Invoices', path: '/invoices', icon: <ReceiptLong/>, permissions: ['view_invoices']},
-        {title: 'Appointments', path: '/appointments', icon: <CalendarMonth/>, permissions: ['view_appointments']},
-        {title: 'Media Library', path: '/media', icon: <PhotoLibraryIcon/>},
-        {title: 'Campaigns', path: '/campaigns', icon: <CampaignIcon/>},
-        {title: 'Email Templates', path: '/email-templates', icon: <EmailOutlined/>}, // distinct icon
+    /* ---------- grouped nav ---------- */
+    const groups: SidebarGroup[] = [
+        {
+            title: 'General',
+            items: [{title: 'Dashboard', path: '/dashboard', icon: <DashboardIcon/>}],
+        },
+        {
+            title: 'Contacts',
+            items: [
+                {title: 'Customers', path: '/customers', icon: <PersonIcon/>, permissions: ['view_customers']},
+                {title: 'Contact Fields', path: '/contact-fields', icon: <DynamicFormIcon/>},
+                {title: 'Tags', path: '/tags', icon: <LocalOfferIcon/>},
+                {title: 'Import Jobs', path: '/imports', icon: <CloudUpload/>},                // ★ new
+            ],
+        },
+        {
+            title: 'Fleet',
+            items: [{title: 'Vehicles', path: '/vehicles', icon: <DirectionsCar/>, permissions: ['view_vehicles']}],
+        },
+        {
+            title: 'Billing',
+            items: [{title: 'Invoices', path: '/invoices', icon: <ReceiptLong/>, permissions: ['view_invoices']}],
+        },
+        {
+            title: 'Schedule',
+            items: [{
+                title: 'Appointments',
+                path: '/appointments',
+                icon: <CalendarMonth/>,
+                permissions: ['view_appointments']
+            }],
+        },
+        {
+            title: 'Marketing',
+            items: [
+                {title: 'Campaigns', path: '/campaigns', icon: <CampaignIcon/>},
+                {title: 'Email Templates', path: '/email-templates', icon: <EmailOutlined/>},
+            ],
+        },
+        {
+            title: 'Media',
+            items: [{title: 'Media Library', path: '/media', icon: <PhotoLibraryIcon/>}],
+        },
     ];
 
-    const secondaryNavItems: SidebarItem[] = [
+    const secondary: SidebarItem[] = [
         {title: 'Profile', path: '/profile', icon: <Person/>},
         {title: 'Settings', path: '/settings', icon: <Settings/>},
     ];
 
-    const handleNavigation = (path: string) => {
-        navigate(path);
+    const go = (p: string) => {
+        navigate(p);
         if (mobileOpen) handleDrawerToggle();
     };
 
     const drawer = (
         <Box sx={{height: '100%', display: 'flex', flexDirection: 'column'}}>
             <Box sx={{p: 2, display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-                {companyLogo ? (
-                    <Box component="img" src={companyLogo} alt={companyName}
-                         sx={{maxWidth: '100%', maxHeight: 80, mb: 1}}/>
-                ) : (
-                    <Avatar sx={{width: 80, height: 80, mb: 1}}>{companyName.charAt(0)}</Avatar>
-                )}
-                <Typography variant="subtitle2" sx={{fontWeight: 'bold'}}>{companyName}</Typography>
+                {companyLogo
+                    ? <Box component="img" src={companyLogo} alt={companyName}
+                           sx={{maxWidth: '100%', maxHeight: 80, mb: 1}}/>
+                    : <Avatar sx={{width: 80, height: 80, mb: 1}}>{companyName.charAt(0)}</Avatar>}
+                <Typography variant="subtitle2" fontWeight="bold">{companyName}</Typography>
             </Box>
 
             <Divider/>
 
-            <List>
-                {mainNavItems.map((item) => {
-                    const show = !item.permissions || hasPermission(item.permissions);
-                    return show ? (
-                        <ListItemButton
-                            key={item.path}
-                            selected={location.pathname.startsWith(item.path)}
-                            onClick={() => handleNavigation(item.path)}
-                        >
-                            <ListItemIcon>{item.icon}</ListItemIcon>
-                            <ListItemText primary={item.title}/>
-                        </ListItemButton>
-                    ) : null;
-                })}
-            </List>
+            {groups.map(g => (
+                <List key={g.title}
+                      subheader={<ListSubheader component="div">{g.title}</ListSubheader>}>
+                    {g.items.map(item => {
+                        const show = !item.permissions || hasPermission(item.permissions);
+                        return show && (
+                            <ListItemButton key={item.path}
+                                            selected={location.pathname.startsWith(item.path)}
+                                            onClick={() => go(item.path)}>
+                                <ListItemIcon>{item.icon}</ListItemIcon>
+                                <ListItemText primary={item.title}/>
+                            </ListItemButton>
+                        );
+                    })}
+                </List>
+            ))}
 
             <Divider sx={{mt: 'auto'}}/>
 
             <List>
-                {secondaryNavItems.map((item) => (
-                    <ListItemButton
-                        key={item.path}
-                        selected={location.pathname.startsWith(item.path)}
-                        onClick={() => handleNavigation(item.path)}
-                    >
-                        <ListItemIcon>{item.icon}</ListItemIcon>
-                        <ListItemText primary={item.title}/>
+                {secondary.map(i => (
+                    <ListItemButton key={i.path}
+                                    selected={location.pathname.startsWith(i.path)}
+                                    onClick={() => go(i.path)}>
+                        <ListItemIcon>{i.icon}</ListItemIcon>
+                        <ListItemText primary={i.title}/>
                     </ListItemButton>
                 ))}
 
@@ -122,7 +153,7 @@ const Sidebar: React.FC<SidebarProps> = ({mobileOpen, handleDrawerToggle}) => {
                 )}
 
                 {authUser?.role === 'Super Admin' && (
-                    <ListItemButton onClick={() => handleNavigation('/admin')}>
+                    <ListItemButton onClick={() => go('/admin')}>
                         <ListItemIcon><Shield/></ListItemIcon>
                         <ListItemText primary="Admin"/>
                     </ListItemButton>
@@ -145,13 +176,10 @@ const Sidebar: React.FC<SidebarProps> = ({mobileOpen, handleDrawerToggle}) => {
             >
                 {drawer}
             </Drawer>
-
             {/* Desktop */}
             <Drawer
                 variant="permanent"
-                sx={{display: {xs: 'none', sm: 'block'}, '& .MuiDrawer-paper': {width: drawerWidth}}}
-                open
-            >
+                sx={{display: {xs: 'none', sm: 'block'}, '& .MuiDrawer-paper': {width: drawerWidth}}} open>
                 {drawer}
             </Drawer>
         </Box>

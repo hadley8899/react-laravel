@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\DB;
 
 class CustomerService
 {
-    protected static function syncCustomVariables(Customer $customer, array $kv): void
+    public static function syncCustomVariables(Customer $customer, array $kv): void
     {
         if (!$kv) {
             return;
