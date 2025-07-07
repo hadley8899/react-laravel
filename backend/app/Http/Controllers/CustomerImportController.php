@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Exports\CustomerImportTemplateExport;
+use App\Http\Resources\CustomerImportResource;
 use App\Jobs\CustomersImportJob;
 use App\Models\CustomerImport;
 use Illuminate\Http\JsonResponse;
@@ -20,7 +21,6 @@ class CustomerImportController extends Controller
         $this->authorizeResource(CustomerImport::class, 'import');
     }
 
-    /* ---------- 0. Template ---------- */
     public function template()
     {
         return Excel::download(
@@ -29,19 +29,16 @@ class CustomerImportController extends Controller
         );
     }
 
-    /* ---------- 1. List imports ---------- */
     public function index(Request $request)
     {
         $perPage = (int)$request->get('per_page', 20);
 
-        $imports = CustomerImport::where('company_id', Auth::user()->company->id)
-            ->orderByDesc('created_at')
-            ->paginate($perPage);
+        $imports = CustomerImport::query()->where('company_id', Auth::user()->company->id)
+            ->orderByDesc('created_at');
 
-        return $imports->appends($request->query());
+        return CustomerImportResource::collection($imports->paginate($perPage));
     }
 
-    /* ---------- 2. Upload ---------- */
     public function store(Request $request): JsonResponse
     {
         $request->validate([
@@ -57,9 +54,12 @@ class CustomerImportController extends Controller
 
         $headings = (new HeadingRowImport)
             ->toArray(Storage::path($stored))[0][0] ?? [];
-        $rowCount = max(0, Excel::toCollection(null, Storage::path($stored))[0]->count() - 1);
+        $rowCount = max(
+            0,
+            Excel::toCollection(null, Storage::path($stored))[0]->count() - 1
+        );
 
-        $import = CustomerImport::create([
+        $import = CustomerImport::query()->create([
             'uuid' => $uuid,
             'company_id' => Auth::user()->company->id,
             'user_id' => Auth::id(),
@@ -69,10 +69,9 @@ class CustomerImportController extends Controller
             'meta' => ['headings' => $headings],
         ]);
 
-        return response()->json($import, 201);
+        return response()->json(new CustomerImportResource($import), 201);
     }
 
-    /* ---------- 3. Kick off queue ---------- */
     public function update(Request $request, CustomerImport $import): JsonResponse
     {
         if ($import->status !== 'draft') {
@@ -96,13 +95,13 @@ class CustomerImportController extends Controller
         return response()->json(['queued' => true]);
     }
 
-    /* ---------- 4. Poll single ---------- */
     public function show(CustomerImport $import): JsonResponse
     {
-        return response()->json($import->loadCount('failures'));
+        return response()->json(
+            new CustomerImportResource($import->loadCount('failures'))
+        );
     }
 
-    /* ---------- 5. Failures CSV ---------- */
     public function downloadFailures(CustomerImport $import)
     {
         $csv = implode(',', ['row_number', 'error']) . "\n";
@@ -112,7 +111,7 @@ class CustomerImportController extends Controller
 
         return response($csv, 200, [
             'Content-Type' => 'text/csv',
-            'Content-Disposition' => "attachment; filename=import_failures_{$import->uuid}.csv",
+            'Content-Disposition' => "attachment; filename=import_failures_$import->uuid.csv",
         ]);
     }
 }

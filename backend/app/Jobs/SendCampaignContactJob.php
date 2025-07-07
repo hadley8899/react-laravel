@@ -1,4 +1,6 @@
 <?php
+// TODO I think this class is dead code, but leaving it here for now
+
 //
 //namespace App\Jobs;
 //

@@ -20,6 +20,7 @@ class CustomersImportJob implements ShouldQueue
 
     public int $timeout = 0;
 
+
     public function __construct(private readonly CustomerImport $import)
     {
     }

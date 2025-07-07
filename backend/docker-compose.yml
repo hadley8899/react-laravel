@@ -27,7 +27,7 @@ services:
             context: ../backend
             dockerfile: docker/Dockerfile
         container_name: laravel_worker
-        command: php artisan queue:work rabbitmq --queue=mail --tries=3
+        command: php artisan queue:work rabbitmq --tries=3
         environment:
             QUEUE_CONNECTION: rabbitmq
             RABBITMQ_HOST: rabbitmq
@@ -37,7 +37,7 @@ services:
             - rabbitmq
         networks: [laravel_net]
 
-    # runs the Laravel scheduler loop (every minute)
+    # runs the Laravel scheduler loop
     scheduler:
         build:
             context: ../backend

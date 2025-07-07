@@ -13,7 +13,7 @@ import {
     downloadImportFailures,
     CustomerImport,
 } from '../services/CustomerImportService';
-import {useNotifier} from '../context/NotificationContext.tsx';
+import {useNotifier} from '../context/NotificationContext';
 
 function statusColor(s: CustomerImport['status']) {
     return (
