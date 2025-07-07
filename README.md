@@ -174,4 +174,12 @@ Mailhog captures all outbound mail in **dev**.
 
 ---
 
+## Using ngrok for mailgun webhooks
+
+To test Mailgun webhooks, you can use [ngrok](https://ngrok.com/) to expose your local server to the internet:
+
+```bash
+ngrok http http://localhost:8080
+```
+
 Happy hacking! 🎉

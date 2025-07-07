@@ -26,7 +26,7 @@ class UpdateCustomerRequest extends FormRequest
             'last_name' => ['sometimes', 'required', 'string', 'max:255'],
             'email' => ['sometimes', 'required', 'email', 'unique:customers,email,' . $this->route('customer')->id],
             'phone' => ['nullable', 'string', 'max:20'],
-            'address' => ['sometimes', 'required', 'string', 'max:255'],
+            'address' => ['sometimes', 'string', 'max:255'],
             'status' => ['sometimes', 'required', 'in:Active,Inactive'],
             'total_spent' => ['sometimes', 'required', 'numeric', 'min:0'],
             'custom_variables' => ['sometimes', 'array'],

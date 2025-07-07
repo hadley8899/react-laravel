@@ -8,4 +8,5 @@ enum CampaignEventType: string
     case Click = 'click';
     case Bounce = 'bounce';
     case Complaint = 'complaint';
+    case Other = 'other';
 }
