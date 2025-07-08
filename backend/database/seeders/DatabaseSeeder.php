@@ -37,7 +37,7 @@ class DatabaseSeeder extends Seeder
         $this->command->info('Seeding the companies');
         Company::factory()->count(10)->create();
 
-        $this->createdFixedUsers();
+        $this->createFixedUsersAndDomains();
 
         $this->command->info('Seeding the make and model data...');
         $this->call([VehicleMakeModelSeeder::class]);
@@ -56,7 +56,7 @@ class DatabaseSeeder extends Seeder
         $this->call([InvoiceSeeder::class]);
     }
 
-    private function createdFixedUsers(): void
+    private function createFixedUsersAndDomains(): void
     {
         $this->command->info('creating the test super admin user...');
         // Create a fixed test user on company 1
@@ -95,6 +95,8 @@ class DatabaseSeeder extends Seeder
         ]);
         $testUser2->assignRole('User');
         $this->command->info('Created test users: ' . $testUser->email . ', ' . $testAdmin->email . ', ' . $testManager->email . ', ' . $testUser2->email);
+
+        $this->command->info('Creating from addresses for company 1...');
     }
 
     /**

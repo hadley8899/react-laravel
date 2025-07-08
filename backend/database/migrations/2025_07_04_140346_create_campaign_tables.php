@@ -54,6 +54,7 @@ return new class extends Migration {
             $table->timestamp('scheduled_at')->nullable();
             $table->timestamp('sent_at')->nullable();
             $table->text('error_message')->nullable();
+            $table->softDeletes();
             $table->timestamps();
         });
 

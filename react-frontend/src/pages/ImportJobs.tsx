@@ -29,7 +29,7 @@ const ImportJobs: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [page, setPage] = useState(0);
-    const [rpp, setRpp] = useState(20);
+    const [rpp, setRpp] = useState(25);
     const [total, setTotal] = useState(0);
 
     const load = async (shLoading = true) => {

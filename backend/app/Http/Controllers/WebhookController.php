@@ -13,7 +13,6 @@ class WebhookController extends Controller
 {
     public function handle(Request $request)
     {
-        /* ── 1.  Verify Mailgun webhook signature ───────────────────────── */
         $timestamp = $request->input('signature.timestamp');
         $token = $request->input('signature.token');
         $signature = $request->input('signature.signature');

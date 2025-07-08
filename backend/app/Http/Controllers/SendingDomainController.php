@@ -13,6 +13,7 @@ use Mailgun\Mailgun;
 use Mailgun\Model\Domain\CreateResponse;
 use Mailgun\Model\Domain\DnsRecord;
 use Mailgun\Model\Domain\ShowResponse;
+use Psr\Http\Client\ClientExceptionInterface;
 use Throwable;
 
 class SendingDomainController extends Controller
@@ -159,6 +160,10 @@ class SendingDomainController extends Controller
         }, $records);
     }
 
+    /**
+     * @throws Throwable
+     * @throws ClientExceptionInterface
+     */
     private function registerMailgunWebhooks(Mailgun $mg, string $domain): void
     {
         $webhookUrl = rtrim(config('app.url'), '/') . '/api/webhooks/mailgun';
@@ -167,7 +172,7 @@ class SendingDomainController extends Controller
             try {
                 $mg->webhooks()->create($domain, $event, [$webhookUrl]);
             } catch (Throwable $e) {
-                if (!str_contains($e->getMessage(), 'Address already exists')) {
+                if (!str_contains($e->getMessage(), 'Webhook already exists')) {
                     throw $e;
                 }
             }

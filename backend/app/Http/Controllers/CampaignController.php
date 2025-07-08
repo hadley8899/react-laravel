@@ -2,23 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\CampaignContactStatus;
-use App\Enums\CampaignStatus;
 use App\Http\Requests\StoreCampaignRequest;
 use App\Http\Resources\CampaignListResource;
 use App\Http\Resources\CampaignResource;
-use App\Jobs\SendCampaignJob;
 use App\Models\Campaign;
-use App\Models\CampaignContact;
-use App\Models\Customer;
-use App\Models\EmailTemplate;
-use App\Models\FromAddress;
-use App\Models\Tag;
-use Carbon\Carbon;
+use App\Services\Campaign\CampaignListService;
+use App\Services\Campaign\CampaignShowService;
+use App\Services\Campaign\CampaignStoreService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Support\Facades\DB;
 
 class CampaignController extends Controller
 {
@@ -30,15 +23,13 @@ class CampaignController extends Controller
         $status  = $request->filled('status') ? $request->string('status') : null;
         $search  = $request->filled('search') ? trim($request->string('search')) : null;
 
-        $page = $company->campaigns()
-            ->when($status,  fn ($q) => $q->where('status', $status))
-            ->when($search,  fn ($q) => $q->where(function ($qq) use ($search) {
-                $qq->where('subject', 'like', "%{$search}%")
-                    ->orWhere('preheader_text', 'like', "%{$search}%");
-            }))
-            ->withCount('contacts')
-            ->orderByDesc('created_at')
-            ->paginate($perPage);
+        $campaignListQuery = CampaignListService::listCampaigns(
+            $company,
+            $status,
+            $search
+        );
+
+        $page = $campaignListQuery->orderByDesc('created_at')->paginate($perPage);
 
         return CampaignListResource::collection($page);
     }
@@ -47,75 +38,41 @@ class CampaignController extends Controller
     {
         abort_if($campaign->company_id !== $request->user()->company_id, 403);
 
-        $campaign->loadCount('contacts')
-            ->load(['emailTemplate', 'fromAddress']);
+        $campaign = CampaignShowService::show($campaign);
 
         return new CampaignResource($campaign);
     }
 
     public function store(StoreCampaignRequest $request): JsonResponse
     {
-        $company  = $request->user()->company;
-        $template = EmailTemplate::whereUuid($request->template_uuid)->firstOrFail();
+        $templateUuId = $request->get('template_uuid');
+        $tagUuIds = $request->get('tag_uuids', []);
+        $fromAddressUuid = $request->get('from_address_uuid');
+        $scheduledAtInput = $request->get('scheduled_at');
+        $subject = $request->string('subject', '');
+        $preheaderText = $request->string('preheader_text', '');
+        $replyTo = $request->string('reply_to', '');
 
-        $tagIds = Tag::whereIn('uuid', $request->tag_uuids)->pluck('id');
-        if ($tagIds->isEmpty()) {
-            return response()->json(['message' => 'At least one tag is required.'], 422);
-        }
-
-        $from = FromAddress::where('uuid', $request->from_address_uuid)
-            ->where('company_id', $company->id)
-            ->where('verified', true)
-            ->firstOrFail();
-
-        /* ---------- schedule ---------- */
-        $scheduledAt = $request->scheduled_at
-            ? Carbon::parse($request->scheduled_at)->timezone('UTC')
-            : null;
-
-        $status = $scheduledAt && $scheduledAt->isFuture()
-            ? CampaignStatus::Scheduled
-            : CampaignStatus::Queued;
-
-        /* ---------- create + snapshot ---------- */
-        $campaign = DB::transaction(function () use (
-            $company, $template, $tagIds, $from, $request, $scheduledAt, $status
-        ) {
-            $campaign = $company->campaigns()->create([
-                'email_template_id' => $template->id,
-                'subject'           => $request->string('subject'),
-                'preheader_text'    => $request->string('preheader_text'),
-                'from_address_id'   => $from->id,
-                'reply_to'          => $request->string('reply_to'),
-                'contact_tag_ids'   => $tagIds,
-                'status'            => $status,
-                'scheduled_at'      => $scheduledAt,
-            ]);
-
-            /* snapshot of recipients */
-            $customerIds = Customer::where('company_id', $company->id)
-                ->whereHas('tags', fn ($q) => $q->whereIn('tags.id', $tagIds))
-                ->pluck('customers.id');
-
-            $payload = $customerIds->map(fn ($cid) => [
-                'uuid'        => CampaignContact::generateUuid(),
-                'campaign_id' => $campaign->id,
-                'customer_id' => $cid,
-                'status'      => CampaignContactStatus::Pending,
-                'created_at'  => now(),
-                'updated_at'  => now(),
-            ])->all();
-
-            CampaignContact::insert($payload);
-
-            return $campaign;
-        });
-
-        /* ---------- enqueue immediately if not future ---------- */
-        if (is_null($campaign->scheduled_at) || !$campaign->scheduled_at->isFuture()) {
-            SendCampaignJob::dispatch($campaign)->onQueue('mail');
-        }
+        $campaignStoreService = new CampaignStoreService();
+        $campaign = $campaignStoreService->storeCampaign(
+            $templateUuId,
+            $tagUuIds,
+            $fromAddressUuid,
+            $subject,
+            $preheaderText,
+            $replyTo,
+            $scheduledAtInput
+        );
 
         return response()->json(['data' => $campaign->loadCount('contacts')], 201);
+    }
+
+    public function destroy(Request $request, Campaign $campaign): JsonResponse
+    {
+        abort_if($campaign->company_id !== $request->user()->company_id, 403);
+
+        $campaign->delete();
+
+        return response()->json(['message' => 'Campaign deleted successfully.'], 204);
     }
 }

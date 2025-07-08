@@ -17,7 +17,7 @@ export interface CustomerImport {
 /* ---------- list ---------- */
 export async function getCustomerImports(
     page = 1,
-    perPage = 20,
+    perPage = 25,
 ): Promise<PaginatedResponse<CustomerImport>> {
     const {data} = await api.get<PaginatedResponse<CustomerImport>>(
         '/customer-imports',

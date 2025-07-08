@@ -203,6 +203,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/', [CampaignController::class, 'store']);
         Route::get('/', [CampaignController::class, 'index']);
         Route::get('/{campaign:uuid}', [CampaignController::class, 'show']);
+        Route::delete('/{campaign:uuid}', [CampaignController::class, 'destroy']);
     });
 
     Route::prefix('/sending-domains')->group(function () {
