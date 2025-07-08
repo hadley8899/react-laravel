@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import MainLayout from '../components/layout/MainLayout';
 import {
     Container, Paper, Box, CircularProgress, Alert, Table,
@@ -32,7 +32,7 @@ const ImportJobs: React.FC = () => {
     const [rpp, setRpp] = useState(25);
     const [total, setTotal] = useState(0);
 
-    const load = async (shLoading = true) => {
+    const load = useCallback(async (shLoading = true) => {
         if (shLoading) setLoading(true);
         setError(null);
         try {
@@ -44,11 +44,11 @@ const ImportJobs: React.FC = () => {
         } finally {
             if (shLoading) setLoading(false);
         }
-    };
+    }, [page, rpp]);
 
     useEffect(() => {
-        load();
-    }, [page, rpp]);
+        void load();
+    }, [page, rpp, load]);
 
     const dlFailures = async (uuid: string) => {
         try {
