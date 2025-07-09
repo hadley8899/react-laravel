@@ -5,7 +5,7 @@ import {
 import {
     CalendarMonth, Dashboard as DashboardIcon, DirectionsCar, ReceiptLong, Settings,
     Shield, PhotoLibrary as PhotoLibraryIcon, Campaign as CampaignIcon,
-    DynamicForm as DynamicFormIcon, EmailOutlined, Person, CloudUpload,
+    DynamicForm as DynamicFormIcon, EmailOutlined, Person,
 } from '@mui/icons-material';
 import React, {useEffect, useState} from 'react';
 import {useLocation, useNavigate} from 'react-router-dom';
@@ -61,7 +61,7 @@ const Sidebar: React.FC<SidebarProps> = ({mobileOpen, handleDrawerToggle}) => {
                 {title: 'Customers', path: '/customers', icon: <PersonIcon/>, permissions: ['view_customers']},
                 {title: 'Contact Fields', path: '/contact-fields', icon: <DynamicFormIcon/>},
                 {title: 'Tags', path: '/tags', icon: <LocalOfferIcon/>},
-                {title: 'Import Jobs', path: '/imports', icon: <CloudUpload/>},                // ★ new
+                // {title: 'Import Jobs', path: '/imports', icon: <CloudUpload/>},  // ★ removed
             ],
         },
         {

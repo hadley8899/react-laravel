@@ -9,13 +9,13 @@ import UploadFileIcon from '@mui/icons-material/UploadFile';
 import {
     uploadCustomerImport,
     startCustomerImport,
-    CustomerImport,
     downloadCustomerImportTemplate,
 } from '../../services/CustomerImportService';
 import ColumnMapperTable from './ColumnMapperTable';
 import TagFilterSelect from '../filters/TagFilterSelect';
 import {Tag} from '../../interfaces/Tag';
 import {useNotifier} from '../../context/NotificationContext.tsx';
+import {CustomerImport} from "../../interfaces/CustomerImport.ts";
 
 const steps = ['Upload', 'Map columns', 'Tags', 'Review'];
 

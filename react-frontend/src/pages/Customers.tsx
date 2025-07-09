@@ -11,6 +11,7 @@ import CustomerFormDialog from '../components/customer/CustomerFormDialog';
 import CustomerPageFilterBar from "../components/customer/CustomerPageFilterBar.tsx";
 import {Tag} from "../interfaces/Tag.ts";
 import ImportCustomersDialog from '../components/customer/ImportCustomersDialog';
+import {useNavigate} from 'react-router-dom';
 
 function useDebounce(value: string, delay: number) {
     const [debouncedValue, setDebouncedValue] = useState(value);
@@ -22,6 +23,7 @@ function useDebounce(value: string, delay: number) {
 }
 
 const Customers: React.FC = () => {
+    const navigate = useNavigate();
     const [customers, setCustomers] = useState<Customer[]>([]);
     const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
     const [showInactive, setShowInactive] = useState(false);
@@ -122,6 +124,9 @@ const Customers: React.FC = () => {
     const openImport = () => setImportOpen(true);
     const closeImport = () => setImportOpen(false);
 
+    /* ───────── import-jobs nav ───────── */   // ★ NEW
+    const openImportJobs = () => navigate('/imports');
+
     return (
         <MainLayout title="Customers">
             <Container maxWidth="lg" sx={{py: 4}}>
@@ -134,6 +139,7 @@ const Customers: React.FC = () => {
                         handleSearchChange={searchChange}
                         handleOpenAddModal={openAdd}
                         handleOpenImportModal={openImport}
+                        handleOpenImportJobs={openImportJobs}     /* ★ NEW */
                         selectedTags={selectedTags}
                         onTagFilterChange={tagFilterChange}
                     />

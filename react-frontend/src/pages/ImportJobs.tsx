@@ -7,13 +7,15 @@ import {
 } from '@mui/material';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import DownloadIcon from '@mui/icons-material/Download';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import {Link as RouterLink} from 'react-router-dom';
 
 import {
     getCustomerImports,
     downloadImportFailures,
-    CustomerImport,
 } from '../services/CustomerImportService';
 import {useNotifier} from '../context/NotificationContext';
+import {CustomerImport} from "../interfaces/CustomerImport.ts";
 
 function statusColor(s: CustomerImport['status']) {
     return (
@@ -89,42 +91,76 @@ const ImportJobs: React.FC = () => {
 
                     {!loading && !error && (
                         <>
-                            <Table size="small">
-                                <TableHead>
-                                    <TableRow>
-                                        <TableCell>File</TableCell>
-                                        <TableCell>Created</TableCell>
-                                        <TableCell>Status</TableCell>
-                                        <TableCell align="right">Imported / Total</TableCell>
-                                        <TableCell align="right">Failed</TableCell>
-                                        <TableCell align="center">Actions</TableCell>
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {rows.map(r => (
-                                        <TableRow key={r.uuid} hover>
-                                            <TableCell>{r.filename}</TableCell>
-                                            <TableCell>{new Date(r.created_at).toLocaleString()}</TableCell>
-                                            <TableCell>
-                                                <Chip label={r.status} size="small" color={statusColor(r.status)}/>
-                                            </TableCell>
-                                            <TableCell align="right">
-                                                {r.imported_rows} / {r.total_rows}
-                                            </TableCell>
-                                            <TableCell align="right">{r.failed_rows}</TableCell>
-                                            <TableCell align="center">
-                                                {r.failed_rows > 0 && (
-                                                    <Tooltip title="Download failures CSV">
-                                                        <IconButton size="small" onClick={() => dlFailures(r.uuid)}>
-                                                            <DownloadIcon fontSize="small"/>
+                            <Box sx={{
+                                width: '100%',
+                                overflowX: 'auto',
+                                // Add horizontal scroll for small screens
+                            }}>
+                                <Table
+                                    size="small"
+                                    sx={{
+                                        minWidth: 600,
+                                        '& th, & td': {
+                                            px: {xs: 1, sm: 2},
+                                            py: {xs: 0.5, sm: 1},
+                                            fontSize: {xs: 13, sm: 15},
+                                        },
+                                    }}
+                                >
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableCell>File</TableCell>
+                                            <TableCell
+                                                sx={{display: {xs: 'none', sm: 'table-cell'}}}>Created</TableCell>
+                                            <TableCell>Status</TableCell>
+                                            <TableCell align="right" sx={{display: {xs: 'none', md: 'table-cell'}}}>Imported
+                                                / Total</TableCell>
+                                            <TableCell align="right"
+                                                       sx={{display: {xs: 'none', md: 'table-cell'}}}>Failed</TableCell>
+                                            <TableCell align="center">Actions</TableCell>
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                        {rows.map(r => (
+                                            <TableRow key={r.uuid} hover>
+                                                <TableCell>
+                                                    {r.filename}
+                                                </TableCell>
+                                                <TableCell sx={{display: {xs: 'none', sm: 'table-cell'}}}>
+                                                    {new Date(r.created_at).toLocaleString()}
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Chip label={r.status} size="small" color={statusColor(r.status)}/>
+                                                </TableCell>
+                                                <TableCell align="right" sx={{display: {xs: 'none', md: 'table-cell'}}}>
+                                                    {r.imported_rows} / {r.total_rows}
+                                                </TableCell>
+                                                <TableCell align="right" sx={{display: {xs: 'none', md: 'table-cell'}}}>
+                                                    {r.failed_rows}
+                                                </TableCell>
+                                                <TableCell align="center">
+                                                    <Tooltip title="View details">
+                                                        <IconButton
+                                                            size="small"
+                                                            component={RouterLink}
+                                                            to={`/imports/${r.uuid}`}
+                                                        >
+                                                            <VisibilityIcon fontSize="small"/>
                                                         </IconButton>
                                                     </Tooltip>
-                                                )}
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
+                                                    {r.failed_rows > 0 && (
+                                                        <Tooltip title="Download failures CSV">
+                                                            <IconButton size="small" onClick={() => dlFailures(r.uuid)}>
+                                                                <DownloadIcon fontSize="small"/>
+                                                            </IconButton>
+                                                        </Tooltip>
+                                                    )}
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </Box>
 
                             <TablePagination
                                 component="div"

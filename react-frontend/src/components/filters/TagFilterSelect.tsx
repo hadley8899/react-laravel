@@ -8,12 +8,14 @@ interface TagFilterSelectProps {
     value: Tag[];
     onChange: (tags: Tag[]) => void;
     disabled?: boolean;
+    sx?: object; // Added sx prop
 }
 
 const TagFilterSelect: React.FC<TagFilterSelectProps> = ({
                                                              value,
                                                              onChange,
                                                              disabled = false,
+                                                             sx = {}, // Default to empty object
                                                          }) => {
     const [options, setOptions] = useState<Tag[]>([]);
     const [loading, setLoading] = useState(false);
@@ -38,7 +40,7 @@ const TagFilterSelect: React.FC<TagFilterSelectProps> = ({
             filterSelectedOptions
             loading={loading}
             disabled={disabled}
-            sx={{ minWidth: 220 }}
+            sx={{minWidth: 220, ...sx}} // Merge default and passed sx
             renderInput={(params) => (
                 <TextField
                     {...params}

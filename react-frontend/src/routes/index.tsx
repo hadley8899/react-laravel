@@ -37,6 +37,7 @@ import Campaigns from '../pages/Campaigns.tsx';
 import CampaignDetail from '../pages/CampaignDetail.tsx';
 import ContactCustomVariables from '../pages/ContactCustomVariables';
 import ImportJobs from '../pages/ImportJobs';                           /* ★ new */
+import ImportJobDetails from '../pages/ImportJobDetails';               /* ★ add */
 
 const AppRoutes: React.FC = () => (
     <Routes>
@@ -73,6 +74,7 @@ const AppRoutes: React.FC = () => (
             <Route path="/tags" element={<TagListPage/>}/>
             <Route path="/media" element={<MediaLibrary/>}/>
             <Route path="/imports" element={<ImportJobs/>}/>
+            <Route path="/imports/:uuid" element={<ImportJobDetails/>}/> {/* ★ add */}
 
             <Route path="/profile" element={<Profile/>}/>
             <Route path="/settings" element={<Settings/>}/>
