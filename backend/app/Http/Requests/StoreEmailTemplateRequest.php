@@ -2,47 +2,38 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreEmailTemplateRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
         return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, ValidationRule|array|string>
-     */
     public function rules(): array
     {
+        $companyId = $this->user()->company_id;
+
         return [
+            'type' => ['required', Rule::in(['builder', 'html'])],
+
+            // Shared
             'name' => [
                 'required',
                 'string',
                 'max:255',
-                'unique:email_templates,name,NULL,id,company_id,' . $this->user()->company_id,
+                Rule::unique('email_templates', 'name')
+                    ->where('company_id', $companyId),
             ],
-            'subject' => [
-                'nullable',
-                'string',
-                'max:255',
-            ],
-            'preview_text' => [
-                'nullable',
-                'string',
-                'max:255',
-            ],
-            'layout_json' => [
-                'required',
-                'array',
-            ],
+            'subject' => ['nullable', 'string', 'max:255'],
+            'preview_text' => ['nullable', 'string', 'max:255'],
+
+            // Builder-only
+            'layout_json' => ['required_if:type,builder', 'array'],
+            // Raw-HTML-only
+            'html_source' => ['required_if:type,html', 'string'],
         ];
     }
 }

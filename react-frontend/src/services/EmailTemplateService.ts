@@ -6,7 +6,7 @@ import {EmailSectionTemplate} from "../interfaces/EmailSectionTemplate.ts";
 
 export type CreateTemplatePayload = Pick<
     EmailTemplate,
-    'name' | 'subject' | 'preview_text' | 'layout_json'
+    'name' | 'subject' | 'preview_text' | 'layout_json' | 'html_source' | 'type'
 >;
 export type UpdateTemplatePayload = Partial<CreateTemplatePayload>;
 
@@ -27,10 +27,11 @@ export async function getTemplate(uuid: string) {
     return data.data;
 }
 
-/** POST /templates */
-export async function createTemplate(p: CreateTemplatePayload) {
-    const {data} = await api.post<{ data: EmailTemplate }>('/templates', p);
-    return data.data;
+export async function createTemplate(
+    payload: Partial<EmailTemplate> & { type: 'builder' | 'html' }
+) {
+    const res = await api.post('/templates', payload);
+    return res.data;
 }
 
 export async function updateTemplate(uuid: string, p: UpdateTemplatePayload) {

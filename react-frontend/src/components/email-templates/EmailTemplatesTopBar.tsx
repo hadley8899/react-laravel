@@ -1,7 +1,10 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {
     Box,
     Button,
+    ButtonGroup,
+    Menu,
+    MenuItem,
     Typography,
     TextField,
     InputAdornment,
@@ -9,6 +12,7 @@ import {
 } from '@mui/material';
 import EmailIcon from '@mui/icons-material/Email';
 import AddIcon from '@mui/icons-material/Add';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import SearchIcon from '@mui/icons-material/Search';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -17,9 +21,12 @@ import { useNotifier } from '../../context/NotificationContext';
 interface Props {
     searchInput: string;
     onSearchChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-    onAdd: () => void;
+
+    /* callbacks renamed */
+    onAddBuilder: () => void;
+    onAddHtml: () => void;
+
     onRefresh: () => void;
-    /* new */
     selectedCount: number;
     onDeleteSelected: () => void;
 }
@@ -27,12 +34,17 @@ interface Props {
 const EmailTemplatesTopBar: React.FC<Props> = ({
                                                    searchInput,
                                                    onSearchChange,
-                                                   onAdd,
+                                                   onAddBuilder,
+                                                   onAddHtml,
                                                    onRefresh,
                                                    selectedCount,
                                                    onDeleteSelected,
                                                }) => {
     const { showNotification } = useNotifier();
+
+    /* split-button menu */
+    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+    const open = Boolean(anchorEl);
 
     return (
         <Box
@@ -49,7 +61,6 @@ const EmailTemplatesTopBar: React.FC<Props> = ({
                 <EmailIcon sx={{ mr: 1.5, color: 'primary.main' }} />
                 Email Templates
             </Typography>
-
             <Box
                 sx={{
                     display: 'flex',
@@ -96,15 +107,48 @@ const EmailTemplatesTopBar: React.FC<Props> = ({
                     </Tooltip>
                 )}
 
-                <Button
+                {/* --- Split “New” button --- */}
+                <ButtonGroup
                     variant="contained"
-                    size="medium"
-                    startIcon={<AddIcon />}
-                    onClick={onAdd}
-                    sx={{ borderRadius: 2, whiteSpace: 'nowrap', width: { xs: '100%', sm: 'auto' } }}
+                    sx={{borderRadius: 2, width: {xs: '100%', sm: 'auto'}}}
                 >
-                    New Template
-                </Button>
+                    <Button
+                        startIcon={<AddIcon/>}
+                        onClick={onAddBuilder}
+                        sx={{whiteSpace: 'nowrap', flexGrow: 1}}
+                    >
+                        Visual Builder
+                    </Button>
+                    <Button
+                        aria-label="select import type"
+                        aria-controls={open ? 'split-menu' : undefined}
+                        aria-haspopup="true"
+                        aria-expanded={open ? 'true' : undefined}
+                        onClick={e => setAnchorEl(e.currentTarget)}
+                        sx={{px: 1}}
+                    >
+                        <KeyboardArrowDownIcon/>
+                    </Button>
+                </ButtonGroup>
+
+                <Menu
+                    id="split-menu"
+                    anchorEl={anchorEl}
+                    open={open}
+                    onClose={() => setAnchorEl(null)}
+                    slotProps={{
+                        list: {dense: true}
+                    }}
+                >
+                    <MenuItem
+                        onClick={() => {
+                            onAddHtml();
+                            setAnchorEl(null);
+                        }}
+                    >
+                        Import Raw&nbsp;HTML
+                    </MenuItem>
+                </Menu>
 
                 <Button
                     variant="outlined"

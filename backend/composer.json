@@ -12,6 +12,7 @@
         "php": "^8.4",
         "ext-pdo": "*",
         "barryvdh/laravel-dompdf": "^3.1",
+        "html2text/html2text": "^4.3",
         "intervention/image": "^3.11",
         "laravel/fortify": "^1.25",
         "laravel/framework": "^12.0",
@@ -20,6 +21,7 @@
         "maatwebsite/excel": "^3.1",
         "mailgun/mailgun-php": "^4.3",
         "spatie/laravel-permission": "^6.16",
+        "tijsverkoyen/css-to-inline-styles": "^v2.3.0",
         "vladimir-yuldashev/laravel-queue-rabbitmq": "^14.2"
     },
     "require-dev": {

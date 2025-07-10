@@ -19,6 +19,9 @@ class DispatchDueCampaigns extends Command
         $chunk = (int)$this->option('chunk');
         $sent = 0;
 
+        echo "Dispatching due campaigns...\n";
+        $this->info("Current time: $now");
+
         Campaign::query()->where('status', CampaignStatus::Scheduled)
             ->where('scheduled_at', '<=', $now)
             ->chunkById($chunk, function ($campaigns) use (&$sent) {

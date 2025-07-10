@@ -13,10 +13,12 @@ class EmailTemplate extends Model
 
     protected $fillable = [
         'company_id',
+        'type',
         'name',
         'subject',
         'preview_text',
         'layout_json',
+        'html_source',
         'html_cached',
         'text_cached',
         'created_by',

@@ -18,13 +18,14 @@ import {
     Dialog,
     DialogTitle,
     DialogContent,
+    Chip,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SendIcon from '@mui/icons-material/Send';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import {EmailTemplate} from '../../interfaces/EmailTemplate';
-import {useNavigate} from "react-router-dom";
+import {useNavigate} from 'react-router-dom';
 import {previewTemplate} from '../../services/EmailTemplateService';
 
 interface Props {
@@ -57,10 +58,8 @@ const EmailTemplatesTable: React.FC<Props> = ({
                                                   onDelete,
                                               }) => {
     const isSelected = (uuid: string) => selected.includes(uuid);
-
     const navigate = useNavigate();
 
-    // Preview dialog state
     const [previewHtml, setPreviewHtml] = useState<string | null>(null);
     const [previewLoading, setPreviewLoading] = useState(false);
 
@@ -76,13 +75,12 @@ const EmailTemplatesTable: React.FC<Props> = ({
         }
     };
 
-    if (loading) {
+    if (loading)
         return (
             <Box sx={{display: 'flex', justifyContent: 'center', py: 6}}>
                 <CircularProgress/>
             </Box>
         );
-    }
 
     if (error) return <Alert severity="error">{error}</Alert>;
 
@@ -107,6 +105,7 @@ const EmailTemplatesTable: React.FC<Props> = ({
                                     />
                                 </TableCell>
                                 <TableCell><strong>Name</strong></TableCell>
+                                <TableCell><strong>Type</strong></TableCell> {/* NEW */}
                                 <TableCell><strong>Subject</strong></TableCell>
                                 <TableCell><strong>Preview Text</strong></TableCell>
                                 <TableCell><strong>Updated</strong></TableCell>
@@ -117,18 +116,25 @@ const EmailTemplatesTable: React.FC<Props> = ({
                             {templates.map(tpl => {
                                 const sel = isSelected(tpl.uuid);
                                 return (
-                                    <TableRow
-                                        hover
-                                        key={tpl.uuid}
-                                        selected={sel}
-                                        sx={{cursor: 'pointer'}}
-                                    >
+                                    <TableRow hover key={tpl.uuid} selected={sel} sx={{cursor: 'pointer'}}>
                                         <TableCell padding="checkbox" onClick={() => onRowClick(tpl.uuid)}>
                                             <Checkbox checked={sel}/>
                                         </TableCell>
+
                                         <TableCell sx={{fontWeight: 500}} onClick={() => onRowClick(tpl.uuid)}>
                                             {tpl.name}
                                         </TableCell>
+
+                                        {/* Type badge */}
+                                        <TableCell onClick={() => onRowClick(tpl.uuid)}>
+                                            <Chip
+                                                label={tpl.type === 'html' ? 'HTML' : 'Builder'}
+                                                size="small"
+                                                color={tpl.type === 'html' ? 'secondary' : 'primary'}
+                                                sx={{fontWeight: 600}}
+                                            />
+                                        </TableCell>
+
                                         <TableCell onClick={() => onRowClick(tpl.uuid)}>
                                             {tpl.subject ?? '—'}
                                         </TableCell>
@@ -143,7 +149,13 @@ const EmailTemplatesTable: React.FC<Props> = ({
                                                 <Tooltip title="Edit">
                                                     <IconButton
                                                         size="small"
-                                                        onClick={() => navigate(`/email-templates/editor/${tpl.uuid}`)}
+                                                        onClick={() =>
+                                                            navigate(
+                                                                tpl.type === 'html'
+                                                                    ? `/email-templates/import/${tpl.uuid}`
+                                                                    : `/email-templates/editor/${tpl.uuid}`
+                                                            )
+                                                        }
                                                     >
                                                         <EditIcon/>
                                                     </IconButton>
@@ -190,13 +202,9 @@ const EmailTemplatesTable: React.FC<Props> = ({
                             })}
                         </TableBody>
                     </Table>
+
                     {/* Preview Dialog */}
-                    <Dialog
-                        open={!!previewHtml}
-                        onClose={() => setPreviewHtml(null)}
-                        maxWidth="md"
-                        fullWidth
-                    >
+                    <Dialog open={!!previewHtml} onClose={() => setPreviewHtml(null)} maxWidth="md" fullWidth>
                         <DialogTitle>Template Preview</DialogTitle>
                         <DialogContent dividers sx={{p: 0}}>
                             {previewLoading ? (
@@ -214,6 +222,7 @@ const EmailTemplatesTable: React.FC<Props> = ({
                             )}
                         </DialogContent>
                     </Dialog>
+
                     <Box sx={{px: 2, pb: 2}}>
                         <TablePagination
                             rowsPerPageOptions={[5, 10, 25]}

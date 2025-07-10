@@ -104,9 +104,9 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::prefix('/customer-imports')->middleware('auth:sanctum')->group(function () {
-        Route::get('/template', [CustomerImportController::class, 'template']);   // ✅ first
+        Route::get('/template', [CustomerImportController::class, 'template']);
 
-        Route::get('/', [CustomerImportController::class, 'index']);          // ✅ list
+        Route::get('/', [CustomerImportController::class, 'index']);
         Route::post('/', [CustomerImportController::class, 'store']);
 
         Route::patch('/{import:uuid}', [CustomerImportController::class, 'update'])->whereUuid('import');

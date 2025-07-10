@@ -43,8 +43,6 @@ class VariableInterpolator
             }
         }
 
-        Log::info('Variable map created', ['map' => $map]);
-
         return preg_replace_callback(
             '/\{\{\s*([A-Z0-9._]+)\s*}}/',
             static fn($m) => $map[$m[1]] ?? $m[0],

@@ -5,9 +5,9 @@ import ProtectedRoute from '../components/ProtectedRoute';
 /* Public */
 import Login from '../pages/Login';
 import Register from '../pages/Register';
-import ForgotPassword from '../pages/ForgotPassword.tsx';
+import ForgotPassword from '../pages/ForgotPassword';
 import ResetPassword from '../pages/ResetPassword';
-import AcceptInvitation from '../pages/AcceptInvitation.tsx';
+import AcceptInvitation from '../pages/AcceptInvitation';
 
 /* Protected */
 import Dashboard from '../pages/Dashboard';
@@ -18,26 +18,27 @@ import InvoiceDetails from '../pages/InvoiceDetails';
 import Appointments from '../pages/Appointments';
 import Profile from '../pages/Profile';
 import Settings from '../pages/Settings';
-import CustomerDetails from '../pages/CustomerDetails.tsx';
-import InvoiceCreate from '../pages/InvoiceCreate.tsx';
-import InvoiceEdit from '../pages/InvoiceEdit.tsx';
-import AppointmentCreate from '../pages/AppointmentCreate.tsx';
-import AppointmentDetails from '../pages/AppointmentDetails.tsx';
-import AppointmentEdit from '../pages/AppointmentEdit.tsx';
-import UserManagement from '../pages/UserManagement.tsx';
-import VehicleDetails from '../pages/VehicleDetails.tsx';
-import CompanySetupWizard from '../pages/CompanySetupWizard.tsx';
-import Admin from '../pages/Admin.tsx';
-import TagListPage from '../pages/tags/TagListPage.tsx';
-import MediaLibrary from '../pages/MediaLibrary.tsx';
-import EmailTemplates from '../pages/EmailTemplates.tsx';
-import Editor from '../pages/Editor.tsx';
-import EmailTemplateSend from '../pages/EmailTemplateSend.tsx';
-import Campaigns from '../pages/Campaigns.tsx';
-import CampaignDetail from '../pages/CampaignDetail.tsx';
+import CustomerDetails from '../pages/CustomerDetails';
+import InvoiceCreate from '../pages/InvoiceCreate';
+import InvoiceEdit from '../pages/InvoiceEdit';
+import AppointmentCreate from '../pages/AppointmentCreate';
+import AppointmentDetails from '../pages/AppointmentDetails';
+import AppointmentEdit from '../pages/AppointmentEdit';
+import UserManagement from '../pages/UserManagement';
+import VehicleDetails from '../pages/VehicleDetails';
+import CompanySetupWizard from '../pages/CompanySetupWizard';
+import Admin from '../pages/Admin';
+import TagListPage from '../pages/tags/TagListPage';
+import MediaLibrary from '../pages/MediaLibrary';
+import Editor from '../pages/Editor';
+import EmailTemplateSend from '../pages/EmailTemplateSend';
+import Campaigns from '../pages/Campaigns';
+import CampaignDetail from '../pages/CampaignDetail';
 import ContactCustomVariables from '../pages/ContactCustomVariables';
-import ImportJobs from '../pages/ImportJobs';                           /* ★ new */
-import ImportJobDetails from '../pages/ImportJobDetails';               /* ★ add */
+import ImportJobs from '../pages/ImportJobs';
+import ImportJobDetails from '../pages/ImportJobDetails';
+import EmailTemplatesPage from "../pages/EmailTemplatesPage";
+import EmailTemplateImportPage from "../pages/EmailTemplateImportPage.tsx";
 
 const AppRoutes: React.FC = () => (
     <Routes>
@@ -84,7 +85,9 @@ const AppRoutes: React.FC = () => (
             <Route path="/campaigns" element={<Campaigns/>}/>
             <Route path="/campaigns/:uuid" element={<CampaignDetail/>}/>
 
-            <Route path="/email-templates" element={<EmailTemplates/>}/>
+            <Route path="/email-templates" element={<EmailTemplatesPage/>}/>
+            <Route path="/email-templates/import" element={<EmailTemplateImportPage/>}/>
+            <Route path="/email-templates/import/:uuid" element={<EmailTemplateImportPage/>}/>
             <Route path="/email-templates/editor" element={<Editor/>}/>
             <Route path="/email-templates/editor/:uuid" element={<Editor/>}/>
             <Route path="/email-templates/send/:uuid" element={<EmailTemplateSend/>}/>

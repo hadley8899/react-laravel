@@ -8,6 +8,7 @@ use App\Models\Campaign;
 use App\Services\Email\EmailDispatcher;
 use App\Services\EmailTemplate\LayoutRenderer;
 use App\Services\EmailTemplate\MjmlCompiler;
+use App\Services\EmailTemplate\HtmlCompiler;
 use App\Services\EmailTemplate\VariableInterpolator;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -27,7 +28,13 @@ class SendCampaignJob implements ShouldQueue
     {
     }
 
-    public function handle(EmailDispatcher $mailer): void
+    public function handle(
+        EmailDispatcher      $mailer,
+        LayoutRenderer       $renderer,
+        MjmlCompiler         $mjml,
+        HtmlCompiler         $htmlCompiler,
+        VariableInterpolator $vars
+    ): void
     {
         if ($this->campaign->status !== CampaignStatus::Queued) {
             return;
@@ -39,18 +46,17 @@ class SendCampaignJob implements ShouldQueue
         $template = $this->campaign->emailTemplate;
 
         if (empty($template->html_cached) || empty($template->text_cached)) {
-            ['html' => $html, 'text' => $text] = app(MjmlCompiler::class)->compile(
-                app(LayoutRenderer::class)->toMjml($template->layout_json)
-            );
+            ['html' => $html, 'text' => $text] = $template->type === 'builder'
+                ? $mjml->compile($renderer->toMjml($template->layout_json))
+                : $htmlCompiler->compile($template->html_source);
+
             $template->update(['html_cached' => $html, 'text_cached' => $text]);
         }
 
         /* -----------------------------------------------------------
          | 2. Generate campaign-level content
          |----------------------------------------------------------- */
-        $vars = app(VariableInterpolator::class);
         $company = $this->campaign->company;
-
         $htmlBase = $vars->interpolate($template->html_cached, $company);
         $textBase = $vars->interpolate($template->text_cached, $company);
         $subjectBase = $vars->interpolate($this->campaign->subject, $company);
@@ -68,13 +74,13 @@ class SendCampaignJob implements ShouldQueue
             ->get();
 
         foreach ($contacts as $contact) {
-            // create fresh, contact-specific versions
+            // contact-specific interpolation
             $html = $vars->interpolate($htmlBase, null, $contact->customer);
             $text = $vars->interpolate($textBase, null, $contact->customer);
             $subject = $vars->interpolate($subjectBase, null, $contact->customer);
 
             try {
-                // Just before we send the email, Get rid of any remaining tags e.g {{TEST}}
+                /* strip any leftover tags like {{name}} */
                 $html = preg_replace('/\{\{.*?}}/', '', $html);
                 $text = preg_replace('/\{\{.*?}}/', '', $text);
 

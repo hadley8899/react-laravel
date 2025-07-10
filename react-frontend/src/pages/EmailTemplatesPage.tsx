@@ -95,13 +95,13 @@ const EmailTemplatesPage: React.FC = () => {
                     setSearch(e.target.value);
                     setPage(0);
                 }}
-                onAdd={() => navigate('/email-templates/editor')}
+                /* NEW callbacks */
+                onAddBuilder={() => navigate('/email-templates/editor')}
+                onAddHtml={() => navigate('/email-templates/import')}
                 onRefresh={fetch}
                 selectedCount={selected.length}
                 onDeleteSelected={() => {
-                    const uuids = templates
-                        .filter(t => selected.includes(t.uuid))
-                        .map(t => t.uuid);
+                    const uuids = templates.filter(t => selected.includes(t.uuid)).map(t => t.uuid);
                     openDeleteDialog(uuids);
                 }}
             />
@@ -137,12 +137,7 @@ const EmailTemplatesPage: React.FC = () => {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={() => setConfirmOpen(false)}>Cancel</Button>
-                    <Button
-                        color="error"
-                        onClick={confirmDelete}
-                        disabled={pending}
-                        autoFocus
-                    >
+                    <Button color="error" onClick={confirmDelete} disabled={pending} autoFocus>
                         {pending ? <CircularProgress size={24}/> : 'Delete'}
                     </Button>
                 </DialogActions>

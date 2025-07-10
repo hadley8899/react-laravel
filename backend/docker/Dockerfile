@@ -18,10 +18,11 @@ RUN apt-get update \
       pdo_mysql \
       zip \
       gd \
+      sockets \
  && pecl install memcached xdebug \
  && docker-php-ext-enable memcached xdebug
 
-RUN echo "upload_max_filesize = 100M\npost_max_size = 100M" > /usr/local/etc/php/conf.d/uploads.ini
+RUN echo "upload_max_filesize = 100M\post_max_size = 100M" > /usr/local/etc/php/conf.d/uploads.ini
 
 RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
  && apt-get install -y nodejs \

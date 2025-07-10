@@ -216,6 +216,7 @@ const EmailEditor: React.FC<Props> = ({templateUuid}) => {
                 subject: subject || null,
                 preview_text: preview || null,
                 layout_json: emailSections,
+                type: 'builder' as const,
             };
 
             let tpl;
