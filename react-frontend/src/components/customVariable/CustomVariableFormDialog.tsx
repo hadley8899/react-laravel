@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {
     Dialog, DialogTitle, DialogContent, DialogActions,
-    Button, TextField, MenuItem, Stack,
+    Button, TextField, Stack,
 } from '@mui/material';
 import {ContactCustomVariable} from '../../interfaces/ContactCustomVariable';
 import {useNotifier} from '../../context/NotificationContext';
@@ -74,15 +74,6 @@ const CustomVariableFormDialog: React.FC<Props> = ({
                         helperText="UPPER_SNAKE_CASE. Will be prefixed with CUSTOMER."
                         required
                     />
-                    <TextField
-                        select
-                        label="Type"
-                        value={type}
-                        onChange={(e) => setType(e.target.value as 'text' | 'image')}
-                    >
-                        <MenuItem value="text">Text</MenuItem>
-                        <MenuItem value="image">Image (URL or uploaded path)</MenuItem>
-                    </TextField>
                 </Stack>
             </DialogContent>
             <DialogActions>

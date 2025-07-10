@@ -18,7 +18,6 @@ const CustomVariableTable: React.FC<Props> = ({variables, onEdit, onDelete}) => 
             <TableRow>
                 <TableCell>Name</TableCell>
                 <TableCell>Merge-Tag</TableCell>
-                <TableCell>Type</TableCell>
                 <TableCell sx={{width: 90}}/>
             </TableRow>
         </TableHead>
@@ -36,7 +35,6 @@ const CustomVariableTable: React.FC<Props> = ({variables, onEdit, onDelete}) => 
                 <TableRow key={v.uuid}>
                     <TableCell>{v.friendly_name}</TableCell>
                     <TableCell><code>{`{{ ${v.key} }}`}</code></TableCell>
-                    <TableCell>{v.type}</TableCell>
                     <TableCell>
                         <Tooltip title="Edit">
                             <IconButton size="small" onClick={() => onEdit(v)}>
